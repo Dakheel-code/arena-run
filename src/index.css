@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --tc: 245 158 11;
+  --tc-light: 251 191 36;
+}
+
+body {
+  @apply bg-discord-darker text-white min-h-screen;
+}
+
+.btn-discord {
+  background-color: rgb(var(--tc)) !important;
+  @apply hover:bg-opacity-80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center gap-2 justify-center;
+}
+
+.card {
+  @apply bg-discord-dark rounded-xl p-6 shadow-lg;
+}
+
+.input-field {
+  @apply bg-discord-darker border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-amber-500 focus:outline-none transition-colors;
+}
+
+.btn-primary {
+  @apply bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-200;
+}
+
+/* ========== DYNAMIC THEME SYSTEM ========== */
+/* Theme Colors - Applied via data-theme attribute on html element */
+[data-theme="amber"] { --tc: 245 158 11; --tc-light: 251 191 36; }
+[data-theme="blue"] { --tc: 59 130 246; --tc-light: 96 165 250; }
+[data-theme="green"] { --tc: 34 197 94; --tc-light: 74 222 128; }
+[data-theme="purple"] { --tc: 168 85 247; --tc-light: 192 132 252; }
+[data-theme="red"] { --tc: 239 68 68; --tc-light: 248 113 113; }
+[data-theme="pink"] { --tc: 236 72 153; --tc-light: 244 114 182; }
+[data-theme="cyan"] { --tc: 6 182 212; --tc-light: 34 211 238; }
+
+/* Dynamic theme classes - MUST be after @tailwind utilities */
+.text-theme-light { color: rgb(var(--tc-light)) !important; }
+.bg-theme { background-color: rgb(var(--tc)) !important; }
+.bg-theme\/20 { background-color: rgb(var(--tc) / 0.2) !important; }
+.bg-theme\/30 { background-color: rgb(var(--tc) / 0.3) !important; }
+.bg-theme\/90 { background-color: rgb(var(--tc) / 0.9) !important; }
+.border-theme { border-color: rgb(var(--tc)) !important; }
+.border-theme\/30 { border-color: rgb(var(--tc) / 0.3) !important; }
+.hover\:text-theme-light:hover { color: rgb(var(--tc-light)) !important; }
+.hover\:bg-theme\/30:hover { background-color: rgb(var(--tc) / 0.3) !important; }
