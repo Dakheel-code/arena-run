@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { Upload, Loader, ArrowLeft, Play } from 'lucide-react'
 import * as tus from 'tus-js-client'
+import { getVideoMetadata, formatFileSize } from '../utils/videoCompression'
 
 export function NewRunPage() {
   const navigate = useNavigate()
@@ -28,6 +29,8 @@ export function NewRunPage() {
   const [uploadSpeed, setUploadSpeed] = useState(0)
   const [timeRemaining, setTimeRemaining] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [videoMetadata, setVideoMetadata] = useState<{ duration: number; width: number; height: number } | null>(null)
+  const [isLoadingMetadata, setIsLoadingMetadata] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadStartTime = useRef<number>(0)
   const lastBytesUploaded = useRef<number>(0)
@@ -47,6 +50,20 @@ export function NewRunPage() {
   }
 
   const generatedTitle = generateTitle()
+
+  const handleFileSelect = async (file: File) => {
+    setSelectedFile(file)
+    setIsLoadingMetadata(true)
+    
+    try {
+      const metadata = await getVideoMetadata(file)
+      setVideoMetadata(metadata)
+    } catch (error) {
+      console.error('Failed to load video metadata:', error)
+    } finally {
+      setIsLoadingMetadata(false)
+    }
+  }
 
   const handleUpload = async () => {
     if (!selectedFile || !uploadData.season || !uploadData.day) return

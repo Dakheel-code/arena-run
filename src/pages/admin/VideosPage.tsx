@@ -5,6 +5,7 @@ import { useLanguage } from '../../context/LanguageContext'
 import { Video, Member } from '../../types'
 import { Plus, Trash2, Eye, EyeOff, Loader, Upload, X, Edit } from 'lucide-react'
 import * as tus from 'tus-js-client'
+import { getVideoMetadata, formatFileSize } from '../../utils/videoCompression'
 
 function getThumbnailUrl(streamUid: string): string {
   return `https://customer-f13bd0opbb08xh8b.cloudflarestream.com/${streamUid}/thumbnails/thumbnail.jpg?time=10s&width=320`
@@ -32,7 +33,14 @@ export function VideosPage() {
   })
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadSpeed, setUploadSpeed] = useState(0)
+  const [timeRemaining, setTimeRemaining] = useState('')
+  const [videoMetadata, setVideoMetadata] = useState<{ duration: number; width: number; height: number } | null>(null)
+  const [isLoadingMetadata, setIsLoadingMetadata] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const uploadStartTime = useRef<number>(0)
+  const lastBytesUploaded = useRef<number>(0)
+  const lastUpdateTime = useRef<number>(0)
 
   useEffect(() => {
     fetchVideos()
@@ -59,12 +67,30 @@ export function VideosPage() {
     }
   }
 
+  const handleFileSelect = async (file: File) => {
+    setIsLoadingMetadata(true)
+    
+    try {
+      const metadata = await getVideoMetadata(file)
+      setVideoMetadata(metadata)
+    } catch (error) {
+      console.error('Failed to load video metadata:', error)
+    } finally {
+      setIsLoadingMetadata(false)
+    }
+  }
+
   const handleUpload = async () => {
     const file = fileInputRef.current?.files?.[0]
     if (!file || !uploadData.title) return
 
     setIsUploading(true)
     setUploadProgress(0)
+    setUploadSpeed(0)
+    setTimeRemaining('')
+    uploadStartTime.current = Date.now()
+    lastBytesUploaded.current = 0
+    lastUpdateTime.current = Date.now()
 
     try {
       const { uploadUrl } = await api.createVideo({
