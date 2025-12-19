@@ -12,7 +12,7 @@ export function FloatingNewRunButton() {
   return (
     <button
       onClick={() => navigate('/new-run')}
-      className="fixed bottom-6 left-6 z-40 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold px-4 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 group animate-fade-in"
+      className="fixed bottom-20 md:bottom-6 left-6 z-40 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold px-4 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 group animate-fade-in"
       style={{
         animation: 'fadeIn 0.3s ease-in-out'
       }}
