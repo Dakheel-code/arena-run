@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Play, Clock, ThumbsUp, User } from 'lucide-react'
 import { Video } from '../types'
+import { LazyImage } from './LazyImage'
 
 const triggerHapticFeedback = () => {
   if ('vibrate' in navigator) {
@@ -42,13 +43,12 @@ export function VideoCard({ video }: VideoCardProps) {
       {/* Thumbnail */}
       <div className="relative aspect-video bg-discord-darker overflow-hidden">
         {thumbnailUrl ? (
-          <img
+          <LazyImage
             src={thumbnailUrl}
             alt={video.title}
-            loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none'
+            className="w-full h-full"
+            onError={() => {
+              // Fallback handled by LazyImage
             }}
           />
         ) : (
