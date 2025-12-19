@@ -487,7 +487,7 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
         className="absolute pointer-events-none select-none transition-all duration-1000 ease-in-out"
         style={{
           left: isFullscreen 
-            ? `${watermarkPosition.x}%`
+            ? `${5 + watermarkPosition.x * 0.85}%`
             : `${35 + watermarkPosition.x * 0.30}%`,
           top: `${5 + watermarkPosition.y * 0.85}%`,
           opacity: 0.5,
