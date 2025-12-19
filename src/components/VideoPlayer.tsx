@@ -38,8 +38,11 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   const [isPiPSupported, setIsPiPSupported] = useState(false)
   const [playbackRate, setPlaybackRate] = useState(1)
   const [showSpeedMenu, setShowSpeedMenu] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
   const watchTimeRef = useRef(0)
   const lastUpdateRef = useRef(0)
+  const progressBarRef = useRef<HTMLDivElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const lastTapRef = useRef(0)
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 })
@@ -336,6 +339,23 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
     video.currentTime = Math.max(0, Math.min(video.currentTime + seconds, video.duration))
   }
 
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const progressBar = progressBarRef.current
+    const video = videoRef.current
+    if (!progressBar || !video) return
+    
+    const rect = progressBar.getBoundingClientRect()
+    const pos = (e.clientX - rect.left) / rect.width
+    video.currentTime = pos * video.duration
+  }
+
+  const formatTime = (seconds: number): string => {
+    if (!seconds || isNaN(seconds)) return '0:00'
+    const mins = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
   // Touch gestures handler
   const handleTouchStart = (e: React.TouchEvent) => {
     const touch = e.touches[0]
@@ -416,6 +436,14 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
           setVolume(video.volume)
           setIsMuted(video.muted)
         }}
+        onTimeUpdate={(e) => {
+          const video = e.currentTarget
+          setCurrentTime(video.currentTime)
+        }}
+        onLoadedMetadata={(e) => {
+          const video = e.currentTarget
+          setDuration(video.duration)
+        }}
         preload="metadata"
       />
 
@@ -438,7 +466,30 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
           </button>
 
           {/* Bottom Controls */}
-          <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+          <div className="absolute bottom-0 left-0 right-0">
+            {/* Progress Bar */}
+            <div className="px-3 sm:px-4 pb-2">
+              <div 
+                ref={progressBarRef}
+                onClick={handleProgressClick}
+                className="relative h-1 bg-gray-600 rounded-full cursor-pointer hover:h-1.5 transition-all group"
+              >
+                <div 
+                  className="absolute h-full bg-theme rounded-full"
+                  style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+                />
+                <div 
+                  className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ left: `${duration ? (currentTime / duration) * 100 : 0}%`, transform: 'translate(-50%, -50%)' }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-white mt-1">
+                <span>{formatTime(currentTime)}</span>
+                <span>{formatTime(duration)}</span>
+              </div>
+            </div>
+
+            <div className="px-3 sm:px-4 pb-3 flex items-center gap-2 sm:gap-3">
             {/* Play/Pause */}
             <button
               onClick={togglePlayPause}
@@ -518,6 +569,7 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
                 <Maximize size={20} className="text-white" />
               )}
             </button>
+            </div>
           </div>
         </div>
       )}
