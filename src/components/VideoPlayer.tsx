@@ -526,9 +526,9 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
       <div
         className="absolute pointer-events-none select-none transition-all duration-1000 ease-in-out"
         style={{
-          left: isFullscreen 
-            ? `${5 + watermarkPosition.x * 0.85}%`
-            : `${35 + watermarkPosition.x * 0.30}%`,
+          // For portrait videos (9:16), video takes ~35% of container width, centered
+          // So watermark should be constrained to 32.5% to 67.5% horizontally
+          left: `${32.5 + watermarkPosition.x * 0.30}%`,
           top: `${5 + watermarkPosition.y * 0.85}%`,
           opacity: 0.6,
           fontSize: isFullscreen 
