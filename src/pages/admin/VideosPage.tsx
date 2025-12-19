@@ -59,16 +59,31 @@ export function VideosPage() {
     }
   }
 
+  // Generate title automatically like NewRunPage
+  const generateTitle = () => {
+    const uploaderName = user?.username || user?.game_id || 'Admin'
+    const season = uploadData.season ? `S${uploadData.season.replace(/[^0-9]/g, '')}` : ''
+    const day = uploadData.day ? `DAY ${uploadData.day.replace(/[^0-9]/g, '')}` : ''
+    
+    const parts = [uploaderName]
+    if (season) parts.push(season)
+    if (day) parts.push(day)
+    
+    return parts.join(' - ')
+  }
+
   const handleUpload = async () => {
     const file = fileInputRef.current?.files?.[0]
-    if (!file || !uploadData.title) return
+    if (!file || !uploadData.season || !uploadData.day) return
+
+    const generatedTitle = generateTitle()
 
     setIsUploading(true)
     setUploadProgress(0)
 
     try {
       const { uploadUrl } = await api.createVideo({
-        title: uploadData.title,
+        title: generatedTitle,
         description: uploadData.description,
         season: uploadData.season,
         day: uploadData.day,
@@ -527,16 +542,13 @@ export function VideosPage() {
             </div>
 
             <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">{t('videoTitle')} *</label>
-                <input
-                  type="text"
-                  value={uploadData.title}
-                  onChange={(e) => setUploadData((d) => ({ ...d, title: e.target.value }))}
-                  className="input-field w-full"
-                  placeholder={t('enterVideoTitle')}
-                />
-              </div>
+              {/* Auto-generated title preview */}
+              {uploadData.season && uploadData.day && (
+                <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
+                  <label className="block text-xs text-gray-500 mb-1">Generated Title</label>
+                  <p className="text-sm font-medium text-theme-light">{generateTitle()}</p>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
