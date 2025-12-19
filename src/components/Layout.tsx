@@ -49,60 +49,29 @@ export function Layout({ children }: LayoutProps) {
     { path: '/admin/settings', icon: Settings, label: t('settings') },
   ]
 
-  const quickNavItems = [
-    { path: '/', icon: Home, label: t('home') },
-    { path: '/new-run', icon: Plus, label: t('newRun') },
-    ...(user?.is_admin ? [
-      { path: '/admin', icon: Shield, label: t('dashboard') },
-      { path: '/admin/videos', icon: Video, label: t('videos') },
-    ] : [])
-  ]
 
   return (
     <div className="min-h-screen flex">
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-discord-dark/95 backdrop-blur-lg border-b border-gray-700">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <Link 
-            to="/" 
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            <img 
-              src="https://regulators.us/logo.png" 
-              alt="Logo" 
-              className="w-8 h-8 object-contain"
-            />
-            <h1 className="text-sm font-bold text-theme-light">{settings.siteName}</h1>
-          </Link>
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 text-gray-300 hover:text-white transition-colors"
-          >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-        
-        {/* Quick Navigation Bar */}
-        <div className="px-2 pb-2 flex items-center gap-1 overflow-x-auto scrollbar-hide">
-          {quickNavItems.map((item) => {
-            const isCurrentPath = location.pathname === item.path
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                  isCurrentPath
-                    ? 'bg-theme text-white shadow-lg shadow-theme/30'
-                    : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700 active:scale-95'
-                }`}
-              >
-                <item.icon size={14} strokeWidth={isCurrentPath ? 2.5 : 2} />
-                <span>{item.label}</span>
-              </Link>
-            )
-          })}
-        </div>
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-discord-dark/95 backdrop-blur-lg border-b border-gray-700 px-4 py-3 flex items-center justify-between">
+        <Link 
+          to="/" 
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          <img 
+            src="https://regulators.us/logo.png" 
+            alt="Logo" 
+            className="w-8 h-8 object-contain"
+          />
+          <h1 className="text-sm font-bold text-theme-light">{settings.siteName}</h1>
+        </Link>
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 text-gray-300 hover:text-white transition-colors"
+        >
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
       </div>
 
       {/* Sidebar */}
@@ -266,7 +235,7 @@ export function Layout({ children }: LayoutProps) {
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
-        <div className="p-4 sm:p-6 lg:p-8 pt-[120px] lg:pt-8 pb-20 md:pb-8">{children}</div>
+        <div className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-8 pb-20 md:pb-8">{children}</div>
       </main>
 
       {/* Bottom Navigation (Mobile Only) */}
