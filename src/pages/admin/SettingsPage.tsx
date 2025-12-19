@@ -4,7 +4,8 @@ import { api } from '../../lib/api'
 import { useSettings } from '../../context/SettingsContext'
 import { useTheme, ThemeColor } from '../../context/ThemeContext'
 import { useLanguage } from '../../context/LanguageContext'
-import { Bell, Shield, Database, Globe, Loader, CheckCircle, AlertTriangle, MapPin, Wifi, Eye, Link, Smartphone, Clock, ShieldAlert, Palette, Upload, Plus, X, Download, HardDrive, Zap, Image, Code } from 'lucide-react'
+import { Member, UserRole } from '../../types'
+import { Bell, Shield, Database, Globe, Loader, CheckCircle, AlertTriangle, MapPin, Wifi, Eye, Link, Smartphone, Clock, ShieldAlert, Palette, Upload, Plus, X, Download, HardDrive, Zap, Image, Code, Crown, Edit3, Users, User } from 'lucide-react'
 
 const THEME_COLORS: { value: ThemeColor; label: string; color: string }[] = [
   { value: 'amber', label: 'Gold', color: 'bg-amber-500' },
@@ -16,6 +17,33 @@ const THEME_COLORS: { value: ThemeColor; label: string; color: string }[] = [
   { value: 'cyan', label: 'Cyan', color: 'bg-cyan-500' },
 ]
 
+const ROLE_CONFIG: Record<UserRole, { label: string; color: string; icon: any; description: string }> = {
+  super_admin: {
+    label: 'Super Admin',
+    color: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+    icon: Crown,
+    description: 'Full system access'
+  },
+  admin: {
+    label: 'Admin',
+    color: 'bg-red-500/20 text-red-400 border-red-500/30',
+    icon: Shield,
+    description: 'Manage content and users'
+  },
+  editor: {
+    label: 'Editor',
+    color: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+    icon: Edit3,
+    description: 'Edit and publish content'
+  },
+  member: {
+    label: 'Member',
+    color: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+    icon: Users,
+    description: 'Basic access'
+  }
+}
+
 export function SettingsPage() {
   const { t } = useLanguage()
   const { refreshSettings } = useSettings()
@@ -25,6 +53,8 @@ export function SettingsPage() {
   const [showSaveNotification, setShowSaveNotification] = useState(false)
   const [newRole, setNewRole] = useState('')
   const [roles, setRoles] = useState<string[]>([])
+  const [members, setMembers] = useState<Member[]>([])
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false)
   const [settings, setSettings] = useState({
     siteName: 'The Regulators RGR',
     siteDescription: 'Arena Run',
@@ -64,7 +94,32 @@ export function SettingsPage() {
 
   useEffect(() => {
     fetchSettings()
+    fetchMembers()
   }, [])
+
+  const fetchMembers = async () => {
+    try {
+      setIsLoadingMembers(true)
+      const result = await api.getMembers()
+      setMembers(result.members || [])
+    } catch (error) {
+      console.error('Failed to fetch members:', error)
+    } finally {
+      setIsLoadingMembers(false)
+    }
+  }
+
+  const updateRole = async (member: Member, newRole: UserRole) => {
+    try {
+      await api.updateMemberRole(member.discord_id, newRole)
+      setMembers((prev) =>
+        prev.map((m) => (m.discord_id === member.discord_id ? { ...m, role: newRole } : m))
+      )
+    } catch (error) {
+      console.error('Failed to update role:', error)
+      alert('Failed to update role')
+    }
+  }
 
   const fetchSettings = async () => {
     try {
