@@ -694,7 +694,7 @@ export function VideosPage() {
 
               <button
                 onClick={handleUpload}
-                disabled={isUploading || !uploadData.title}
+                disabled={isUploading || !uploadData.season || !uploadData.day}
                 className="btn-discord w-full"
               >
                 {isUploading ? (
