@@ -1,3 +1,5 @@
+export type UserRole = 'super_admin' | 'admin' | 'editor' | 'member';
+
 export interface User {
   id: string;
   discord_id: string;
@@ -5,6 +7,7 @@ export interface User {
   avatar: string;
   game_id?: string;
   is_admin: boolean;
+  role?: UserRole;
 }
 
 export interface Video {
@@ -60,6 +63,7 @@ export interface Member {
   discord_avatar?: string;
   game_id: string;
   is_active: boolean;
+  role?: UserRole;
   created_at: string;
   last_login?: string;
   login_count?: number;

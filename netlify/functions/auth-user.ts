@@ -54,6 +54,7 @@ export const handler: Handler = async (event) => {
         avatar: payload.avatar,
         game_id: payload.game_id,
         is_admin: payload.is_admin,
+        role: payload.role || 'member',
       },
     }),
   }

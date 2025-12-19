@@ -159,18 +159,22 @@ export const handler: Handler = async (event) => {
     }
   }
 
-  // PATCH - Toggle member status
+  // PATCH - Toggle member status or update role
   if (method === 'PATCH') {
     const body = JSON.parse(event.body || '{}')
-    const { discord_id, is_active } = body
+    const { discord_id, is_active, role } = body
 
     if (!discord_id) {
       return { statusCode: 400, body: JSON.stringify({ message: 'Discord ID required' }) }
     }
 
+    const updateData: any = {}
+    if (is_active !== undefined) updateData.is_active = is_active
+    if (role !== undefined) updateData.role = role
+
     const { error } = await supabase
       .from('members')
-      .update({ is_active })
+      .update(updateData)
       .eq('discord_id', discord_id)
 
     if (error) {

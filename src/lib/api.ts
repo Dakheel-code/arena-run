@@ -110,6 +110,11 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ discord_id: discordId, is_active: isActive }),
     }),
+  updateMemberRole: (discordId: string, role: 'super_admin' | 'admin' | 'editor' | 'member') =>
+    fetchAPI<{ success: boolean }>('/admin-members', {
+      method: 'PATCH',
+      body: JSON.stringify({ discord_id: discordId, role }),
+    }),
   getMemberProfile: (discordId: string) =>
     fetchAPI<{ profile: import('../types').Member & { 
       sessions: import('../types').ViewSession[]; 

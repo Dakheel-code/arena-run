@@ -169,6 +169,7 @@ export const handler: Handler = async (event) => {
       avatar: avatarFullUrl,
       game_id: memberData.game_id,
       is_admin: !!adminData,
+      role: memberData.role || 'member',
     })
 
     return {
