@@ -235,14 +235,32 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
     )
   }
 
-  const toggleFullscreen = async () => {
+  const toggleFullscreen = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation()
+    }
     if (!containerRef.current) return
     
     try {
       if (!document.fullscreenElement) {
-        await containerRef.current.requestFullscreen()
+        // Try standard fullscreen first
+        if (containerRef.current.requestFullscreen) {
+          await containerRef.current.requestFullscreen()
+        }
+        // Fallback for iOS Safari
+        else if ((containerRef.current as any).webkitRequestFullscreen) {
+          await (containerRef.current as any).webkitRequestFullscreen()
+        }
+        // Fallback for older iOS
+        else if ((videoRef.current as any)?.webkitEnterFullscreen) {
+          (videoRef.current as any).webkitEnterFullscreen()
+        }
       } else {
-        await document.exitFullscreen()
+        if (document.exitFullscreen) {
+          await document.exitFullscreen()
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen()
+        }
       }
     } catch (err) {
       console.error('Fullscreen error:', err)
@@ -393,7 +411,10 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 z-20 transition-opacity duration-300">
           {/* Center Play/Pause */}
           <button
-            onClick={togglePlayPause}
+            onClick={(e) => {
+              e.stopPropagation()
+              togglePlayPause()
+            }}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 sm:w-20 sm:h-20 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center transition-all active:scale-95"
           >
             {isPlaying ? (
@@ -444,7 +465,10 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
 
             {/* Fullscreen */}
             <button
-              onClick={toggleFullscreen}
+              onClick={(e) => {
+                e.stopPropagation()
+                toggleFullscreen(e)
+              }}
               className="p-2 hover:bg-white/20 rounded transition-colors active:scale-95"
               title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
             >
