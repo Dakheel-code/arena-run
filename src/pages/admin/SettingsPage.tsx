@@ -904,6 +904,80 @@ export function SettingsPage() {
           </div>
         </div>
 
+        {/* Permissions Management */}
+        <div className="card">
+          <div className="flex items-center gap-3 mb-6">
+            <Shield className="text-theme-light" size={24} />
+            <h2 className="text-xl font-bold text-theme-light">Permissions Management</h2>
+          </div>
+
+          {/* Role Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {(Object.keys(ROLE_CONFIG) as UserRole[]).map((role) => {
+              const config = ROLE_CONFIG[role]
+              const Icon = config.icon
+              const count = members.filter(m => (m.role || 'member') === role).length
+              return (
+                <div key={role} className={`border rounded-lg p-4 ${config.color}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon size={20} />
+                    <span className="font-semibold text-sm">{config.label}</span>
+                  </div>
+                  <p className="text-2xl font-bold">{count}</p>
+                  <p className="text-xs mt-1 opacity-70">{config.description}</p>
+                </div>
+              )
+            })}
+          </div>
+
+          {isLoadingMembers ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader className="animate-spin text-theme-light" size={32} />
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {members.map((member) => {
+                const currentRole = member.role || 'member'
+                const RoleIcon = ROLE_CONFIG[currentRole].icon
+                return (
+                  <div key={member.id} className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800/70 transition-colors">
+                    {member.discord_avatar ? (
+                      <img 
+                        src={member.discord_avatar} 
+                        alt={member.discord_username || 'Avatar'}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-theme/20 flex items-center justify-center">
+                        <User size={20} className="text-theme-light" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{member.discord_username || member.game_id}</p>
+                      <p className="text-xs text-gray-500 truncate">{member.game_id}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs ${ROLE_CONFIG[currentRole].color}`}>
+                        <RoleIcon size={14} />
+                        {ROLE_CONFIG[currentRole].label}
+                      </span>
+                      <select
+                        value={currentRole}
+                        onChange={(e) => updateRole(member, e.target.value as UserRole)}
+                        className="input-field text-xs py-1 px-2"
+                      >
+                        {(Object.keys(ROLE_CONFIG) as UserRole[]).map((role) => (
+                          <option key={role} value={role}>{ROLE_CONFIG[role].label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
         {/* API Info */}
         <div className="card">
           <div className="flex items-center gap-3 mb-6">
