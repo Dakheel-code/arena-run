@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react'
+import { useCallback } from 'react'
 
 interface WatchHistoryItem {
   videoId: string
@@ -8,7 +8,6 @@ interface WatchHistoryItem {
 }
 
 const WATCH_HISTORY_KEY = 'video_watch_history'
-const SAVE_INTERVAL = 5000 // Save every 5 seconds
 
 export function useWatchHistory(videoId: string) {
   const saveProgress = useCallback((currentTime: number, duration: number) => {
