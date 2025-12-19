@@ -408,7 +408,7 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
 
       {/* Custom Controls */}
       {showControls && (
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 z-20 transition-opacity duration-300">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 transition-opacity duration-300" style={{ zIndex: 20 }}>
           {/* Center Play/Pause */}
           <button
             onClick={(e) => {
@@ -482,7 +482,7 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
         </div>
       )}
 
-      {/* Enhanced Dynamic Watermark - Always visible and secure */}
+      {/* Enhanced Dynamic Watermark - Always visible and secure - MUST be after controls */}
       <div
         className="absolute pointer-events-none select-none transition-all duration-1000 ease-in-out"
         style={{
@@ -490,18 +490,20 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
             ? `${5 + watermarkPosition.x * 0.85}%`
             : `${35 + watermarkPosition.x * 0.30}%`,
           top: `${5 + watermarkPosition.y * 0.85}%`,
-          opacity: 0.5,
+          opacity: 0.6,
           fontSize: isFullscreen 
-            ? (window.innerWidth > window.innerHeight ? '22px' : '20px')
+            ? (window.innerWidth > window.innerHeight ? '24px' : '22px')
             : '16px',
           fontFamily: 'monospace',
           fontWeight: 'bold',
           color: 'white',
-          textShadow: '2px 2px 4px rgba(0,0,0,0.9)',
-          zIndex: 9999,
+          textShadow: '2px 2px 6px rgba(0,0,0,1), 0 0 10px rgba(0,0,0,0.8)',
+          zIndex: 99999,
           userSelect: 'none',
           WebkitUserSelect: 'none',
           WebkitTouchCallout: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
         }}
       >
         {watermarkCode}
