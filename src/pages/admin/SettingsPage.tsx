@@ -115,16 +115,23 @@ export function SettingsPage() {
 
   const updateRole = async (member: Member, newRole: UserRole) => {
     try {
-      await api.updateMemberRole(member.discord_id, newRole)
+      const result = await api.updateMemberRole(member.discord_id, newRole)
+      console.log('Update role result:', result)
+      
       setMembers((prev) =>
         prev.map((m) => (m.discord_id === member.discord_id ? { ...m, role: newRole } : m))
       )
       if (selectedMember && selectedMember.discord_id === member.discord_id) {
         setSelectedMember({ ...selectedMember, role: newRole })
       }
-    } catch (error) {
+      
+      // Show success notification
+      setShowSaveNotification(true)
+      setTimeout(() => setShowSaveNotification(false), 3000)
+    } catch (error: any) {
       console.error('Failed to update role:', error)
-      alert('Failed to update role')
+      const errorMessage = error?.message || 'Failed to update role. Please try again.'
+      alert(errorMessage)
     }
   }
 
