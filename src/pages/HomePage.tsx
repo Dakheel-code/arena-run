@@ -5,7 +5,8 @@ import { api } from '../lib/api'
 import { VideoCard } from '../components/VideoCard'
 import { Layout } from '../components/Layout'
 import { useLanguage } from '../context/LanguageContext'
-import { Film, Loader, Search, Trophy, User, X } from 'lucide-react'
+import { usePullToRefresh } from '../hooks/usePullToRefresh'
+import { Film, Loader, Search, Trophy, User, X, RefreshCw } from 'lucide-react'
 
 export function HomePage() {
   const { t } = useLanguage()
@@ -14,19 +15,23 @@ export function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSeason, setSelectedSeason] = useState('')
 
-  useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        const { videos } = await api.getVideos()
-        setVideos(videos.filter((v) => v.is_published))
-      } catch (error) {
-        console.error('Failed to fetch videos:', error)
-      } finally {
-        setIsLoading(false)
-      }
+  const fetchVideos = async () => {
+    try {
+      setIsLoading(true)
+      const { videos } = await api.getVideos()
+      setVideos(videos.filter((v) => v.is_published))
+    } catch (error) {
+      console.error('Failed to fetch videos:', error)
+    } finally {
+      setIsLoading(false)
     }
+  }
+
+  useEffect(() => {
     fetchVideos()
   }, [])
+
+  const { isPulling, pullDistance } = usePullToRefresh(fetchVideos)
 
   // Get unique values for filters
   const seasons = useMemo(() => 
@@ -71,6 +76,22 @@ export function HomePage() {
 
   return (
     <Layout>
+      {/* Pull to Refresh Indicator */}
+      {isPulling && (
+        <div 
+          className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-theme/90 backdrop-blur-sm px-4 py-2 rounded-full flex items-center gap-2 text-white shadow-lg transition-all"
+          style={{ 
+            opacity: Math.min(pullDistance / 60, 1),
+            transform: `translateX(-50%) translateY(${Math.min(pullDistance / 2, 30)}px)`
+          }}
+        >
+          <RefreshCw size={16} className={pullDistance > 60 ? 'animate-spin' : ''} />
+          <span className="text-sm font-medium">
+            {pullDistance > 60 ? 'Release to refresh' : 'Pull to refresh'}
+          </span>
+        </div>
+      )}
+
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">{t('welcomeTitle')}</h1>
         <p className="text-gray-400">{t('welcomeSubtitle')}</p>

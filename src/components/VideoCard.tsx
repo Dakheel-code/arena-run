@@ -2,6 +2,12 @@ import { Link } from 'react-router-dom'
 import { Play, Clock, ThumbsUp, User } from 'lucide-react'
 import { Video } from '../types'
 
+const triggerHapticFeedback = () => {
+  if ('vibrate' in navigator) {
+    navigator.vibrate(10)
+  }
+}
+
 interface VideoCardProps {
   video: Video
 }
@@ -30,7 +36,8 @@ export function VideoCard({ video }: VideoCardProps) {
   return (
     <Link
       to={`/watch/${video.id}`}
-      className="group block bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl overflow-hidden border border-gray-700/50 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300"
+      onClick={triggerHapticFeedback}
+      className="group block bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl overflow-hidden border border-gray-700/50 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300 active:scale-95"
     >
       {/* Thumbnail */}
       <div className="relative aspect-video bg-discord-darker overflow-hidden">
@@ -38,6 +45,7 @@ export function VideoCard({ video }: VideoCardProps) {
           <img
             src={thumbnailUrl}
             alt={video.title}
+            loading="lazy"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             onError={(e) => {
               e.currentTarget.style.display = 'none'
@@ -73,20 +81,21 @@ export function VideoCard({ video }: VideoCardProps) {
       </div>
 
       {/* Content */}
-      <div className="p-3">
+      <div className="p-2.5 sm:p-3">
         {/* Title */}
-        <h3 className="font-semibold text-sm mb-2 group-hover:text-theme-light transition-colors line-clamp-2 leading-tight">
+        <h3 className="font-semibold text-xs sm:text-sm mb-2 group-hover:text-theme-light transition-colors line-clamp-2 leading-tight">
           {video.title}
         </h3>
 
         {/* Uploader */}
         {video.uploader_name && (
           <div 
-            className="flex items-center gap-2 mb-2"
+            className="flex items-center gap-1.5 sm:gap-2 mb-2"
             onClick={(e) => {
               if (video.uploaded_by) {
                 e.preventDefault()
                 e.stopPropagation()
+                triggerHapticFeedback()
                 window.location.href = `/admin/members/${video.uploaded_by}`
               }
             }}
@@ -98,26 +107,27 @@ export function VideoCard({ video }: VideoCardProps) {
                   : `https://cdn.discordapp.com/avatars/${video.uploaded_by}/${video.uploader_avatar}.png`
                 }
                 alt={video.uploader_name}
-                className="w-5 h-5 rounded-full object-cover hover:ring-2 hover:ring-theme-light transition-all cursor-pointer"
+                loading="lazy"
+                className="w-4 h-4 sm:w-5 sm:h-5 rounded-full object-cover hover:ring-2 hover:ring-theme-light transition-all cursor-pointer"
               />
             ) : (
-              <div className="w-5 h-5 rounded-full bg-theme/20 flex items-center justify-center hover:ring-2 hover:ring-theme-light transition-all cursor-pointer">
+              <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-theme/20 flex items-center justify-center hover:ring-2 hover:ring-theme-light transition-all cursor-pointer">
                 <User size={10} className="text-theme-light" />
               </div>
             )}
-            <span className="text-xs text-gray-400 hover:text-theme-light transition-colors cursor-pointer">{video.uploader_name}</span>
+            <span className="text-[10px] sm:text-xs text-gray-400 hover:text-theme-light transition-colors cursor-pointer truncate">{video.uploader_name}</span>
           </div>
         )}
 
         {/* Stats Row */}
-        <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-700/50">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1">
-              <ThumbsUp size={14} className="text-gray-400" />
-              {formatNumber(video.likes_count)}
+        <div className="flex items-center justify-between text-[10px] sm:text-xs text-gray-500 pt-1.5 sm:pt-2 border-t border-gray-700/50">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="flex items-center gap-0.5 sm:gap-1">
+              <ThumbsUp size={12} className="text-gray-400" />
+              <span className="text-[10px] sm:text-xs">{formatNumber(video.likes_count)}</span>
             </span>
           </div>
-          <span className="text-gray-500">
+          <span className="text-gray-500 text-[10px] sm:text-xs">
             {new Date(video.created_at).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric'

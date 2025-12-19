@@ -7,7 +7,7 @@ import { Layout } from '../components/Layout'
 import { Comments } from '../components/Comments'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
-import { ArrowLeft, Loader, Trophy, Clock, Shield, TrendingUp, Calendar, Mic, User, ThumbsUp, Edit2 } from 'lucide-react'
+import { ArrowLeft, Loader, Trophy, Clock, Shield, TrendingUp, Calendar, Mic, User, ThumbsUp, Edit2, Share2 } from 'lucide-react'
 
 export function WatchPage() {
   const { id } = useParams<{ id: string }>()
@@ -87,6 +87,25 @@ export function WatchPage() {
     }
   }
 
+  const handleShare = async () => {
+    const shareData = {
+      title: video.title,
+      text: `Check out this video: ${video.title}`,
+      url: window.location.href
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData)
+      } else {
+        await navigator.clipboard.writeText(window.location.href)
+        alert('Link copied to clipboard!')
+      }
+    } catch (error) {
+      console.error('Error sharing:', error)
+    }
+  }
+
   return (
     <Layout>
       <div className="mb-6">
@@ -107,7 +126,7 @@ export function WatchPage() {
         <div className="mt-4">
           <h1 className="text-xl font-bold mb-3">{video.title}</h1>
           
-          <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             {/* Date */}
             <div className="flex items-center gap-4 text-sm text-gray-400">
               <span>{new Date(video.created_at).toLocaleDateString('en-US', { 
@@ -117,32 +136,43 @@ export function WatchPage() {
               })}</span>
             </div>
 
-            {/* Like Button & Edit Button */}
+            {/* Action Buttons */}
             <div className="flex items-center gap-2">
+              {/* Like Button */}
               <button
                 onClick={handleLike}
                 disabled={isLiking}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
+                className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full transition-all active:scale-95 ${
                   video.user_liked 
-                    ? 'bg-theme text-white' 
+                    ? 'bg-theme text-white shadow-lg shadow-theme/30' 
                     : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
                 }`}
               >
                 <ThumbsUp 
-                  size={18} 
+                  size={16} 
                   className={video.user_liked ? 'fill-current' : ''} 
                 />
-                <span className="font-medium">{formatNumber(video.likes_count || 0)}</span>
+                <span className="text-sm font-medium hidden sm:inline">{formatNumber(video.likes_count || 0)}</span>
+                <span className="text-sm font-medium sm:hidden">{(video.likes_count || 0) > 999 ? formatNumber(video.likes_count || 0) : video.likes_count || 0}</span>
+              </button>
+
+              {/* Share Button */}
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full bg-gray-700 hover:bg-gray-600 text-gray-300 transition-all active:scale-95"
+              >
+                <Share2 size={16} />
+                <span className="text-sm font-medium hidden sm:inline">Share</span>
               </button>
               
               {/* Edit Button - Only for owner or admin */}
               {(video.uploaded_by === user?.discord_id || user?.is_admin) && (
                 <Link
                   to={`/edit-video/${video.id}`}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-700 hover:bg-gray-600 text-gray-300 transition-all"
+                  className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full bg-gray-700 hover:bg-gray-600 text-gray-300 transition-all active:scale-95"
                 >
-                  <Edit2 size={18} />
-                  <span className="font-medium">{t('edit')}</span>
+                  <Edit2 size={16} />
+                  <span className="text-sm font-medium hidden sm:inline">{t('edit')}</span>
                 </Link>
               )}
             </div>
