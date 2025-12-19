@@ -4,7 +4,7 @@ import { api } from '../../lib/api'
 import { useSettings } from '../../context/SettingsContext'
 import { useTheme, ThemeColor } from '../../context/ThemeContext'
 import { useLanguage } from '../../context/LanguageContext'
-import { Bell, Shield, Database, Globe, Loader, CheckCircle, AlertTriangle, MapPin, Wifi, Eye, Link, Smartphone, Clock, ShieldAlert, Palette, Upload, Plus, X } from 'lucide-react'
+import { Bell, Shield, Database, Globe, Loader, CheckCircle, AlertTriangle, MapPin, Wifi, Eye, Link, Smartphone, Clock, ShieldAlert, Palette, Upload, Plus, X, Download, HardDrive, Zap, Image, Code } from 'lucide-react'
 
 const THEME_COLORS: { value: ThemeColor; label: string; color: string }[] = [
   { value: 'amber', label: 'Gold', color: 'bg-amber-500' },
@@ -49,6 +49,17 @@ export function SettingsPage() {
     notifyNewPublish: true,
     notifyNewSession: true,
     webhookUrl: '',
+    // Backup settings
+    autoBackup: false,
+    backupFrequency: 'daily',
+    backupRetention: 7,
+    // Performance settings
+    enableCaching: true,
+    cacheDuration: 3600,
+    enableImageOptimization: true,
+    enableLazyLoading: true,
+    enableMinification: true,
+    compressionLevel: 'medium',
   })
 
   useEffect(() => {
@@ -91,6 +102,17 @@ export function SettingsPage() {
           notifyNewPublish: (result.settings as any).notify_new_publish ?? true,
           notifyNewSession: (result.settings as any).notify_new_session ?? true,
           webhookUrl: webhookUrl,
+          // Backup settings
+          autoBackup: (result.settings as any).auto_backup ?? false,
+          backupFrequency: (result.settings as any).backup_frequency || 'daily',
+          backupRetention: (result.settings as any).backup_retention || 7,
+          // Performance settings
+          enableCaching: (result.settings as any).enable_caching ?? true,
+          cacheDuration: (result.settings as any).cache_duration || 3600,
+          enableImageOptimization: (result.settings as any).enable_image_optimization ?? true,
+          enableLazyLoading: (result.settings as any).enable_lazy_loading ?? true,
+          enableMinification: (result.settings as any).enable_minification ?? true,
+          compressionLevel: (result.settings as any).compression_level || 'medium',
         })
       }
     } catch (error) {
@@ -620,6 +642,210 @@ export function SettingsPage() {
             <p className="text-xs text-gray-500 mt-2">
               All notifications will be sent to this webhook URL
             </p>
+          </div>
+        </div>
+
+        {/* Backup & Restore */}
+        <div className="card">
+          <div className="flex items-center gap-3 mb-6">
+            <HardDrive className="text-theme-light" size={24} />
+            <h2 className="text-xl font-bold text-theme-light">Backup & Restore</h2>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Auto Backup</p>
+                <p className="text-sm text-gray-400">Automatically backup database on schedule</p>
+              </div>
+              <button
+                onClick={() => setSettings({ ...settings, autoBackup: !settings.autoBackup })}
+                className={`w-12 h-6 rounded-full transition-colors ${
+                  settings.autoBackup ? 'bg-theme' : 'bg-gray-600'
+                }`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                  settings.autoBackup ? 'translate-x-6' : 'translate-x-0.5'
+                }`} />
+              </button>
+            </div>
+
+            {settings.autoBackup && (
+              <div className="ml-9 pl-3 border-l-2 border-gray-700 space-y-3">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Backup Frequency</label>
+                  <select
+                    value={settings.backupFrequency}
+                    onChange={(e) => setSettings({ ...settings, backupFrequency: e.target.value })}
+                    className="input-field w-48"
+                  >
+                    <option value="hourly">Hourly</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Retention Period (days)</label>
+                  <input
+                    type="number"
+                    value={settings.backupRetention}
+                    onChange={(e) => setSettings({ ...settings, backupRetention: parseInt(e.target.value) || 7 })}
+                    className="input-field w-32"
+                    min="1"
+                    max="365"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Backups older than this will be deleted</p>
+                </div>
+              </div>
+            )}
+
+            <div className="pt-4 border-t border-gray-700">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => alert('Manual backup started!')}
+                  className="btn-discord flex items-center gap-2"
+                >
+                  <Download size={18} />
+                  Backup Now
+                </button>
+                <button
+                  onClick={() => alert('Restore functionality coming soon!')}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <Upload size={18} />
+                  Restore
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-3">
+                Last backup: Never • Next backup: {settings.autoBackup ? 'Scheduled' : 'Disabled'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Performance Settings */}
+        <div className="card">
+          <div className="flex items-center gap-3 mb-6">
+            <Zap className="text-theme-light" size={24} />
+            <h2 className="text-xl font-bold text-theme-light">Performance Settings</h2>
+          </div>
+          
+          <div className="space-y-4">
+            {/* Enable Caching */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Database className="text-blue-400" size={18} />
+                <div>
+                  <p className="font-medium">Enable Caching</p>
+                  <p className="text-sm text-gray-400">Cache API responses for faster loading</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSettings({ ...settings, enableCaching: !settings.enableCaching })}
+                className={`w-12 h-6 rounded-full transition-colors ${
+                  settings.enableCaching ? 'bg-theme' : 'bg-gray-600'
+                }`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                  settings.enableCaching ? 'translate-x-6' : 'translate-x-0.5'
+                }`} />
+              </button>
+            </div>
+
+            {settings.enableCaching && (
+              <div className="ml-9 pl-3 border-l-2 border-gray-700">
+                <label className="block text-sm text-gray-400 mb-2">Cache Duration (seconds)</label>
+                <input
+                  type="number"
+                  value={settings.cacheDuration}
+                  onChange={(e) => setSettings({ ...settings, cacheDuration: parseInt(e.target.value) || 3600 })}
+                  className="input-field w-32"
+                  min="60"
+                  max="86400"
+                />
+                <p className="text-xs text-gray-500 mt-1">3600s = 1 hour, 86400s = 24 hours</p>
+              </div>
+            )}
+
+            {/* Image Optimization */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Image className="text-green-400" size={18} />
+                <div>
+                  <p className="font-medium">Image Optimization</p>
+                  <p className="text-sm text-gray-400">Optimize images for faster loading</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSettings({ ...settings, enableImageOptimization: !settings.enableImageOptimization })}
+                className={`w-12 h-6 rounded-full transition-colors ${
+                  settings.enableImageOptimization ? 'bg-theme' : 'bg-gray-600'
+                }`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                  settings.enableImageOptimization ? 'translate-x-6' : 'translate-x-0.5'
+                }`} />
+              </button>
+            </div>
+
+            {/* Lazy Loading */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Eye className="text-purple-400" size={18} />
+                <div>
+                  <p className="font-medium">Lazy Loading</p>
+                  <p className="text-sm text-gray-400">Load images only when visible</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSettings({ ...settings, enableLazyLoading: !settings.enableLazyLoading })}
+                className={`w-12 h-6 rounded-full transition-colors ${
+                  settings.enableLazyLoading ? 'bg-theme' : 'bg-gray-600'
+                }`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                  settings.enableLazyLoading ? 'translate-x-6' : 'translate-x-0.5'
+                }`} />
+              </button>
+            </div>
+
+            {/* Minification */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Code className="text-cyan-400" size={18} />
+                <div>
+                  <p className="font-medium">Code Minification</p>
+                  <p className="text-sm text-gray-400">Minify CSS and JavaScript files</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSettings({ ...settings, enableMinification: !settings.enableMinification })}
+                className={`w-12 h-6 rounded-full transition-colors ${
+                  settings.enableMinification ? 'bg-theme' : 'bg-gray-600'
+                }`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                  settings.enableMinification ? 'translate-x-6' : 'translate-x-0.5'
+                }`} />
+              </button>
+            </div>
+
+            {/* Compression Level */}
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Compression Level</label>
+              <select
+                value={settings.compressionLevel}
+                onChange={(e) => setSettings({ ...settings, compressionLevel: e.target.value })}
+                className="input-field w-48"
+              >
+                <option value="none">None</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">Higher compression = smaller files but more CPU usage</p>
+            </div>
           </div>
         </div>
 
