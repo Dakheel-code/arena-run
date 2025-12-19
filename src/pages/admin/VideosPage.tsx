@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
 import { useLanguage } from '../../context/LanguageContext'
+import { useAuth } from '../../context/AuthContext'
 import { Video, Member } from '../../types'
 import { Plus, Trash2, Eye, EyeOff, Loader, Upload, X, Edit } from 'lucide-react'
 import * as tus from 'tus-js-client'
@@ -12,6 +13,7 @@ function getThumbnailUrl(streamUid: string): string {
 
 export function VideosPage() {
   const { t } = useLanguage()
+  const { user } = useAuth()
   const [videos, setVideos] = useState<Video[]>([])
   const [members, setMembers] = useState<Member[]>([])
   const [isLoading, setIsLoading] = useState(true)
