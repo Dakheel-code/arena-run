@@ -4,6 +4,7 @@ import { Video } from '../types'
 import { api } from '../lib/api'
 import { VideoCard } from '../components/VideoCard'
 import { Layout } from '../components/Layout'
+import { FloatingNewRunButton } from '../components/FloatingNewRunButton'
 import { useLanguage } from '../context/LanguageContext'
 import { usePullToRefresh } from '../hooks/usePullToRefresh'
 import { Film, Loader, Search, Trophy, User, X, RefreshCw } from 'lucide-react'
@@ -275,6 +276,8 @@ export function HomePage() {
           </div>
         </>
       )}
+      
+      <FloatingNewRunButton />
     </Layout>
   )
 }

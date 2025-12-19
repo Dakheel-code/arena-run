@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
 import { useLanguage } from '../../context/LanguageContext'
@@ -12,6 +13,7 @@ function getThumbnailUrl(streamUid: string): string {
 }
 
 export function VideosPage() {
+  const navigate = useNavigate()
   const { t } = useLanguage()
   const { user } = useAuth()
   const [videos, setVideos] = useState<Video[]>([])
@@ -228,7 +230,7 @@ export function VideosPage() {
           <h1 className="text-2xl md:text-3xl font-bold mb-1 md:mb-2">{t('manageVideosTitle')}</h1>
           <p className="text-sm md:text-base text-gray-400">{t('uploadAndManage')}</p>
         </div>
-        <button onClick={() => setShowUploadModal(true)} className="btn-discord text-sm md:text-base px-3 py-2 md:px-6 md:py-3">
+        <button onClick={() => navigate('/new-run')} className="btn-discord text-sm md:text-base px-3 py-2 md:px-6 md:py-3">
           <Plus size={16} className="md:w-5 md:h-5" />
           <span className="hidden sm:inline">{t('newRun')}</span>
           <span className="sm:hidden">New</span>
