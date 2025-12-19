@@ -90,7 +90,7 @@ export function WatchPage() {
 
   return (
     <Layout>
-      <div className="mb-6">
+      <div className="mb-6 animate-fade-in">
         <Link
           to="/"
           className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
@@ -102,10 +102,12 @@ export function WatchPage() {
 
       <div className="max-w-4xl mx-auto">
         {/* Video Player */}
-        <VideoPlayer videoId={video.id} streamUid={video.stream_uid} />
+        <div className="animate-scale-in">
+          <VideoPlayer videoId={video.id} streamUid={video.stream_uid} />
+        </div>
         
         {/* Video Info */}
-        <div className="mt-4">
+        <div className="mt-4 animate-slide-in-bottom">
           <h1 className="text-xl font-bold mb-3">{video.title}</h1>
           
           <div className="flex items-center justify-between flex-wrap gap-3">

@@ -37,7 +37,7 @@ export function VideoCard({ video }: VideoCardProps) {
     <Link
       to={`/watch/${video.id}`}
       onClick={triggerHapticFeedback}
-      className="group block bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl overflow-hidden border border-gray-700/50 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300 active:scale-95"
+      className="group block bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl overflow-hidden border border-gray-700/50 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300 active:scale-95 hover-lift"
     >
       {/* Thumbnail */}
       <div className="relative aspect-video bg-discord-darker overflow-hidden">

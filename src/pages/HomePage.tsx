@@ -247,6 +247,7 @@ export function HomePage() {
           )}
 
           {/* Videos Grid */}
+          <div className="animate-fade-in">
           {filteredVideos.length === 0 ? (
             <div className="text-center py-20">
               <Film size={64} className="mx-auto text-gray-600 mb-4" />
@@ -264,11 +265,14 @@ export function HomePage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredVideos.map((video) => (
-                <VideoCard key={video.id} video={video} />
+              {filteredVideos.map((video, index) => (
+                <div key={video.id} className="stagger-item" style={{ animationDelay: `${Math.min(index * 0.05, 0.4)}s` }}>
+                  <VideoCard video={video} />
+                </div>
               ))}
             </div>
           )}
+          </div>
         </>
       )}
     </Layout>
