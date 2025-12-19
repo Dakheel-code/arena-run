@@ -55,6 +55,10 @@ export function SettingsPage() {
   const [roles, setRoles] = useState<string[]>([])
   const [members, setMembers] = useState<Member[]>([])
   const [isLoadingMembers, setIsLoadingMembers] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<Member[]>([])
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null)
+  const [showSuggestions, setShowSuggestions] = useState(false)
   const [settings, setSettings] = useState({
     siteName: 'The Regulators RGR',
     siteDescription: 'Arena Run',
@@ -115,10 +119,53 @@ export function SettingsPage() {
       setMembers((prev) =>
         prev.map((m) => (m.discord_id === member.discord_id ? { ...m, role: newRole } : m))
       )
+      if (selectedMember && selectedMember.discord_id === member.discord_id) {
+        setSelectedMember({ ...selectedMember, role: newRole })
+      }
     } catch (error) {
       console.error('Failed to update role:', error)
       alert('Failed to update role')
     }
+  }
+
+  const handleSearchChange = async (value: string) => {
+    setSearchQuery(value)
+    setSelectedMember(null)
+    
+    if (!value.trim()) {
+      setSearchResults([])
+      setShowSuggestions(false)
+      return
+    }
+
+    setIsLoadingMembers(true)
+    try {
+      let allMembers = members
+      if (members.length === 0) {
+        const result = await api.getMembers()
+        allMembers = result.members || []
+        setMembers(allMembers)
+      }
+      
+      const filtered = allMembers.filter(m => 
+        m.discord_username?.toLowerCase().includes(value.toLowerCase()) ||
+        m.game_id.toLowerCase().includes(value.toLowerCase()) ||
+        m.discord_id.includes(value)
+      ).slice(0, 10)
+      
+      setSearchResults(filtered)
+      setShowSuggestions(filtered.length > 0)
+    } catch (error) {
+      console.error('Search failed:', error)
+    } finally {
+      setIsLoadingMembers(false)
+    }
+  }
+
+  const handleSelectMember = (member: Member) => {
+    setSelectedMember(member)
+    setSearchQuery(member.discord_username || member.game_id)
+    setShowSuggestions(false)
   }
 
   const fetchSettings = async () => {
@@ -911,36 +958,29 @@ export function SettingsPage() {
             <h2 className="text-xl font-bold text-theme-light">Permissions Management</h2>
           </div>
 
-          {/* Role Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            {(Object.keys(ROLE_CONFIG) as UserRole[]).map((role) => {
-              const config = ROLE_CONFIG[role]
-              const Icon = config.icon
-              const count = members.filter(m => (m.role || 'member') === role).length
-              return (
-                <div key={role} className={`border rounded-lg p-4 ${config.color}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Icon size={20} />
-                    <span className="font-semibold text-sm">{config.label}</span>
-                  </div>
-                  <p className="text-2xl font-bold">{count}</p>
-                  <p className="text-xs mt-1 opacity-70">{config.description}</p>
-                </div>
-              )
-            })}
-          </div>
-
-          {isLoadingMembers ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader className="animate-spin text-theme-light" size={32} />
+          {/* Search Bar with Autocomplete */}
+          <div className="mb-6 relative">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search by name, game ID, or Discord ID..."
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                onFocus={() => searchResults.length > 0 && setShowSuggestions(true)}
+                className="input-field w-full pr-10"
+              />
+              <Eye className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             </div>
-          ) : (
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {members.map((member) => {
-                const currentRole = member.role || 'member'
-                const RoleIcon = ROLE_CONFIG[currentRole].icon
-                return (
-                  <div key={member.id} className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800/70 transition-colors">
+
+            {/* Autocomplete Suggestions */}
+            {showSuggestions && searchResults.length > 0 && (
+              <div className="absolute z-50 w-full mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                {searchResults.map((member) => (
+                  <button
+                    key={member.id}
+                    onClick={() => handleSelectMember(member)}
+                    className="w-full flex items-center gap-3 p-3 hover:bg-gray-700 transition-colors text-left"
+                  >
                     {member.discord_avatar ? (
                       <img 
                         src={member.discord_avatar} 
@@ -956,24 +996,68 @@ export function SettingsPage() {
                       <p className="font-medium truncate">{member.discord_username || member.game_id}</p>
                       <p className="text-xs text-gray-500 truncate">{member.game_id}</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs ${ROLE_CONFIG[currentRole].color}`}>
-                        <RoleIcon size={14} />
-                        {ROLE_CONFIG[currentRole].label}
-                      </span>
-                      <select
-                        value={currentRole}
-                        onChange={(e) => updateRole(member, e.target.value as UserRole)}
-                        className="input-field text-xs py-1 px-2"
-                      >
-                        {(Object.keys(ROLE_CONFIG) as UserRole[]).map((role) => (
-                          <option key={role} value={role}>{ROLE_CONFIG[role].label}</option>
-                        ))}
-                      </select>
-                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Selected Member */}
+          {selectedMember ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg">
+                {selectedMember.discord_avatar ? (
+                  <img 
+                    src={selectedMember.discord_avatar} 
+                    alt={selectedMember.discord_username || 'Avatar'}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-theme/20 flex items-center justify-center">
+                    <User size={20} className="text-theme-light" />
                   </div>
-                )
-              })}
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{selectedMember.discord_username || selectedMember.game_id}</p>
+                  <p className="text-xs text-gray-500 truncate">{selectedMember.game_id}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {(() => {
+                    const currentRole = selectedMember.role || 'member'
+                    const RoleIcon = ROLE_CONFIG[currentRole].icon
+                    return (
+                      <>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs ${ROLE_CONFIG[currentRole].color}`}>
+                          <RoleIcon size={14} />
+                          {ROLE_CONFIG[currentRole].label}
+                        </span>
+                        <select
+                          value={currentRole}
+                          onChange={(e) => updateRole(selectedMember, e.target.value as UserRole)}
+                          className="input-field text-xs py-1 px-2"
+                        >
+                          {(Object.keys(ROLE_CONFIG) as UserRole[]).map((role) => (
+                            <option key={role} value={role}>{ROLE_CONFIG[role].label}</option>
+                          ))}
+                        </select>
+                      </>
+                    )
+                  })()}
+                </div>
+              </div>
+            </div>
+          ) : isLoadingMembers ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader className="animate-spin text-theme-light" size={32} />
+            </div>
+          ) : searchQuery && searchResults.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              <p>No members found matching "{searchQuery}"</p>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-400">
+              <Shield size={48} className="mx-auto mb-4 opacity-50" />
+              <p>Search for a member to manage their permissions</p>
             </div>
           )}
         </div>
