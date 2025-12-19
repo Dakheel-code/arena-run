@@ -6,22 +6,24 @@ export function LoginPage() {
   const { settings } = useSettings()
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-discord-darker">
-      <div className="card max-w-md w-full text-center">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-theme-light mb-2">{settings.siteName}</h1>
-          <p className="text-gray-400">{settings.siteDescription}</p>
+    <div className="min-h-screen flex items-center justify-center bg-discord-darker px-4">
+      <div className="card max-w-md w-full text-center animate-fade-in-up">
+        <div className="mb-8 animate-slide-down">
+          <h1 className="text-3xl sm:text-4xl font-bold text-theme-light mb-2 animate-glow">
+            {settings.siteName}
+          </h1>
+          <p className="text-gray-400 text-sm sm:text-base">{settings.siteDescription}</p>
         </div>
 
         <div className="mb-8">
-          <div className="w-32 h-32 mx-auto mb-4">
+          <div className="w-28 h-28 sm:w-32 sm:h-32 mx-auto mb-4 animate-float">
             <img 
               src="https://regulators.us/logo.png" 
               alt="Logo" 
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain drop-shadow-2xl"
             />
           </div>
-          <p className="text-gray-300">
+          <p className="text-gray-300 text-sm sm:text-base animate-fade-in">
             Sign in with Discord to access exclusive content
           </p>
         </div>

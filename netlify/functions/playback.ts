@@ -122,20 +122,26 @@ export const handler: Handler = async (event) => {
   const ip = event.headers['x-forwarded-for']?.split(',')[0] || event.headers['client-ip'] || event.headers['x-real-ip'] || 'unknown'
   const userAgent = event.headers['user-agent'] || 'unknown'
 
-  // Get country from Cloudflare header or fetch from GeoIP service
-  let country: string = event.headers['cf-ipcountry'] || ''
+  // Get country, city, and VPN/proxy info from GeoIP service
+  let country: string = ''
+  let city: string = event.headers['cf-ipcity'] || ''
+  let isVpn: boolean = false
+  let isp: string = ''
   
-  if (!country && ip !== 'unknown' && ip !== '127.0.0.1' && ip !== '::1') {
+  if (ip !== 'unknown' && ip !== '127.0.0.1' && ip !== '::1') {
     try {
-      const geoResponse = await fetch(`http://ip-api.com/json/${ip}?fields=countryCode`)
+      const geoResponse = await fetch(`http://ip-api.com/json/${ip}?fields=country,city,proxy,hosting,isp`)
       const geoData = await geoResponse.json()
-      country = geoData.countryCode || 'unknown'
+      country = geoData.country || 'Unknown'
+      if (!city) city = geoData.city || ''
+      isVpn = geoData.proxy || geoData.hosting || false
+      isp = geoData.isp || ''
     } catch {
-      country = 'unknown'
+      country = 'Unknown'
     }
   }
   if (!country) {
-    country = 'unknown'
+    country = 'Unknown'
   }
 
   // Create view session
@@ -147,6 +153,9 @@ export const handler: Handler = async (event) => {
       watermark_code: watermarkCode,
       ip_address: ip,
       country,
+      city,
+      is_vpn: isVpn,
+      isp,
       user_agent: userAgent,
       watch_seconds: 0,
     })
@@ -160,17 +169,61 @@ export const handler: Handler = async (event) => {
   // Increment view count (only once per session)
   await supabase.rpc('increment_views', { vid: videoId })
 
+  // Get updated video data with new view count
+  const { data: updatedVideo } = await supabase
+    .from('videos')
+    .select('views')
+    .eq('id', videoId)
+    .single()
+
   // Check for security alerts
   await checkSecurityAlerts(user.discord_id, country, ip, videoId, userAgent)
 
-  // Create signed playback token
-  let token: string
-  try {
-    token = await createSignedPlaybackToken(video.stream_uid)
-  } catch (err) {
-    // Fallback: return stream UID for unsigned playback (less secure)
-    token = video.stream_uid
+  // Send new session notification
+  const settings = await getNotificationSettings()
+  if (settings.notifyNewSession && settings.webhookUrl) {
+    const { data: member } = await supabase
+      .from('members')
+      .select('discord_username, game_id')
+      .eq('discord_id', user.discord_id)
+      .single()
+
+    // Count how many times this member has watched this specific video
+    const { count: memberVideoViews } = await supabase
+      .from('view_sessions')
+      .select('*', { count: 'exact', head: true })
+      .eq('discord_id', user.discord_id)
+      .eq('video_id', videoId)
+
+    // Format location with city and country
+    const location = city ? `${city}, ${country}` : country || 'Unknown'
+    const currentViews = updatedVideo?.views || video.views || 0
+
+    await fetch(settings.webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        embeds: [{
+          title: '👁️ New Watch Session Started',
+          fields: [
+            { name: 'Member', value: `<@${user.discord_id}>`, inline: true },
+            { name: 'Country', value: location, inline: true },
+            { name: 'Video', value: video.title, inline: false },
+            { name: 'Video Views', value: `${memberVideoViews || 0} views`, inline: true },
+          ],
+          color: 0x3498DB,
+          timestamp: new Date().toISOString(),
+          footer: {
+            text: 'RGR - Arena Run'
+          }
+        }],
+      }),
+    }).catch(err => console.error('Failed to send new session notification:', err))
   }
+
+  // Return stream UID for unsigned playback
+  // Note: For production, consider enabling signed URLs in Cloudflare Stream settings
+  const token = video.stream_uid
 
   return {
     statusCode: 200,
@@ -197,8 +250,8 @@ async function getNotificationSettings() {
     notifyOddHours: data?.notify_odd_hours ?? false,
     oddHoursStart: data?.odd_hours_start ?? 2,
     oddHoursEnd: data?.odd_hours_end ?? 6,
-    webhookSecurity: data?.webhook_security || process.env.DISCORD_WEBHOOK_SECURITY,
-    webhookAlerts: data?.webhook_alerts || process.env.DISCORD_WEBHOOK_ALERTS,
+    webhookUrl: data?.webhook_security || process.env.DISCORD_WEBHOOK_URL,
+    notifyNewSession: data?.notify_new_session ?? true,
   }
 }
 
@@ -223,8 +276,8 @@ async function checkSecurityAlerts(discordId: string, country: string, ip: strin
         details: { old_country: recentCountrySessions[0].country, new_country: country },
       })
 
-      if (settings.webhookSecurity) {
-        await fetch(settings.webhookSecurity, {
+      if (settings.webhookUrl) {
+        await fetch(settings.webhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -258,8 +311,8 @@ async function checkSecurityAlerts(discordId: string, country: string, ip: strin
         details: { old_ip: recentIpSessions[0].ip_address, new_ip: ip, reason: 'ip_change' },
       })
 
-      if (settings.webhookSecurity) {
-        await fetch(settings.webhookSecurity, {
+      if (settings.webhookUrl) {
+        await fetch(settings.webhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -302,7 +355,7 @@ async function checkSecurityAlerts(discordId: string, country: string, ip: strin
         details: { video_id: videoId, view_count: count, threshold: settings.excessiveViewsThreshold },
       })
 
-      if (settings.webhookAlerts) {
+      if (settings.webhookUrl) {
         // Get video title
         const { data: video } = await supabase
           .from('videos')
@@ -310,7 +363,7 @@ async function checkSecurityAlerts(discordId: string, country: string, ip: strin
           .eq('id', videoId)
           .single()
 
-        await fetch(settings.webhookAlerts, {
+        await fetch(settings.webhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -345,8 +398,8 @@ async function checkSecurityAlerts(discordId: string, country: string, ip: strin
           details: { ip, reason: 'vpn_proxy_detected', is_proxy: vpnData.proxy, is_hosting: vpnData.hosting },
         })
 
-        if (settings.webhookSecurity) {
-          await fetch(settings.webhookSecurity, {
+        if (settings.webhookUrl) {
+          await fetch(settings.webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -395,8 +448,8 @@ async function checkSecurityAlerts(discordId: string, country: string, ip: strin
           },
         })
 
-        if (settings.webhookSecurity) {
-          await fetch(settings.webhookSecurity, {
+        if (settings.webhookUrl) {
+          await fetch(settings.webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -429,8 +482,8 @@ async function checkSecurityAlerts(discordId: string, country: string, ip: strin
         details: { reason: 'odd_hours', hour: currentHour, video_id: videoId },
       })
 
-      if (settings.webhookAlerts) {
-        await fetch(settings.webhookAlerts, {
+      if (settings.webhookUrl) {
+        await fetch(settings.webhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

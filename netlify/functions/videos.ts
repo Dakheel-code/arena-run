@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 const CF_ACCOUNT_ID = process.env.CF_ACCOUNT_ID!
 const CF_STREAM_API_TOKEN = process.env.CF_STREAM_API_TOKEN!
 const JWT_SECRET = process.env.JWT_SECRET!
-const DISCORD_WEBHOOK_UPLOADS = process.env.DISCORD_WEBHOOK_UPLOADS
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -33,8 +33,8 @@ function getUser(event: any) {
 }
 
 async function sendDiscordNotification(title: string, description: string, fields?: Array<{name: string, value: string, inline?: boolean}>) {
-  if (!DISCORD_WEBHOOK_UPLOADS) return
-  await fetch(DISCORD_WEBHOOK_UPLOADS, {
+  if (!DISCORD_WEBHOOK_URL) return
+  await fetch(DISCORD_WEBHOOK_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -45,7 +45,7 @@ async function sendDiscordNotification(title: string, description: string, field
         fields: fields || [],
         timestamp: new Date().toISOString(),
         footer: {
-          text: 'Regulators Video Platform'
+          text: 'RGR - Arena Run'
         }
       }],
     }),
@@ -83,6 +83,17 @@ export const handler: Handler = async (event) => {
         .eq('discord_id', user.discord_id)
         .single()
 
+      // Get uploader avatar from members table
+      let uploader_avatar = null
+      if (data.uploaded_by) {
+        const { data: member } = await supabase
+          .from('members')
+          .select('discord_avatar')
+          .eq('discord_id', data.uploaded_by)
+          .single()
+        uploader_avatar = member?.discord_avatar || null
+      }
+
       // Note: View count is incremented in playback.ts when session starts, not here
 
       return {
@@ -91,7 +102,8 @@ export const handler: Handler = async (event) => {
         body: JSON.stringify({ 
           video: { 
             ...data, 
-            user_liked: !!likeData
+            user_liked: !!likeData,
+            uploader_avatar
           } 
         }),
       }
@@ -108,10 +120,24 @@ export const handler: Handler = async (event) => {
       return { statusCode: 500, body: JSON.stringify({ message: error.message }) }
     }
 
+    // Get uploader avatars from members table
+    const uploaderIds = [...new Set(data?.map(v => v.uploaded_by).filter(Boolean) || [])]
+    const { data: members } = await supabase
+      .from('members')
+      .select('discord_id, discord_avatar')
+      .in('discord_id', uploaderIds)
+
+    const avatarMap = new Map(members?.map(m => [m.discord_id, m.discord_avatar]) || [])
+    
+    const videosWithAvatars = data?.map(video => ({
+      ...video,
+      uploader_avatar: avatarMap.get(video.uploaded_by) || null
+    })) || []
+
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ videos: data }),
+      body: JSON.stringify({ videos: videosWithAvatars }),
     }
   }
 
@@ -212,17 +238,40 @@ export const handler: Handler = async (event) => {
 
   // PATCH - Update video (publish/unpublish or edit metadata)
   if (method === 'PATCH') {
-    if (!user.is_admin) {
-      return { statusCode: 403, body: JSON.stringify({ message: 'Forbidden' }) }
-    }
-
     const body = JSON.parse(event.body || '{}')
     const { id, is_published, title, description, season, day, wins_attacks, arena_time, shield_hits, overtime_type, start_rank, end_rank, has_commentary, uploaded_by, uploader_name } = body
 
+    // Check if video exists and get owner
+    const { data: existingVideo } = await supabase
+      .from('videos')
+      .select('uploaded_by')
+      .eq('id', id)
+      .single()
+
+    if (!existingVideo) {
+      return { statusCode: 404, body: JSON.stringify({ message: 'Video not found' }) }
+    }
+
+    const isOwner = existingVideo.uploaded_by === user.discord_id
+    const isAdmin = user.is_admin
+
+    // Only admin or owner can edit
+    if (!isAdmin && !isOwner) {
+      return { statusCode: 403, body: JSON.stringify({ message: 'Forbidden' }) }
+    }
+
     // Build update object with only provided fields
     const updateData: Record<string, any> = {}
-    if (is_published !== undefined) updateData.is_published = is_published
-    if (title !== undefined) updateData.title = title
+    
+    // Admin-only fields: is_published, title, uploaded_by, uploader_name
+    if (isAdmin) {
+      if (is_published !== undefined) updateData.is_published = is_published
+      if (title !== undefined) updateData.title = title
+      if (uploaded_by !== undefined) updateData.uploaded_by = uploaded_by
+      if (uploader_name !== undefined) updateData.uploader_name = uploader_name
+    }
+    
+    // Fields editable by both admin and owner
     if (description !== undefined) updateData.description = description
     if (season !== undefined) updateData.season = season
     if (day !== undefined) updateData.day = day
@@ -233,8 +282,6 @@ export const handler: Handler = async (event) => {
     if (start_rank !== undefined) updateData.start_rank = start_rank
     if (end_rank !== undefined) updateData.end_rank = end_rank
     if (has_commentary !== undefined) updateData.has_commentary = has_commentary
-    if (uploaded_by !== undefined) updateData.uploaded_by = uploaded_by
-    if (uploader_name !== undefined) updateData.uploader_name = uploader_name
 
     const { data, error } = await supabase
       .from('videos')

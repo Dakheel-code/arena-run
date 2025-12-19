@@ -78,7 +78,9 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
         const video = videoRef.current
         if (!video) return
 
-        const streamUrl = `https://customer-${import.meta.env.VITE_CF_CUSTOMER_CODE || 'f77l4lfvzzqxfvfp'}.cloudflarestream.com/${streamUid}/manifest/video.m3u8?token=${token}`
+        // For unsigned playback, token is the stream UID itself
+        // Use hardcoded customer code since VITE_ env vars are build-time only
+        const streamUrl = `https://customer-f13bd0opbb08xh8b.cloudflarestream.com/${token}/manifest/video.m3u8`
 
         if (Hls.isSupported()) {
           const hls = new Hls()

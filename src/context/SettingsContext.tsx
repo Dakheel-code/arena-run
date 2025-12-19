@@ -12,8 +12,8 @@ interface SettingsContextType {
 }
 
 const defaultSettings: Settings = {
-  siteName: 'Arena Run',
-  siteDescription: 'Private Video Platform',
+  siteName: 'The Regulators RGR',
+  siteDescription: 'Arena Run',
 }
 
 const SettingsContext = createContext<SettingsContextType>({
@@ -29,8 +29,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       const result = await api.getPublicSettings()
       if (result.settings) {
         setSettings({
-          siteName: result.settings.site_name || 'Arena Run',
-          siteDescription: result.settings.site_description || 'Private Video Platform',
+          siteName: result.settings.site_name || 'The Regulators RGR',
+          siteDescription: result.settings.site_description || 'Arena Run',
         })
       }
     } catch (error) {

@@ -71,9 +71,10 @@ export const handler: Handler = async (event) => {
 
       // Return default settings if none exist
       const settings = data || {
-        site_name: 'Arena Run',
-        site_description: 'Private Video Platform',
+        site_name: 'The Regulators RGR',
+        site_description: 'Arena Run',
         require_role: true,
+        allowed_roles: '',
         allow_new_members: true,
         max_sessions_per_user: 5,
         session_timeout: 30,
@@ -89,9 +90,10 @@ export const handler: Handler = async (event) => {
         notify_odd_hours: false,
         odd_hours_start: 2,
         odd_hours_end: 6,
-        webhook_security: '',
-        webhook_alerts: '',
-        webhook_uploads: '',
+        notify_new_upload: true,
+        notify_new_publish: true,
+        notify_new_session: true,
+        webhook_url: '',
       }
 
       return {
@@ -140,9 +142,11 @@ export const handler: Handler = async (event) => {
             notify_odd_hours: body.notifyOddHours,
             odd_hours_start: body.oddHoursStart,
             odd_hours_end: body.oddHoursEnd,
-            webhook_security: body.webhookSecurity,
-            webhook_alerts: body.webhookAlerts,
-            webhook_uploads: body.webhookUploads,
+            notify_new_upload: body.notifyNewUpload,
+            notify_new_publish: body.notifyNewPublish,
+            notify_new_session: body.notifyNewSession,
+            allowed_roles: body.allowedRoles,
+            webhook_url: body.webhookUrl,
             updated_at: new Date().toISOString(),
           })
           .eq('id', existing.id)
@@ -171,9 +175,11 @@ export const handler: Handler = async (event) => {
             notify_odd_hours: body.notifyOddHours,
             odd_hours_start: body.oddHoursStart,
             odd_hours_end: body.oddHoursEnd,
-            webhook_security: body.webhookSecurity,
-            webhook_alerts: body.webhookAlerts,
-            webhook_uploads: body.webhookUploads,
+            notify_new_upload: body.notifyNewUpload,
+            notify_new_publish: body.notifyNewPublish,
+            notify_new_session: body.notifyNewSession,
+            allowed_roles: body.allowedRoles,
+            webhook_url: body.webhookUrl,
           })
           .select()
           .single()

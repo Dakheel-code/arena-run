@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { Layout } from '../components/Layout'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
+import { useLanguage } from '../context/LanguageContext'
 import { Upload, Loader, ArrowLeft, Play } from 'lucide-react'
 import * as tus from 'tus-js-client'
 
 export function NewRunPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { t } = useLanguage()
   const [uploadData, setUploadData] = useState({
     description: '',
     season: '',
@@ -153,7 +155,7 @@ export function NewRunPage() {
           className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6"
         >
           <ArrowLeft size={20} />
-          Back
+          {t('back')}
         </button>
 
         <div className="card">
@@ -162,8 +164,8 @@ export function NewRunPage() {
               <Play size={24} className="text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">New Run</h1>
-              <p className="text-gray-400 text-sm">Upload your arena run video</p>
+              <h1 className="text-2xl font-bold">{t('newRunTitle')}</h1>
+              <p className="text-gray-400 text-sm">{t('newRunSubtitle')}</p>
             </div>
           </div>
 
@@ -177,7 +179,7 @@ export function NewRunPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Season *</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('seasonLabel')} *</label>
                 <input
                   type="text"
                   value={uploadData.season}
@@ -187,7 +189,7 @@ export function NewRunPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Day *</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('dayLabel')} *</label>
                 <input
                   type="text"
                   value={uploadData.day}
@@ -200,7 +202,7 @@ export function NewRunPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Wins/Attacks</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('winsAttacks')}</label>
                 <input
                   type="text"
                   value={uploadData.wins_attacks}
@@ -210,7 +212,7 @@ export function NewRunPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Arena Time</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('arenaTime')}</label>
                 <input
                   type="text"
                   value={uploadData.arena_time}
@@ -222,47 +224,47 @@ export function NewRunPage() {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Shield Hits</label>
+              <label className="block text-sm text-gray-400 mb-2">{t('shieldHits')}</label>
               <input
                 type="text"
                 value={uploadData.shield_hits}
                 onChange={(e) => setUploadData((d) => ({ ...d, shield_hits: e.target.value }))}
                 className="input-field w-full"
-                placeholder="Number of hits before shield"
+                placeholder={t('shieldHitsPlaceholder')}
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Overtime Status</label>
+              <label className="block text-sm text-gray-400 mb-2">{t('overtimeStatus')}</label>
               <select
                 value={uploadData.overtime_type}
                 onChange={(e) => setUploadData((d) => ({ ...d, overtime_type: e.target.value }))}
                 className="input-field w-full"
               >
-                <option value="none">None</option>
-                <option value="last_hit">Last hit went overtime</option>
+                <option value="none">{t('none')}</option>
+                <option value="last_hit">{t('lastHitOvertime')}</option>
               </select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Start Rank</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('startRank')}</label>
                 <input
                   type="text"
                   value={uploadData.start_rank}
                   onChange={(e) => setUploadData((d) => ({ ...d, start_rank: e.target.value }))}
                   className="input-field w-full"
-                  placeholder="Starting rank"
+                  placeholder={t('startingRank')}
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-400 mb-2">End Rank</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('endRank')}</label>
                 <input
                   type="text"
                   value={uploadData.end_rank}
                   onChange={(e) => setUploadData((d) => ({ ...d, end_rank: e.target.value }))}
                   className="input-field w-full"
-                  placeholder="Ending rank"
+                  placeholder={t('endingRank')}
                 />
               </div>
             </div>
@@ -276,22 +278,22 @@ export function NewRunPage() {
                 className="w-4 h-4 rounded"
               />
               <label htmlFor="has_commentary" className="text-sm text-gray-400">
-                Video has commentary
+                {t('videoHasCommentary')}
               </label>
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Description</label>
+              <label className="block text-sm text-gray-400 mb-2">{t('description')}</label>
               <textarea
                 value={uploadData.description}
                 onChange={(e) => setUploadData((d) => ({ ...d, description: e.target.value }))}
                 className="input-field w-full h-20 resize-none"
-                placeholder="Enter video description (optional)"
+                placeholder={t('descriptionPlaceholder')}
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Video File *</label>
+              <label className="block text-sm text-gray-400 mb-2">{t('videoFile')} *</label>
               <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center hover:border-green-500/50 transition-colors">
                 <input
                   ref={fileInputRef}
@@ -309,7 +311,7 @@ export function NewRunPage() {
                 <label htmlFor="video-file" className="cursor-pointer">
                   <Upload size={32} className={`mx-auto mb-2 ${selectedFile ? 'text-theme-light' : 'text-gray-400'}`} />
                   <p className={selectedFile ? 'text-theme-light font-medium' : 'text-gray-400'}>
-                    {selectedFile ? selectedFile.name : 'Click to select video file'}
+                    {selectedFile ? selectedFile.name : t('clickToSelectVideo')}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
                     {selectedFile 
@@ -354,12 +356,12 @@ export function NewRunPage() {
               {isUploading ? (
                 <>
                   <Loader className="animate-spin" size={20} />
-                  Uploading...
+                  {t('uploading')}
                 </>
               ) : (
                 <>
                   <Play size={20} />
-                  Start Run
+                  {t('upload')}
                 </>
               )}
             </button>

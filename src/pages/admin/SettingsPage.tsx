@@ -3,7 +3,8 @@ import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
 import { useSettings } from '../../context/SettingsContext'
 import { useTheme, ThemeColor } from '../../context/ThemeContext'
-import { Settings, Bell, Shield, Database, Globe, Save, Loader, CheckCircle, AlertTriangle, MapPin, Wifi, Eye, Link, Smartphone, Clock, ShieldAlert, Palette } from 'lucide-react'
+import { useLanguage } from '../../context/LanguageContext'
+import { Bell, Shield, Database, Globe, Loader, CheckCircle, AlertTriangle, MapPin, Wifi, Eye, Link, Smartphone, Clock, ShieldAlert, Palette, Upload, Plus, X } from 'lucide-react'
 
 const THEME_COLORS: { value: ThemeColor; label: string; color: string }[] = [
   { value: 'amber', label: 'Gold', color: 'bg-amber-500' },
@@ -16,15 +17,19 @@ const THEME_COLORS: { value: ThemeColor; label: string; color: string }[] = [
 ]
 
 export function SettingsPage() {
+  const { t } = useLanguage()
   const { refreshSettings } = useSettings()
   const { themeColor, setThemeColor } = useTheme()
   const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [saveMessage, setSaveMessage] = useState('')
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [showSaveNotification, setShowSaveNotification] = useState(false)
+  const [newRole, setNewRole] = useState('')
+  const [roles, setRoles] = useState<string[]>([])
   const [settings, setSettings] = useState({
-    siteName: 'Arena Run',
-    siteDescription: 'Private Video Platform',
+    siteName: 'The Regulators RGR',
+    siteDescription: 'Arena Run',
     requireRole: true,
+    allowedRoles: '',
     allowNewMembers: true,
     maxSessionsPerUser: 5,
     sessionTimeout: 30,
@@ -40,9 +45,10 @@ export function SettingsPage() {
     notifyOddHours: false,
     oddHoursStart: 2,
     oddHoursEnd: 6,
-    webhookSecurity: '',
-    webhookAlerts: '',
-    webhookUploads: '',
+    notifyNewUpload: true,
+    notifyNewPublish: true,
+    notifyNewSession: true,
+    webhookUrl: '',
   })
 
   useEffect(() => {
@@ -52,11 +58,20 @@ export function SettingsPage() {
   const fetchSettings = async () => {
     try {
       const result = await api.getSettings()
+      console.log('Fetched settings from API:', result.settings)
       if (result.settings) {
+        // Parse roles from comma-separated string
+        const rolesString = (result.settings as any).allowed_roles || ''
+        setRoles(rolesString ? rolesString.split(',').map((r: string) => r.trim()).filter(Boolean) : [])
+        
+        const webhookUrl = (result.settings as any).webhook_url || ''
+        console.log('Webhook URL from DB:', webhookUrl)
+        
         setSettings({
-          siteName: result.settings.site_name || 'Arena Run',
-          siteDescription: result.settings.site_description || 'Private Video Platform',
+          siteName: result.settings.site_name || 'The Regulators RGR',
+          siteDescription: result.settings.site_description || 'Arena Run',
           requireRole: result.settings.require_role ?? true,
+          allowedRoles: rolesString,
           allowNewMembers: result.settings.allow_new_members ?? true,
           maxSessionsPerUser: result.settings.max_sessions_per_user || 5,
           sessionTimeout: result.settings.session_timeout || 30,
@@ -72,32 +87,57 @@ export function SettingsPage() {
           notifyOddHours: result.settings.notify_odd_hours ?? false,
           oddHoursStart: result.settings.odd_hours_start ?? 2,
           oddHoursEnd: result.settings.odd_hours_end ?? 6,
-          webhookSecurity: result.settings.webhook_security || '',
-          webhookAlerts: result.settings.webhook_alerts || '',
-          webhookUploads: result.settings.webhook_uploads || '',
+          notifyNewUpload: (result.settings as any).notify_new_upload ?? true,
+          notifyNewPublish: (result.settings as any).notify_new_publish ?? true,
+          notifyNewSession: (result.settings as any).notify_new_session ?? true,
+          webhookUrl: webhookUrl,
         })
       }
     } catch (error) {
       console.error('Failed to fetch settings:', error)
     } finally {
       setIsLoading(false)
+      // Mark initial load as complete after settings are loaded
+      setTimeout(() => setIsInitialLoad(false), 100)
     }
   }
 
-  const handleSave = async () => {
-    setIsSaving(true)
-    setSaveMessage('')
-    try {
-      await api.saveSettings(settings)
-      await refreshSettings() // Update global settings context
-      setSaveMessage('Settings saved successfully!')
-      setTimeout(() => setSaveMessage(''), 3000)
-    } catch (error: any) {
-      console.error('Failed to save settings:', error)
-      setSaveMessage(`Failed to save: ${error.message || 'Unknown error'}`)
-    } finally {
-      setIsSaving(false)
+  // Auto-save settings whenever they change
+  useEffect(() => {
+    if (!isLoading && !isInitialLoad) {
+      console.log('Auto-saving settings...', settings)
+      const saveSettings = async () => {
+        try {
+          await api.saveSettings(settings)
+          await refreshSettings()
+          console.log('Settings saved successfully')
+          
+          // Show save notification
+          setShowSaveNotification(true)
+          setTimeout(() => setShowSaveNotification(false), 3000)
+        } catch (error) {
+          console.error('Failed to auto-save settings:', error)
+        }
+      }
+      const timeoutId = setTimeout(saveSettings, 1000) // Debounce 1 second
+      return () => clearTimeout(timeoutId)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings, isLoading, isInitialLoad])
+
+  const addRole = () => {
+    if (newRole.trim() && !roles.includes(newRole.trim())) {
+      const updatedRoles = [...roles, newRole.trim()]
+      setRoles(updatedRoles)
+      setSettings({ ...settings, allowedRoles: updatedRoles.join(', ') })
+      setNewRole('')
+    }
+  }
+
+  const removeRole = (roleToRemove: string) => {
+    const updatedRoles = roles.filter(r => r !== roleToRemove)
+    setRoles(updatedRoles)
+    setSettings({ ...settings, allowedRoles: updatedRoles.join(', ') })
   }
 
   if (isLoading) {
@@ -112,57 +152,28 @@ export function SettingsPage() {
 
   return (
     <Layout>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Settings</h1>
-        <p className="text-gray-400">Configure platform settings and preferences</p>
-      </div>
-
-      {saveMessage && (
-        <div className={`mb-6 p-4 rounded-lg flex items-center gap-2 ${
-          saveMessage.includes('success') 
-            ? 'bg-green-500/20 text-green-400' 
-            : 'bg-red-500/20 text-red-400'
-        }`}>
-          <CheckCircle size={20} />
-          {saveMessage}
+      {/* Save Notification */}
+      {showSaveNotification && (
+        <div className="fixed top-4 right-4 left-4 sm:left-auto sm:right-4 z-50 animate-fade-in-up">
+          <div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 sm:gap-3 max-w-sm mx-auto sm:mx-0">
+            <CheckCircle className="flex-shrink-0" size={20} />
+            <span className="font-medium text-sm sm:text-base">Settings saved successfully</span>
+          </div>
         </div>
       )}
 
-      <div className="max-w-3xl space-y-6">
-        {/* General Settings */}
-        <div className="card">
-          <div className="flex items-center gap-3 mb-6">
-            <Settings className="text-theme-light" size={24} />
-            <h2 className="text-xl font-bold text-theme-light">General Settings</h2>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">Site Name</label>
-              <input
-                type="text"
-                value={settings.siteName}
-                onChange={(e) => setSettings({ ...settings, siteName: e.target.value })}
-                className="input-field w-full"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">Site Description</label>
-              <input
-                type="text"
-                value={settings.siteDescription}
-                onChange={(e) => setSettings({ ...settings, siteDescription: e.target.value })}
-                className="input-field w-full"
-              />
-            </div>
-          </div>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">{t('settingsTitle')}</h1>
+        <p className="text-gray-400">{t('settingsSubtitle')}</p>
+      </div>
 
+
+      <div className="max-w-3xl space-y-6">
         {/* Theme Settings */}
         <div className="card">
           <div className="flex items-center gap-3 mb-6">
             <Palette className="text-theme-light" size={24} />
-            <h2 className="text-xl font-bold text-theme-light">Theme Color</h2>
+            <h2 className="text-xl font-bold text-theme-light">{t('themeColor')}</h2>
           </div>
           
           <div className="grid grid-cols-7 gap-3">
@@ -181,21 +192,20 @@ export function SettingsPage() {
               </button>
             ))}
           </div>
-          <p className="text-xs text-gray-500 mt-3">Theme changes are saved automatically</p>
         </div>
 
         {/* Security Settings */}
         <div className="card">
           <div className="flex items-center gap-3 mb-6">
             <Shield className="text-theme-light" size={24} />
-            <h2 className="text-xl font-bold text-theme-light">Security Settings</h2>
+            <h2 className="text-xl font-bold text-theme-light">{t('securitySettings')}</h2>
           </div>
           
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">Require Discord Role</p>
-                <p className="text-sm text-gray-400">Only allow members with specific Discord role</p>
+                <p className="font-medium">{t('requireDiscordRole')}</p>
+                <p className="text-sm text-gray-400">{t('requireDiscordRoleDesc')}</p>
               </div>
               <button
                 onClick={() => setSettings({ ...settings, requireRole: !settings.requireRole })}
@@ -208,11 +218,52 @@ export function SettingsPage() {
                 }`} />
               </button>
             </div>
+
+            {settings.requireRole && (
+              <div>
+                <label className="block font-medium mb-2">Allowed Discord Roles</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newRole}
+                    onChange={(e) => setNewRole(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && addRole()}
+                    placeholder="Enter role name"
+                    className="input-field flex-1"
+                  />
+                  <button
+                    onClick={addRole}
+                    className="btn-discord px-4"
+                  >
+                    <Plus size={18} />
+                  </button>
+                </div>
+                {roles.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {roles.map((role) => (
+                      <div
+                        key={role}
+                        className="flex items-center gap-2 bg-theme/20 text-theme-light px-3 py-1.5 rounded-lg border border-theme/30"
+                      >
+                        <span className="text-sm font-medium">{role}</span>
+                        <button
+                          onClick={() => removeRole(role)}
+                          className="hover:text-red-400 transition-colors"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <p className="text-sm text-gray-400 mt-2">Add role names one by one. Leave empty to allow all roles.</p>
+              </div>
+            )}
             
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">Allow New Members</p>
-                <p className="text-sm text-gray-400">Allow new Discord users to register</p>
+                <p className="font-medium">{t('allowNewMembers')}</p>
+                <p className="text-sm text-gray-400">{t('allowNewMembersDesc')}</p>
               </div>
               <button
                 onClick={() => setSettings({ ...settings, allowNewMembers: !settings.allowNewMembers })}
@@ -232,12 +283,12 @@ export function SettingsPage() {
         <div className="card">
           <div className="flex items-center gap-3 mb-6">
             <Database className="text-theme-light" size={24} />
-            <h2 className="text-xl font-bold text-theme-light">Session Settings</h2>
+            <h2 className="text-xl font-bold text-theme-light">{t('sessionSettings')}</h2>
           </div>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Max Sessions Per User</label>
+              <label className="block text-sm text-gray-400 mb-2">{t('maxSessionsPerUser')}</label>
               <input
                 type="number"
                 value={settings.maxSessionsPerUser}
@@ -248,7 +299,7 @@ export function SettingsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Session Timeout (minutes)</label>
+              <label className="block text-sm text-gray-400 mb-2">{t('sessionTimeoutMinutes')}</label>
               <input
                 type="number"
                 value={settings.sessionTimeout}
@@ -265,7 +316,7 @@ export function SettingsPage() {
         <div className="card">
           <div className="flex items-center gap-3 mb-6">
             <Bell className="text-theme-light" size={24} />
-            <h2 className="text-xl font-bold text-theme-light">Notifications</h2>
+            <h2 className="text-xl font-bold text-theme-light">{t('notifications')}</h2>
           </div>
           
           <div className="space-y-4">
@@ -274,8 +325,8 @@ export function SettingsPage() {
               <div className="flex items-center gap-3">
                 <MapPin className="text-orange-400" size={18} />
                 <div>
-                  <p className="font-medium">Country Change Alert</p>
-                  <p className="text-sm text-gray-400">Notify when a user's country changes</p>
+                  <p className="font-medium">{t('countryChangeAlert')}</p>
+                  <p className="text-sm text-gray-400">{t('countryChangeAlertDesc')}</p>
                 </div>
               </div>
               <button
@@ -295,8 +346,8 @@ export function SettingsPage() {
               <div className="flex items-center gap-3">
                 <Wifi className="text-blue-400" size={18} />
                 <div>
-                  <p className="font-medium">IP Change Alert</p>
-                  <p className="text-sm text-gray-400">Notify when a user's IP address changes</p>
+                  <p className="font-medium">{t('ipChangeAlert')}</p>
+                  <p className="text-sm text-gray-400">{t('ipChangeAlertDesc')}</p>
                 </div>
               </div>
               <button
@@ -316,8 +367,8 @@ export function SettingsPage() {
               <div className="flex items-center gap-3">
                 <Eye className="text-purple-400" size={18} />
                 <div>
-                  <p className="font-medium">Excessive Views Alert</p>
-                  <p className="text-sm text-gray-400">Notify when a user watches the same video too many times</p>
+                  <p className="font-medium">{t('excessiveViewsAlert')}</p>
+                  <p className="text-sm text-gray-400">{t('excessiveViewsAlertDesc')}</p>
                 </div>
               </div>
               <button
@@ -336,7 +387,7 @@ export function SettingsPage() {
             {settings.notifyExcessiveViews && (
               <div className="ml-9 pl-3 border-l-2 border-gray-700 space-y-3">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">First Alert After (views in 24h)</label>
+                  <label className="block text-sm text-gray-400 mb-2">{t('firstAlertAfter')}</label>
                   <input
                     type="number"
                     value={settings.excessiveViewsThreshold}
@@ -347,7 +398,7 @@ export function SettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Then Alert Every (views)</label>
+                  <label className="block text-sm text-gray-400 mb-2">{t('thenAlertEvery')}</label>
                   <input
                     type="number"
                     value={settings.excessiveViewsInterval}
@@ -368,8 +419,8 @@ export function SettingsPage() {
               <div className="flex items-center gap-3">
                 <AlertTriangle className="text-red-400" size={18} />
                 <div>
-                  <p className="font-medium">Suspicious Activity Alert</p>
-                  <p className="text-sm text-gray-400">Master toggle for all suspicious activity alerts below</p>
+                  <p className="font-medium">{t('suspiciousActivityAlert')}</p>
+                  <p className="text-sm text-gray-400">{t('suspiciousActivityAlertDesc')}</p>
                 </div>
               </div>
               <button
@@ -392,8 +443,8 @@ export function SettingsPage() {
                   <div className="flex items-center gap-3">
                     <ShieldAlert className="text-red-500" size={16} />
                     <div>
-                      <p className="font-medium text-sm">VPN/Proxy Detection</p>
-                      <p className="text-xs text-gray-400">Alert when user connects via VPN or Proxy</p>
+                      <p className="font-medium text-sm">{t('vpnProxyDetection')}</p>
+                      <p className="text-xs text-gray-400">{t('vpnProxyDetectionDesc')}</p>
                     </div>
                   </div>
                   <button
@@ -413,8 +464,8 @@ export function SettingsPage() {
                   <div className="flex items-center gap-3">
                     <Smartphone className="text-orange-500" size={16} />
                     <div>
-                      <p className="font-medium text-sm">Multiple Devices</p>
-                      <p className="text-xs text-gray-400">Alert when user watches from multiple devices simultaneously</p>
+                      <p className="font-medium text-sm">{t('multipleDevices')}</p>
+                      <p className="text-xs text-gray-400">{t('multipleDevicesDesc')}</p>
                     </div>
                   </div>
                   <button
@@ -434,8 +485,8 @@ export function SettingsPage() {
                   <div className="flex items-center gap-3">
                     <Clock className="text-purple-500" size={16} />
                     <div>
-                      <p className="font-medium text-sm">Odd Hours Activity</p>
-                      <p className="text-xs text-gray-400">Alert when user watches during unusual hours</p>
+                      <p className="font-medium text-sm">{t('oddHoursActivity')}</p>
+                      <p className="text-xs text-gray-400">{t('oddHoursActivityDesc')}</p>
                     </div>
                   </div>
                   <button
@@ -453,7 +504,7 @@ export function SettingsPage() {
                 {/* Odd Hours Time Range */}
                 {settings.notifyOddHours && (
                   <div className="ml-7 pl-3 border-l-2 border-gray-600">
-                    <label className="block text-xs text-gray-400 mb-2">Odd Hours Range (UTC)</label>
+                    <label className="block text-xs text-gray-400 mb-2">{t('oddHoursRange')}</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
@@ -463,7 +514,7 @@ export function SettingsPage() {
                         min="0"
                         max="23"
                       />
-                      <span className="text-gray-400">to</span>
+                      <span className="text-gray-400">{t('toText')}</span>
                       <input
                         type="number"
                         value={settings.oddHoursEnd}
@@ -472,12 +523,75 @@ export function SettingsPage() {
                         min="0"
                         max="23"
                       />
-                      <span className="text-gray-500 text-xs">(24h format)</span>
+                      <span className="text-gray-500 text-xs">{t('format24h')}</span>
                     </div>
                   </div>
                 )}
               </div>
             )}
+
+            {/* New Upload Alert */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Upload className="text-green-400" size={18} />
+                <div>
+                  <p className="font-medium">New Video Upload</p>
+                  <p className="text-sm text-gray-400">Get notified when a new video is uploaded</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSettings({ ...settings, notifyNewUpload: !settings.notifyNewUpload })}
+                className={`w-12 h-6 rounded-full transition-colors ${
+                  settings.notifyNewUpload ? 'bg-theme' : 'bg-gray-600'
+                }`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                  settings.notifyNewUpload ? 'translate-x-6' : 'translate-x-0.5'
+                }`} />
+              </button>
+            </div>
+
+            {/* New Publish Alert */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="text-cyan-400" size={18} />
+                <div>
+                  <p className="font-medium">New Video Published</p>
+                  <p className="text-sm text-gray-400">Get notified when a video is published</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSettings({ ...settings, notifyNewPublish: !settings.notifyNewPublish })}
+                className={`w-12 h-6 rounded-full transition-colors ${
+                  settings.notifyNewPublish ? 'bg-theme' : 'bg-gray-600'
+                }`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                  settings.notifyNewPublish ? 'translate-x-6' : 'translate-x-0.5'
+                }`} />
+              </button>
+            </div>
+
+            {/* New Session Alert */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Eye className="text-pink-400" size={18} />
+                <div>
+                  <p className="font-medium">New Watch Session</p>
+                  <p className="text-sm text-gray-400">Get notified when a new watch session starts</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSettings({ ...settings, notifyNewSession: !settings.notifyNewSession })}
+                className={`w-12 h-6 rounded-full transition-colors ${
+                  settings.notifyNewSession ? 'bg-theme' : 'bg-gray-600'
+                }`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                  settings.notifyNewSession ? 'translate-x-6' : 'translate-x-0.5'
+                }`} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -485,56 +599,27 @@ export function SettingsPage() {
         <div className="card">
           <div className="flex items-center gap-3 mb-6">
             <Link className="text-theme-light" size={24} />
-            <h2 className="text-xl font-bold text-theme-light">Discord Webhooks</h2>
+            <h2 className="text-xl font-bold text-theme-light">{t('discordWebhooks')}</h2>
           </div>
-          <p className="text-sm text-gray-400 mb-4">Configure Discord webhook URLs for notifications. Leave empty to use environment variables.</p>
+          <p className="text-sm text-gray-400 mb-4">{t('webhooksDesc')}</p>
           
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">
-                <span className="flex items-center gap-2">
-                  <Shield className="text-red-400" size={14} />
-                  Security Alerts Webhook
-                </span>
-              </label>
-              <input
-                type="url"
-                value={settings.webhookSecurity}
-                onChange={(e) => setSettings({ ...settings, webhookSecurity: e.target.value })}
-                className="input-field w-full"
-                placeholder="https://discord.com/api/webhooks/..."
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">
-                <span className="flex items-center gap-2">
-                  <Bell className="text-yellow-400" size={14} />
-                  General Alerts Webhook
-                </span>
-              </label>
-              <input
-                type="url"
-                value={settings.webhookAlerts}
-                onChange={(e) => setSettings({ ...settings, webhookAlerts: e.target.value })}
-                className="input-field w-full"
-                placeholder="https://discord.com/api/webhooks/..."
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">
-                <span className="flex items-center gap-2">
-                  <Globe className="text-green-400" size={14} />
-                  Uploads Webhook
-                </span>
-              </label>
-              <input
-                type="url"
-                value={settings.webhookUploads}
-                onChange={(e) => setSettings({ ...settings, webhookUploads: e.target.value })}
-                className="input-field w-full"
-                placeholder="https://discord.com/api/webhooks/..."
-              />
-            </div>
+          <div>
+            <label className="block text-sm text-gray-400 mb-2">
+              <span className="flex items-center gap-2">
+                <Bell className="text-theme-light" size={14} />
+                Discord Webhook URL
+              </span>
+            </label>
+            <input
+              type="url"
+              value={settings.webhookUrl}
+              onChange={(e) => setSettings({ ...settings, webhookUrl: e.target.value })}
+              className="input-field w-full"
+              placeholder="https://discord.com/api/webhooks/..."
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              All notifications will be sent to this webhook URL
+            </p>
           </div>
         </div>
 
@@ -542,36 +627,25 @@ export function SettingsPage() {
         <div className="card">
           <div className="flex items-center gap-3 mb-6">
             <Globe className="text-theme-light" size={24} />
-            <h2 className="text-xl font-bold text-theme-light">API Configuration</h2>
+            <h2 className="text-xl font-bold text-theme-light">{t('apiConfiguration')}</h2>
           </div>
           
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-400">Supabase</span>
-              <span className="text-green-400">Connected</span>
+              <span className="text-green-400">{t('connected')}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Cloudflare Stream</span>
-              <span className="text-green-400">Connected</span>
+              <span className="text-green-400">{t('connected')}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Discord OAuth</span>
-              <span className="text-green-400">Connected</span>
+              <span className="text-green-400">{t('connected')}</span>
             </div>
           </div>
         </div>
 
-        {/* Save Button */}
-        <div className="flex justify-end">
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="btn-primary flex items-center gap-2"
-          >
-            <Save size={18} />
-            {isSaving ? 'Saving...' : 'Save Settings'}
-          </button>
-        </div>
       </div>
     </Layout>
   )

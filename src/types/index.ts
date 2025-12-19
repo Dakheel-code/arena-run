@@ -30,6 +30,7 @@ export interface Video {
   // Uploader info
   uploaded_by?: string;
   uploader_name?: string;
+  uploader_avatar?: string;
   // Stats
   views_count?: number;
   likes_count?: number;
@@ -43,6 +44,9 @@ export interface ViewSession {
   watermark_code: string;
   ip_address?: string;
   country?: string;
+  city?: string;
+  is_vpn?: boolean;
+  isp?: string;
   user_agent?: string;
   started_at: string;
   ended_at?: string;

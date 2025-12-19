@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
+import { useLanguage } from '../../context/LanguageContext'
 import { Member } from '../../types'
 import { Upload, Search, UserCheck, UserX, Loader, FileSpreadsheet, Eye, ChevronLeft, ChevronRight, Plus, X, User } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
@@ -9,6 +10,7 @@ import Papa from 'papaparse'
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
 
 export function MembersPage() {
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const [members, setMembers] = useState<Member[]>([])
   const [filteredMembers, setFilteredMembers] = useState<Member[]>([])
@@ -149,8 +151,8 @@ export function MembersPage() {
   return (
     <Layout>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Manage Members</h1>
-        <p className="text-gray-400">List of authorized members</p>
+        <h1 className="text-3xl font-bold mb-2">{t('manageMembersTitle')}</h1>
+        <p className="text-gray-400">{t('authorizedMembers')}</p>
       </div>
 
       <div className="flex flex-wrap gap-4 mb-6">
@@ -159,7 +161,7 @@ export function MembersPage() {
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
-              placeholder="Search by Discord ID or Game ID..."
+              placeholder={t('searchMembers')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input-field w-full pr-10"
@@ -173,7 +175,7 @@ export function MembersPage() {
             className="btn-discord"
           >
             <Plus size={20} />
-            Add Member
+            {t('addMember')}
           </button>
           <input
             ref={fileInputRef}
@@ -192,7 +194,7 @@ export function MembersPage() {
             ) : (
               <Upload size={20} />
             )}
-            Upload CSV
+            {t('uploadCsv')}
           </button>
         </div>
       </div>
@@ -200,7 +202,7 @@ export function MembersPage() {
       <div className="card mb-4">
         <div className="flex items-center gap-2 text-sm text-gray-400">
           <FileSpreadsheet size={16} />
-          <span>File format: CSV with discord_id and game_id columns</span>
+          <span>{t('csvFormat')}</span>
         </div>
       </div>
 
@@ -209,21 +211,23 @@ export function MembersPage() {
           <Loader className="animate-spin text-theme-light" size={48} />
         </div>
       ) : (
-        <div className="card overflow-hidden">
-          <table className="w-full" dir="rtl">
-            <thead>
-              <tr className="border-b border-gray-700">
-                <th className="text-right py-3 px-4">Member</th>
-                <th className="text-right py-3 px-4">Game ID</th>
-                <th className="text-right py-3 px-4">Discord ID</th>
-                <th className="text-right py-3 px-4">Status</th>
-                <th className="text-right py-3 px-4">Last Login</th>
-                <th className="text-right py-3 px-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedMembers.map((member) => (
-                <tr key={member.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
+        <>
+          {/* Desktop Table View */}
+          <div className="card overflow-hidden hidden md:block">
+            <table className="w-full" dir="rtl">
+              <thead>
+                <tr className="border-b border-gray-700">
+                  <th className="text-right py-3 px-4">{t('member')}</th>
+                  <th className="text-right py-3 px-4">{t('gameId')}</th>
+                  <th className="text-right py-3 px-4">{t('discordId')}</th>
+                  <th className="text-right py-3 px-4">{t('status')}</th>
+                  <th className="text-right py-3 px-4">{t('lastLogin')}</th>
+                  <th className="text-right py-3 px-4">{t('actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedMembers.map((member) => (
+                  <tr key={member.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
                   {/* Member */}
                   <td className="py-3 px-4">
                     <Link 
@@ -261,11 +265,11 @@ export function MembersPage() {
                     >
                       {member.is_active ? (
                         <>
-                          <UserCheck size={14} /> Active
+                          <UserCheck size={14} /> {t('active')}
                         </>
                       ) : (
                         <>
-                          <UserX size={14} /> Disabled
+                          <UserX size={14} /> {t('disabled')}
                         </>
                       )}
                     </span>
@@ -274,7 +278,7 @@ export function MembersPage() {
                   <td className="py-3 px-4 text-sm text-gray-400">
                     {member.last_login 
                       ? new Date(member.last_login).toLocaleDateString('en-US') 
-                      : 'Never'}
+                      : t('never')}
                   </td>
                   {/* Actions */}
                   <td className="py-3 px-4">
@@ -282,7 +286,7 @@ export function MembersPage() {
                       <button
                         onClick={() => navigate(`/admin/members/${member.discord_id}`)}
                         className="p-2 hover:bg-blue-500/20 text-blue-400 rounded transition-colors"
-                        title="View Profile"
+                        title={t('viewProfile')}
                       >
                         <Eye size={18} />
                       </button>
@@ -294,7 +298,7 @@ export function MembersPage() {
                             : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
                         }`}
                       >
-                        {member.is_active ? 'Disable' : 'Enable'}
+                        {member.is_active ? t('disable') : t('enable')}
                       </button>
                     </div>
                   </td>
@@ -305,7 +309,7 @@ export function MembersPage() {
 
           {filteredMembers.length === 0 && (
             <div className="text-center py-8 text-gray-400">
-              No members match your search
+              {t('noMembersMatch')}
             </div>
           )}
 
@@ -314,7 +318,7 @@ export function MembersPage() {
             <div className="flex flex-col items-center gap-4 mt-6 pt-4 border-t border-gray-700">
               {/* Per-page selector */}
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-400">Show:</span>
+                <span className="text-sm text-gray-400">{t('show')}:</span>
                 <select
                   value={membersPerPage}
                   onChange={(e) => {
@@ -327,7 +331,7 @@ export function MembersPage() {
                     <option key={size} value={size}>{size}</option>
                   ))}
                 </select>
-                <span className="text-sm text-gray-400">per page</span>
+                <span className="text-sm text-gray-400">{t('perPage')}</span>
               </div>
 
               {/* Page navigation */}
@@ -379,11 +383,172 @@ export function MembersPage() {
 
               {/* Info text */}
               <div className="text-sm text-gray-400">
-                Showing {startIndex + 1}-{Math.min(endIndex, filteredMembers.length)} of {filteredMembers.length} members
+                {t('showingMembers')} {startIndex + 1}-{Math.min(endIndex, filteredMembers.length)} {t('ofMembers')} {filteredMembers.length} {t('membersText')}
               </div>
             </div>
           )}
-        </div>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-4">
+            {paginatedMembers.map((member) => (
+              <div key={member.id} className="card">
+                <Link 
+                  to={`/admin/members/${member.discord_id}`}
+                  className="flex items-center gap-3 mb-4"
+                >
+                  {member.discord_avatar ? (
+                    <img 
+                      src={member.discord_avatar} 
+                      alt={member.discord_username || 'Avatar'}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-theme/20 flex items-center justify-center">
+                      <User size={24} className="text-theme-light" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <h3 className="text-theme-light font-medium">
+                      {member.discord_username || member.game_id}
+                    </h3>
+                    <p className="text-sm text-gray-400">{member.game_id}</p>
+                  </div>
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs ${
+                      member.is_active
+                        ? 'bg-green-500/20 text-green-400'
+                        : 'bg-red-500/20 text-red-400'
+                    }`}
+                  >
+                    {member.is_active ? (
+                      <>
+                        <UserCheck size={14} /> {t('active')}
+                      </>
+                    ) : (
+                      <>
+                        <UserX size={14} /> {t('disabled')}
+                      </>
+                    )}
+                  </span>
+                </Link>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">{t('discordId')}:</span>
+                    <span className="font-mono text-gray-300">{member.discord_id}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">{t('lastLogin')}:</span>
+                    <span className="text-gray-300">
+                      {member.last_login 
+                        ? new Date(member.last_login).toLocaleDateString('en-US') 
+                        : t('never')}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 mt-4 pt-4 border-t border-gray-700">
+                  <button
+                    onClick={() => navigate(`/admin/members/${member.discord_id}`)}
+                    className="flex-1 btn-discord justify-center"
+                  >
+                    <Eye size={18} />
+                    {t('viewProfile')}
+                  </button>
+                  <button
+                    onClick={() => toggleMemberStatus(member)}
+                    className={`flex-1 px-3 py-2 rounded transition-colors ${
+                      member.is_active
+                        ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                        : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                    }`}
+                  >
+                    {member.is_active ? t('disable') : t('enable')}
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {filteredMembers.length === 0 && (
+              <div className="text-center py-8 text-gray-400">
+                {t('noMembersMatch')}
+              </div>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {filteredMembers.length > 0 && (
+            <div className="flex flex-col items-center gap-4 mt-6 pt-4 border-t border-gray-700">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-400">{t('show')}:</span>
+                <select
+                  value={membersPerPage}
+                  onChange={(e) => {
+                    setMembersPerPage(Number(e.target.value))
+                    setCurrentPage(1)
+                  }}
+                  className="input-field px-3 py-1 text-sm bg-gray-800 border border-gray-600 rounded"
+                >
+                  {PAGE_SIZE_OPTIONS.map(size => (
+                    <option key={size} value={size}>{size}</option>
+                  ))}
+                </select>
+                <span className="text-sm text-gray-400">{t('perPage')}</span>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg bg-gray-700/50 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum: number
+                      if (totalPages <= 5) {
+                        pageNum = i + 1
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i
+                      } else {
+                        pageNum = currentPage - 2 + i
+                      }
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`w-8 h-8 rounded-lg text-sm transition-colors ${
+                            currentPage === pageNum
+                              ? 'bg-theme text-white'
+                              : 'bg-gray-700/50 hover:bg-gray-700'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg bg-gray-700/50 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              )}
+
+              <div className="text-sm text-gray-400">
+                {t('showingMembers')} {startIndex + 1}-{Math.min(endIndex, filteredMembers.length)} {t('ofMembers')} {filteredMembers.length} {t('membersText')}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Add Member Modal */}
@@ -391,7 +556,7 @@ export function MembersPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="card max-w-md w-full mx-4">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold">Add New Member</h2>
+              <h2 className="text-xl font-bold">{t('addNewMember')}</h2>
               <button
                 onClick={() => {
                   setShowAddModal(false)
@@ -405,7 +570,7 @@ export function MembersPage() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Discord ID *</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('discordId')} *</label>
                 <input
                   type="text"
                   value={newMember.discord_id}
@@ -416,7 +581,7 @@ export function MembersPage() {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Game ID *</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('gameId')} *</label>
                 <input
                   type="text"
                   value={newMember.game_id}
@@ -427,7 +592,7 @@ export function MembersPage() {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Discord Username (optional)</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('discordUsername')} ({t('optional')})</label>
                 <input
                   type="text"
                   value={newMember.discord_username}
@@ -447,7 +612,7 @@ export function MembersPage() {
                 ) : (
                   <Plus size={20} />
                 )}
-                Add Member
+                {t('addMember')}
               </button>
             </div>
           </div>

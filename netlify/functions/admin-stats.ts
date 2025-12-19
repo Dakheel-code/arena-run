@@ -110,19 +110,23 @@ export const handler: Handler = async (event) => {
     .order('started_at', { ascending: false })
     .limit(20)
 
-  // Get member names for sessions
+  // Get member names and avatars for sessions
   const discordIds = [...new Set(rawSessions?.map(s => s.discord_id) || [])]
   const { data: membersData } = await supabase
     .from('members')
-    .select('discord_id, discord_username, game_id')
-    .in('discord_id', discordIds)
+    .select('discord_id, discord_username, game_id, discord_avatar')
+    .in('discord_id', discordIds.length > 0 ? discordIds : ['none'])
 
   const memberMap = new Map(membersData?.map(m => [m.discord_id, m]) || [])
   
-  const recentSessions = rawSessions?.map(s => ({
-    ...s,
-    member_name: memberMap.get(s.discord_id)?.discord_username || memberMap.get(s.discord_id)?.game_id || s.discord_id.slice(0, 8) + '...'
-  })) || []
+  const recentSessions = rawSessions?.map(s => {
+    const member = memberMap.get(s.discord_id)
+    return {
+      ...s,
+      member_name: member?.discord_username || member?.game_id || s.discord_id.slice(0, 8) + '...',
+      member_avatar: member?.discord_avatar
+    }
+  }) || []
 
   // Get new members this month
   const monthAgo = new Date()
@@ -131,6 +135,71 @@ export const handler: Handler = async (event) => {
     .from('members')
     .select('*', { count: 'exact', head: true })
     .gte('created_at', monthAgo.toISOString())
+
+  // Get top viewers (most sessions) and top watch time
+  const { data: allSessions } = await supabase
+    .from('view_sessions')
+    .select('discord_id, watch_seconds')
+
+  // Aggregate stats by discord_id
+  const viewerStats = new Map<string, { sessions: number, watchTime: number }>()
+  allSessions?.forEach((s: any) => {
+    const existing = viewerStats.get(s.discord_id)
+    if (existing) {
+      existing.sessions++
+      existing.watchTime += s.watch_seconds || 0
+    } else {
+      viewerStats.set(s.discord_id, { 
+        sessions: 1, 
+        watchTime: s.watch_seconds || 0
+      })
+    }
+  })
+
+  // Get top 10 discord_ids for both categories
+  const sortedBySession = Array.from(viewerStats.entries())
+    .sort((a, b) => b[1].sessions - a[1].sessions)
+    .slice(0, 10)
+  
+  const sortedByWatchTime = Array.from(viewerStats.entries())
+    .sort((a, b) => b[1].watchTime - a[1].watchTime)
+    .slice(0, 10)
+
+  // Get all unique discord_ids we need member info for
+  const allDiscordIds = [...new Set([
+    ...sortedBySession.map(([id]) => id),
+    ...sortedByWatchTime.map(([id]) => id)
+  ])]
+
+  // Fetch member info for these discord_ids
+  const { data: allMembersData } = await supabase
+    .from('members')
+    .select('discord_id, discord_username, game_id, discord_avatar')
+    .in('discord_id', allDiscordIds.length > 0 ? allDiscordIds : ['none'])
+
+  const memberInfoMap = new Map(allMembersData?.map(m => [m.discord_id, m]) || [])
+
+  // Build top viewers list
+  const topViewers = sortedBySession.slice(0, 5).map(([id, data]) => {
+    const member = memberInfoMap.get(id)
+    return {
+      id,
+      name: member?.discord_username || member?.game_id || id.slice(0, 8) + '...',
+      avatar: member?.discord_avatar,
+      count: data.sessions
+    }
+  })
+
+  // Build top watch time list
+  const topWatchTime = sortedByWatchTime.slice(0, 5).map(([id, data]) => {
+    const member = memberInfoMap.get(id)
+    return {
+      id,
+      name: member?.discord_username || member?.game_id || id.slice(0, 8) + '...',
+      avatar: member?.discord_avatar,
+      seconds: data.watchTime
+    }
+  })
 
   // Get period-specific stats if date range provided
   let periodViews = 0
@@ -170,6 +239,8 @@ export const handler: Handler = async (event) => {
       periodViews,
       periodWatchTime,
       periodSessions,
+      topViewers,
+      topWatchTime,
     }),
   }
 }

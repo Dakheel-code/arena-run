@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { SettingsProvider } from './context/SettingsContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { LanguageProvider } from './context/LanguageContext'
 import { LoginPage } from './pages/LoginPage'
 import { HomePage } from './pages/HomePage'
 import { WatchPage } from './pages/WatchPage'
@@ -12,6 +13,7 @@ import { VideosPage } from './pages/admin/VideosPage'
 import { SessionsPage } from './pages/admin/SessionsPage'
 import { SettingsPage } from './pages/admin/SettingsPage'
 import { NewRunPage } from './pages/NewRunPage'
+import { EditVideoPage } from './pages/EditVideoPage'
 import { Loader } from 'lucide-react'
 
 function ProtectedRoute({ children, adminOnly = false }: { children: React.ReactNode; adminOnly?: boolean }) {
@@ -86,6 +88,14 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/edit-video/:id"
+        element={
+          <ProtectedRoute>
+            <EditVideoPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/admin"
         element={
           <ProtectedRoute adminOnly>
@@ -143,9 +153,11 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <SettingsProvider>
-          <ThemeProvider>
-            <AppRoutes />
-          </ThemeProvider>
+          <LanguageProvider>
+            <ThemeProvider>
+              <AppRoutes />
+            </ThemeProvider>
+          </LanguageProvider>
         </SettingsProvider>
       </AuthProvider>
     </BrowserRouter>

@@ -6,8 +6,6 @@ interface VideoCardProps {
   video: Video
 }
 
-const CF_CUSTOMER_CODE = import.meta.env.VITE_CF_CUSTOMER_CODE
-
 function formatDuration(seconds?: number): string {
   if (!seconds) return '--:--'
   const mins = Math.floor(seconds / 60)
@@ -23,7 +21,7 @@ function formatNumber(num?: number): string {
 }
 
 function getThumbnailUrl(streamUid: string): string {
-  return `https://customer-${CF_CUSTOMER_CODE}.cloudflarestream.com/${streamUid}/thumbnails/thumbnail.jpg?time=10s&width=640`
+  return `https://customer-f13bd0opbb08xh8b.cloudflarestream.com/${streamUid}/thumbnails/thumbnail.jpg?time=10s&width=640`
 }
 
 export function VideoCard({ video }: VideoCardProps) {
@@ -75,24 +73,44 @@ export function VideoCard({ video }: VideoCardProps) {
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className="p-3">
         {/* Title */}
-        <h3 className="font-semibold text-base mb-3 group-hover:text-theme-light transition-colors line-clamp-2 leading-tight">
+        <h3 className="font-semibold text-sm mb-2 group-hover:text-theme-light transition-colors line-clamp-2 leading-tight">
           {video.title}
         </h3>
 
         {/* Uploader */}
         {video.uploader_name && (
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-6 h-6 rounded-full bg-theme/20 flex items-center justify-center">
-              <User size={12} className="text-theme-light" />
-            </div>
-            <span className="text-sm text-gray-400">{video.uploader_name}</span>
+          <div 
+            className="flex items-center gap-2 mb-2"
+            onClick={(e) => {
+              if (video.uploaded_by) {
+                e.preventDefault()
+                e.stopPropagation()
+                window.location.href = `/admin/members/${video.uploaded_by}`
+              }
+            }}
+          >
+            {video.uploader_avatar ? (
+              <img 
+                src={video.uploader_avatar.startsWith('http') 
+                  ? video.uploader_avatar 
+                  : `https://cdn.discordapp.com/avatars/${video.uploaded_by}/${video.uploader_avatar}.png`
+                }
+                alt={video.uploader_name}
+                className="w-5 h-5 rounded-full object-cover hover:ring-2 hover:ring-theme-light transition-all cursor-pointer"
+              />
+            ) : (
+              <div className="w-5 h-5 rounded-full bg-theme/20 flex items-center justify-center hover:ring-2 hover:ring-theme-light transition-all cursor-pointer">
+                <User size={10} className="text-theme-light" />
+              </div>
+            )}
+            <span className="text-xs text-gray-400 hover:text-theme-light transition-colors cursor-pointer">{video.uploader_name}</span>
           </div>
         )}
 
         {/* Stats Row */}
-        <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-700/50">
+        <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-700/50">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
               <ThumbsUp size={14} className="text-gray-400" />

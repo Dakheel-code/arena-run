@@ -177,9 +177,10 @@ export const api = {
     notify_odd_hours: boolean
     odd_hours_start: number
     odd_hours_end: number
-    webhook_security: string
-    webhook_alerts: string
-    webhook_uploads: string
+    notify_new_upload: boolean
+    notify_new_publish: boolean
+    notify_new_session: boolean
+    webhook_url: string
   } }>('/admin-settings'),
 
   saveSettings: (settings: {
@@ -201,9 +202,11 @@ export const api = {
     notifyOddHours: boolean
     oddHoursStart: number
     oddHoursEnd: number
-    webhookSecurity: string
-    webhookAlerts: string
-    webhookUploads: string
+    notifyNewUpload: boolean
+    notifyNewPublish: boolean
+    notifyNewSession: boolean
+    allowedRoles: string
+    webhookUrl: string
   }) => fetchAPI<{ settings: any; message: string }>('/admin-settings', {
     method: 'PUT',
     body: JSON.stringify(settings),
@@ -228,6 +231,18 @@ export const api = {
     fetchAPI<{ success: boolean }>(`/comments?commentId=${commentId}`, {
       method: 'DELETE',
     }),
+  
+  likeComment: (commentId: string) =>
+    fetchAPI<{ likes_count: number; user_liked: boolean }>('/comments', {
+      method: 'PATCH',
+      body: JSON.stringify({ commentId, action: 'like' }),
+    }),
+  
+  unlikeComment: (commentId: string) =>
+    fetchAPI<{ likes_count: number; user_liked: boolean }>('/comments', {
+      method: 'PATCH',
+      body: JSON.stringify({ commentId, action: 'unlike' }),
+    }),
 }
 
 // Comment type
@@ -242,5 +257,7 @@ export interface Comment {
   updated_at: string
   author_name: string
   author_avatar: string | null
+  likes_count: number
+  user_liked: boolean
   replies?: Comment[]
 }

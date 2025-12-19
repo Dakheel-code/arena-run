@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { api, Comment } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
-import { MessageCircle, Send, Reply, Edit2, Trash2, User, Loader } from 'lucide-react'
+import { useLanguage } from '../context/LanguageContext'
+import { MessageCircle, Send, Reply, Edit2, Trash2, User, Loader, ThumbsUp } from 'lucide-react'
 
 interface CommentsProps {
   videoId: string
@@ -9,6 +10,7 @@ interface CommentsProps {
 
 export function Comments({ videoId }: CommentsProps) {
   const { user } = useAuth()
+  const { t } = useLanguage()
   const [comments, setComments] = useState<Comment[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [newComment, setNewComment] = useState('')
@@ -153,6 +155,40 @@ export function Comments({ videoId }: CommentsProps) {
     }
   }
 
+  const handleLikeComment = async (commentId: string, isLiked: boolean, isReply: boolean, parentId?: string) => {
+    if (!user) return
+
+    try {
+      const result = isLiked 
+        ? await api.unlikeComment(commentId)
+        : await api.likeComment(commentId)
+
+      // Update the comment in state
+      if (isReply && parentId) {
+        setComments(comments.map(c => 
+          c.id === parentId 
+            ? { 
+                ...c, 
+                replies: c.replies?.map(r => 
+                  r.id === commentId 
+                    ? { ...r, likes_count: result.likes_count, user_liked: result.user_liked }
+                    : r
+                )
+              }
+            : c
+        ))
+      } else {
+        setComments(comments.map(c => 
+          c.id === commentId 
+            ? { ...c, likes_count: result.likes_count, user_liked: result.user_liked }
+            : c
+        ))
+      }
+    } catch (error) {
+      console.error('Failed to like comment:', error)
+    }
+  }
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
@@ -202,7 +238,7 @@ export function Comments({ videoId }: CommentsProps) {
               <span className="font-medium text-sm">{comment.author_name}</span>
               <span className="text-xs text-gray-500">{formatDate(comment.created_at)}</span>
               {comment.is_edited && (
-                <span className="text-xs text-gray-500">(edited)</span>
+                <span className="text-xs text-gray-500">({t('edited')})</span>
               )}
             </div>
 
@@ -230,13 +266,13 @@ export function Comments({ videoId }: CommentsProps) {
                     onClick={() => handleEditComment(comment.id, isReply, parentId)}
                     className="px-3 py-1 bg-theme text-white text-sm rounded-lg hover:opacity-80"
                   >
-                    Save
+                    {t('save')}
                   </button>
                   <button
                     onClick={() => { setEditingId(null); setEditContent('') }}
                     className="px-3 py-1 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-600"
                   >
-                    Cancel
+                    {t('cancel')}
                   </button>
                 </div>
               </div>
@@ -245,9 +281,23 @@ export function Comments({ videoId }: CommentsProps) {
             )}
 
             {/* Actions */}
-            {user && editingId !== comment.id && (
+            {editingId !== comment.id && (
               <div className="flex items-center gap-3 mt-2">
-                {!isReply && (
+                {/* Like Button */}
+                <button
+                  onClick={() => user && handleLikeComment(comment.id, comment.user_liked, isReply, parentId)}
+                  className={`flex items-center gap-1 text-xs transition-colors ${
+                    comment.user_liked 
+                      ? 'text-theme-light' 
+                      : 'text-gray-400 hover:text-theme-light'
+                  } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={!user}
+                >
+                  <ThumbsUp size={12} className={comment.user_liked ? 'fill-current' : ''} />
+                  {comment.likes_count > 0 && <span>{comment.likes_count}</span>}
+                </button>
+
+                {user && !isReply && (
                   <button
                     onClick={() => {
                       setReplyingTo(replyingTo === comment.id ? null : comment.id)
@@ -256,7 +306,7 @@ export function Comments({ videoId }: CommentsProps) {
                     className="flex items-center gap-1 text-xs text-gray-400 hover:text-theme-light transition-colors"
                   >
                     <Reply size={12} />
-                    Reply
+                    {t('reply')}
                   </button>
                 )}
                 {canEdit && (
@@ -268,7 +318,7 @@ export function Comments({ videoId }: CommentsProps) {
                     className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-400 transition-colors"
                   >
                     <Edit2 size={12} />
-                    Edit
+                    {t('edit')}
                   </button>
                 )}
                 {canDelete && (
@@ -277,7 +327,7 @@ export function Comments({ videoId }: CommentsProps) {
                     className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-400 transition-colors"
                   >
                     <Trash2 size={12} />
-                    Delete
+                    {t('delete')}
                   </button>
                 )}
               </div>
@@ -332,7 +382,7 @@ export function Comments({ videoId }: CommentsProps) {
     <div dir="ltr">
       <h3 className="text-xl font-bold flex items-center gap-3 mb-6">
         <MessageCircle className="text-theme-light" size={24} />
-        <span>{comments.length} Comments</span>
+        <span>{comments.length} {t('comments')}</span>
       </h3>
 
       {/* Add Comment Form */}
@@ -354,7 +404,7 @@ export function Comments({ videoId }: CommentsProps) {
               <textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Add a comment..."
+                placeholder={t('addComment')}
                 rows={3}
                 dir="auto"
                 className="w-full bg-gray-800/50 border border-gray-700 rounded-xl px-4 py-3 focus:border-theme-light focus:outline-none resize-none transition-colors text-white"
@@ -370,7 +420,7 @@ export function Comments({ videoId }: CommentsProps) {
                   ) : (
                     <>
                       <Send size={18} />
-                      Comment
+                      {t('comment')}
                     </>
                   )}
                 </button>

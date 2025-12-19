@@ -1,13 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { Video } from '../types'
 import { api } from '../lib/api'
 import { VideoCard } from '../components/VideoCard'
 import { Layout } from '../components/Layout'
-import { Film, Loader } from 'lucide-react'
+import { useLanguage } from '../context/LanguageContext'
+import { Film, Loader, Search, Trophy, User, X } from 'lucide-react'
 
 export function HomePage() {
+  const { t } = useLanguage()
   const [videos, setVideos] = useState<Video[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedSeason, setSelectedSeason] = useState('')
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -23,28 +28,176 @@ export function HomePage() {
     fetchVideos()
   }, [])
 
+  // Get unique values for filters
+  const seasons = useMemo(() => 
+    [...new Set(videos.map(v => v.season).filter(Boolean))].sort((a, b) => Number(b) - Number(a)),
+    [videos]
+  )
+  
+
+  // Top uploaders (most videos)
+  const topUploaders = useMemo(() => {
+    const counts = new Map<string, { id: string, name: string, avatar?: string, count: number }>()
+    videos.forEach(v => {
+      if (v.uploaded_by && v.uploader_name) {
+        const existing = counts.get(v.uploaded_by)
+        if (existing) {
+          existing.count++
+        } else {
+          counts.set(v.uploaded_by, { id: v.uploaded_by, name: v.uploader_name, avatar: v.uploader_avatar, count: 1 })
+        }
+      }
+    })
+    return Array.from(counts.values()).sort((a, b) => b.count - a.count).slice(0, 5)
+  }, [videos])
+
+  // Filter videos
+  const filteredVideos = useMemo(() => {
+    return videos.filter(v => {
+      const matchesSearch = !searchQuery || 
+        v.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        v.uploader_name?.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesSeason = !selectedSeason || v.season === selectedSeason
+      return matchesSearch && matchesSeason
+    })
+  }, [videos, searchQuery, selectedSeason])
+
+  const hasActiveFilters = searchQuery || selectedSeason
+
+  const clearFilters = () => {
+    setSearchQuery('')
+    setSelectedSeason('')
+  }
+
   return (
     <Layout>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Welcome to Arena Run</h1>
-        <p className="text-gray-400">Watch the latest exclusive videos</p>
+        <h1 className="text-3xl font-bold mb-2">{t('welcomeTitle')}</h1>
+        <p className="text-gray-400">{t('welcomeSubtitle')}</p>
       </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
           <Loader className="animate-spin text-theme-light" size={48} />
         </div>
-      ) : videos.length === 0 ? (
-        <div className="text-center py-20">
-          <Film size={64} className="mx-auto text-gray-600 mb-4" />
-          <p className="text-gray-400">No videos available at the moment</p>
-        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {videos.map((video) => (
-            <VideoCard key={video.id} video={video} />
-          ))}
-        </div>
+        <>
+          {/* Search & Filters */}
+          <div className="card mb-6">
+            <div className="flex flex-col lg:flex-row gap-4">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t('searchPlaceholder')}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 focus:border-theme-light focus:outline-none"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+
+              {/* Filters */}
+              <div className="flex flex-wrap gap-3">
+                <select
+                  value={selectedSeason}
+                  onChange={(e) => setSelectedSeason(e.target.value)}
+                  className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 focus:border-theme-light focus:outline-none text-sm"
+                >
+                  <option value="">{t('allSeasons')}</option>
+                  {seasons.map(s => (
+                    <option key={s} value={s}>{t('season')} {s}</option>
+                  ))}
+                </select>
+
+                {hasActiveFilters && (
+                  <button
+                    onClick={clearFilters}
+                    className="px-3 py-2.5 bg-red-500/20 text-red-400 rounded-lg text-sm hover:bg-red-500/30 transition-colors flex items-center gap-1"
+                  >
+                    <X size={14} />
+                    {t('clear')}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Results count */}
+            {hasActiveFilters && (
+              <p className="text-sm text-gray-400 mt-3">
+                {t('found')} {filteredVideos.length} {filteredVideos.length !== 1 ? t('videos') : t('video')}
+              </p>
+            )}
+          </div>
+
+          {/* Top Uploaders */}
+          {topUploaders.length > 0 && !hasActiveFilters && (
+            <div className="card mb-6">
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Trophy className="text-yellow-400" size={20} />
+                {t('topUploaders')}
+              </h2>
+              <div className="flex flex-wrap gap-3">
+                {topUploaders.map((uploader, index) => (
+                  <Link
+                    key={uploader.id}
+                    to={`/admin/members/${uploader.id}`}
+                    className="flex items-center gap-2 bg-gray-800/50 hover:bg-gray-800 px-3 py-2 rounded-lg transition-colors"
+                  >
+                    <span className={`text-sm font-bold ${index === 0 ? 'text-yellow-400' : index === 1 ? 'text-gray-300' : index === 2 ? 'text-amber-600' : 'text-gray-500'}`}>
+                      #{index + 1}
+                    </span>
+                    {uploader.avatar ? (
+                      <img 
+                        src={uploader.avatar.startsWith('http') ? uploader.avatar : `https://cdn.discordapp.com/avatars/${uploader.id}/${uploader.avatar}.png`}
+                        alt={uploader.name}
+                        className="w-6 h-6 rounded-full"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-theme/20 flex items-center justify-center">
+                        <User size={12} className="text-theme-light" />
+                      </div>
+                    )}
+                    <span className="text-sm">{uploader.name}</span>
+                    <span className="text-xs text-gray-500 bg-gray-700 px-1.5 py-0.5 rounded">{uploader.count}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Videos Grid */}
+          {filteredVideos.length === 0 ? (
+            <div className="text-center py-20">
+              <Film size={64} className="mx-auto text-gray-600 mb-4" />
+              <p className="text-gray-400">
+                {t('noVideos')}
+              </p>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="mt-4 px-4 py-2 bg-theme hover:opacity-90 rounded-lg text-sm"
+                >
+                  {t('clear')}
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {filteredVideos.map((video) => (
+                <VideoCard key={video.id} video={video} />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </Layout>
   )

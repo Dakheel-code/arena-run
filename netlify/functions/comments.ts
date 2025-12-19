@@ -90,11 +90,39 @@ export const handler: Handler = async (event) => {
       // Create a map for quick lookup
       const memberMap = new Map(members?.map(m => [m.discord_id, m]) || [])
 
-      // Enrich comments with member info
+      // Get all comment IDs to fetch likes
+      const commentIds = comments?.map(c => c.id) || []
+      
+      // Fetch likes count for all comments
+      const { data: likesData } = await supabase
+        .from('comment_likes')
+        .select('comment_id')
+        .in('comment_id', commentIds)
+      
+      // Count likes per comment
+      const likesCount = new Map<string, number>()
+      likesData?.forEach(like => {
+        likesCount.set(like.comment_id, (likesCount.get(like.comment_id) || 0) + 1)
+      })
+
+      // Check if current user liked each comment
+      let userLikes = new Set<string>()
+      if (user) {
+        const { data: userLikesData } = await supabase
+          .from('comment_likes')
+          .select('comment_id')
+          .eq('discord_id', user.discordId)
+          .in('comment_id', commentIds)
+        userLikesData?.forEach(like => userLikes.add(like.comment_id))
+      }
+
+      // Enrich comments with member info and likes
       const enrichedComments = comments?.map(comment => ({
         ...comment,
         author_name: memberMap.get(comment.discord_id)?.discord_username || 'Unknown',
         author_avatar: memberMap.get(comment.discord_id)?.discord_avatar || null,
+        likes_count: likesCount.get(comment.id) || 0,
+        user_liked: userLikes.has(comment.id),
       })) || []
 
       // Organize into tree structure (parent comments with replies)
@@ -170,6 +198,8 @@ export const handler: Handler = async (event) => {
           ...comment,
           author_name: member?.discord_username || user.username,
           author_avatar: member?.discord_avatar || null,
+          likes_count: 0,
+          user_liked: false,
           replies: [],
         }),
       }
@@ -319,6 +349,87 @@ export const handler: Handler = async (event) => {
         statusCode: 500,
         headers,
         body: JSON.stringify({ error: 'Failed to delete comment' }),
+      }
+    }
+  }
+
+  // PATCH - Like/Unlike a comment
+  if (event.httpMethod === 'PATCH') {
+    if (!user) {
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({ error: 'Unauthorized' }),
+      }
+    }
+
+    try {
+      const { commentId, action } = JSON.parse(event.body || '{}')
+
+      if (!commentId || !action) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Comment ID and action are required' }),
+        }
+      }
+
+      if (action === 'like') {
+        // Add like
+        const { error } = await supabase
+          .from('comment_likes')
+          .insert({
+            comment_id: commentId,
+            discord_id: user.discordId,
+          })
+
+        if (error && error.code !== '23505') throw error // Ignore duplicate key error
+
+        // Get updated likes count
+        const { count } = await supabase
+          .from('comment_likes')
+          .select('*', { count: 'exact', head: true })
+          .eq('comment_id', commentId)
+
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({ likes_count: count || 0, user_liked: true }),
+        }
+      } else if (action === 'unlike') {
+        // Remove like
+        const { error } = await supabase
+          .from('comment_likes')
+          .delete()
+          .eq('comment_id', commentId)
+          .eq('discord_id', user.discordId)
+
+        if (error) throw error
+
+        // Get updated likes count
+        const { count } = await supabase
+          .from('comment_likes')
+          .select('*', { count: 'exact', head: true })
+          .eq('comment_id', commentId)
+
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({ likes_count: count || 0, user_liked: false }),
+        }
+      }
+
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'Invalid action' }),
+      }
+    } catch (error) {
+      console.error('Error liking comment:', error)
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ error: 'Failed to like comment' }),
       }
     }
   }

@@ -1,17 +1,17 @@
 import { useEffect, useState, useRef } from 'react'
 import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
+import { useLanguage } from '../../context/LanguageContext'
 import { Video, Member } from '../../types'
 import { Plus, Trash2, Eye, EyeOff, Loader, Upload, X, Edit } from 'lucide-react'
 import * as tus from 'tus-js-client'
 
-const CF_CUSTOMER_CODE = import.meta.env.VITE_CF_CUSTOMER_CODE
-
 function getThumbnailUrl(streamUid: string): string {
-  return `https://customer-${CF_CUSTOMER_CODE}.cloudflarestream.com/${streamUid}/thumbnails/thumbnail.jpg?time=10s&width=320`
+  return `https://customer-f13bd0opbb08xh8b.cloudflarestream.com/${streamUid}/thumbnails/thumbnail.jpg?time=10s&width=320`
 }
 
 export function VideosPage() {
+  const { t } = useLanguage()
   const [videos, setVideos] = useState<Video[]>([])
   const [members, setMembers] = useState<Member[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -206,14 +206,15 @@ export function VideosPage() {
 
   return (
     <Layout>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Manage Videos</h1>
-          <p className="text-gray-400">Upload and manage videos</p>
+          <h1 className="text-2xl md:text-3xl font-bold mb-1 md:mb-2">{t('manageVideosTitle')}</h1>
+          <p className="text-sm md:text-base text-gray-400">{t('uploadAndManage')}</p>
         </div>
-        <button onClick={() => setShowUploadModal(true)} className="btn-discord">
-          <Plus size={20} />
-          New Run
+        <button onClick={() => setShowUploadModal(true)} className="btn-discord text-sm md:text-base px-3 py-2 md:px-6 md:py-3">
+          <Plus size={16} className="md:w-5 md:h-5" />
+          <span className="hidden sm:inline">{t('newRun')}</span>
+          <span className="sm:hidden">New</span>
         </button>
       </div>
 
@@ -222,10 +223,11 @@ export function VideosPage() {
           <Loader className="animate-spin text-theme-light" size={48} />
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {videos.map((video) => (
-            <div key={video.id} className="card flex items-center gap-4">
-              <div className="w-32 h-20 bg-discord-darker rounded-lg overflow-hidden flex-shrink-0">
+            <div key={video.id} className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl overflow-hidden border border-gray-700/50">
+              {/* Thumbnail */}
+              <div className="relative aspect-video bg-gray-800">
                 {video.stream_uid ? (
                   <img
                     src={getThumbnailUrl(video.stream_uid)}
@@ -237,75 +239,82 @@ export function VideosPage() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-600">
-                    <Upload size={24} />
+                    <Upload size={48} />
                   </div>
                 )}
+                
+                {/* Status Badge */}
+                <div className={`absolute top-2 right-2 px-3 py-1.5 rounded-lg text-xs font-medium ${
+                  video.is_published
+                    ? 'bg-green-500/90 text-white'
+                    : 'bg-yellow-500/90 text-black'
+                }`}>
+                  {video.is_published ? t('published') : t('draft')}
+                </div>
               </div>
 
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold truncate">{video.title}</h3>
-                <p className="text-sm text-gray-400 truncate">{video.description || 'No description'}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {new Date(video.created_at).toLocaleDateString('en-US')}
-                </p>
-              </div>
+              {/* Content */}
+              <div className="p-2.5">
+                <h3 className="font-semibold text-sm mb-1 line-clamp-2">{video.title}</h3>
+                <p className="text-xs text-gray-400 mb-1.5 line-clamp-1">{video.description || t('noDescription')}</p>
+                
+                <div className="flex items-center justify-between text-xs text-gray-500 mb-2 pb-2 border-b border-gray-700/50">
+                  <span className="text-[10px]">{new Date(video.created_at).toLocaleDateString('en-US')}</span>
+                  {video.season && video.day && (
+                    <span className="bg-theme/20 text-theme-light px-1.5 py-0.5 rounded text-[10px]">
+                      S{video.season} • D{video.day}
+                    </span>
+                  )}
+                </div>
 
-              <div className="flex items-center gap-2">
-                <span
-                  className={`px-2 py-1 rounded text-xs ${
-                    video.is_published
-                      ? 'bg-green-500/20 text-green-400'
-                      : 'bg-yellow-500/20 text-yellow-400'
-                  }`}
-                >
-                  {video.is_published ? 'Published' : 'Draft'}
-                </span>
+                {/* Actions */}
+                <div className="grid grid-cols-3 gap-1.5">
+                  <button
+                    onClick={() => {
+                      setEditingVideo(video)
+                      setUploadData({
+                        title: video.title || '',
+                        description: video.description || '',
+                        season: video.season || '',
+                        day: video.day || '',
+                        wins_attacks: video.wins_attacks || '',
+                        arena_time: video.arena_time || '',
+                        shield_hits: video.shield_hits || '',
+                        overtime_type: video.overtime_type || 'none',
+                        start_rank: video.start_rank || '',
+                        end_rank: video.end_rank || '',
+                        has_commentary: video.has_commentary || false,
+                      })
+                    }}
+                    className="flex items-center justify-center gap-2 p-2 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-lg transition-colors"
+                  >
+                    <Edit size={18} />
+                    <span className="text-sm">Edit</span>
+                  </button>
 
-                <button
-                  onClick={() => {
-                    setEditingVideo(video)
-                    setUploadData({
-                      title: video.title || '',
-                      description: video.description || '',
-                      season: video.season || '',
-                      day: video.day || '',
-                      wins_attacks: video.wins_attacks || '',
-                      arena_time: video.arena_time || '',
-                      shield_hits: video.shield_hits || '',
-                      overtime_type: video.overtime_type || 'none',
-                      start_rank: video.start_rank || '',
-                      end_rank: video.end_rank || '',
-                      has_commentary: video.has_commentary || false,
-                    })
-                  }}
-                  className="p-2 hover:bg-blue-500/20 text-blue-400 rounded transition-colors"
-                  title="Edit"
-                >
-                  <Edit size={20} />
-                </button>
+                  <button
+                    onClick={() => togglePublish(video)}
+                    className="flex items-center justify-center gap-2 p-2 bg-gray-700/50 hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    {video.is_published ? <EyeOff size={18} /> : <Eye size={18} />}
+                    <span className="text-sm">{video.is_published ? 'Hide' : 'Show'}</span>
+                  </button>
 
-                <button
-                  onClick={() => togglePublish(video)}
-                  className="p-2 hover:bg-gray-700 rounded transition-colors"
-                  title={video.is_published ? 'Unpublish' : 'Publish'}
-                >
-                  {video.is_published ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-
-                <button
-                  onClick={() => deleteVideo(video)}
-                  className="p-2 hover:bg-red-500/20 text-red-400 rounded transition-colors"
-                  title="Delete"
-                >
-                  <Trash2 size={20} />
-                </button>
+                  <button
+                    onClick={() => deleteVideo(video)}
+                    className="flex items-center justify-center gap-2 p-2 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg transition-colors"
+                  >
+                    <Trash2 size={18} />
+                    <span className="text-sm">Delete</span>
+                  </button>
+                </div>
               </div>
             </div>
           ))}
 
           {videos.length === 0 && (
             <div className="text-center py-20 text-gray-400">
-              No videos yet. Start by uploading a new video.
+              {t('noVideosStart')}
             </div>
           )}
         </div>
@@ -317,7 +326,7 @@ export function VideosPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="card max-w-lg w-full mx-4">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold">Edit Video</h2>
+              <h2 className="text-xl font-bold">{t('editVideo')}</h2>
               <button
                 onClick={() => {
                   setEditingVideo(null)
@@ -343,18 +352,18 @@ export function VideosPage() {
 
             <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Video Title *</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('videoTitle')} *</label>
                 <input
                   type="text"
                   value={uploadData.title}
                   onChange={(e) => setUploadData((d) => ({ ...d, title: e.target.value }))}
                   className="input-field w-full"
-                  placeholder="Enter video title"
+                  placeholder={t('enterVideoTitle')}
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Uploader</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('uploader')}</label>
                 <select
                   value={editingVideo?.uploaded_by || ''}
                   onChange={(e) => {
@@ -367,7 +376,7 @@ export function VideosPage() {
                   }}
                   className="input-field w-full"
                 >
-                  <option value="">Select uploader</option>
+                  <option value="">{t('selectUploader')}</option>
                   {members.map((member) => (
                     <option key={member.discord_id} value={member.discord_id}>
                       {member.discord_username || member.game_id} ({member.discord_id.slice(0, 8)}...)
@@ -378,7 +387,7 @@ export function VideosPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Season</label>
+                  <label className="block text-sm text-gray-400 mb-2">{t('seasonLabel')}</label>
                   <input
                     type="text"
                     value={uploadData.season}
@@ -388,7 +397,7 @@ export function VideosPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Day</label>
+                  <label className="block text-sm text-gray-400 mb-2">{t('dayLabel')}</label>
                   <input
                     type="text"
                     value={uploadData.day}
@@ -401,7 +410,7 @@ export function VideosPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Wins/Attacks</label>
+                  <label className="block text-sm text-gray-400 mb-2">{t('winsAttacks')}</label>
                   <input
                     type="text"
                     value={uploadData.wins_attacks}
@@ -411,7 +420,7 @@ export function VideosPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Arena Time</label>
+                  <label className="block text-sm text-gray-400 mb-2">{t('arenaTime')}</label>
                   <input
                     type="text"
                     value={uploadData.arena_time}
@@ -423,47 +432,47 @@ export function VideosPage() {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Shield Hits</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('shieldHits')}</label>
                 <input
                   type="text"
                   value={uploadData.shield_hits}
                   onChange={(e) => setUploadData((d) => ({ ...d, shield_hits: e.target.value }))}
                   className="input-field w-full"
-                  placeholder="Number of hits before shield"
+                  placeholder={t('shieldHitsPlaceholder')}
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Overtime Status</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('overtimeStatus')}</label>
                 <select
                   value={uploadData.overtime_type}
                   onChange={(e) => setUploadData((d) => ({ ...d, overtime_type: e.target.value }))}
                   className="input-field w-full"
                 >
-                  <option value="none">None</option>
-                  <option value="last_hit">Last hit went overtime</option>
+                  <option value="none">{t('none')}</option>
+                  <option value="last_hit">{t('lastHitOvertime')}</option>
                 </select>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Start Rank</label>
+                  <label className="block text-sm text-gray-400 mb-2">{t('startRank')}</label>
                   <input
                     type="text"
                     value={uploadData.start_rank}
                     onChange={(e) => setUploadData((d) => ({ ...d, start_rank: e.target.value }))}
                     className="input-field w-full"
-                    placeholder="Starting rank"
+                    placeholder={t('startingRank')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">End Rank</label>
+                  <label className="block text-sm text-gray-400 mb-2">{t('endRank')}</label>
                   <input
                     type="text"
                     value={uploadData.end_rank}
                     onChange={(e) => setUploadData((d) => ({ ...d, end_rank: e.target.value }))}
                     className="input-field w-full"
-                    placeholder="Ending rank"
+                    placeholder={t('endingRank')}
                   />
                 </div>
               </div>
@@ -477,17 +486,17 @@ export function VideosPage() {
                   className="w-4 h-4"
                 />
                 <label htmlFor="edit_has_commentary" className="text-sm text-gray-400">
-                  Video has commentary
+                  {t('videoHasCommentary')}
                 </label>
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Description</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('description')}</label>
                 <textarea
                   value={uploadData.description}
                   onChange={(e) => setUploadData((d) => ({ ...d, description: e.target.value }))}
                   className="input-field w-full h-20 resize-none"
-                  placeholder="Enter video description (optional)"
+                  placeholder={t('descriptionPlaceholder')}
                 />
               </div>
 
@@ -496,7 +505,7 @@ export function VideosPage() {
                 disabled={!uploadData.title}
                 className="btn-discord w-full"
               >
-                Save Changes
+                {t('saveChanges')}
               </button>
             </div>
           </div>
@@ -519,19 +528,19 @@ export function VideosPage() {
 
             <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Video Title *</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('videoTitle')} *</label>
                 <input
                   type="text"
                   value={uploadData.title}
                   onChange={(e) => setUploadData((d) => ({ ...d, title: e.target.value }))}
                   className="input-field w-full"
-                  placeholder="Enter video title"
+                  placeholder={t('enterVideoTitle')}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Season</label>
+                  <label className="block text-sm text-gray-400 mb-2">{t('seasonLabel')}</label>
                   <input
                     type="text"
                     value={uploadData.season}
@@ -541,7 +550,7 @@ export function VideosPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Day</label>
+                  <label className="block text-sm text-gray-400 mb-2">{t('dayLabel')}</label>
                   <input
                     type="text"
                     value={uploadData.day}
@@ -554,7 +563,7 @@ export function VideosPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Wins/Attacks</label>
+                  <label className="block text-sm text-gray-400 mb-2">{t('winsAttacks')}</label>
                   <input
                     type="text"
                     value={uploadData.wins_attacks}
@@ -564,7 +573,7 @@ export function VideosPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Arena Time</label>
+                  <label className="block text-sm text-gray-400 mb-2">{t('arenaTime')}</label>
                   <input
                     type="text"
                     value={uploadData.arena_time}
@@ -576,47 +585,47 @@ export function VideosPage() {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Shield Hits</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('shieldHits')}</label>
                 <input
                   type="text"
                   value={uploadData.shield_hits}
                   onChange={(e) => setUploadData((d) => ({ ...d, shield_hits: e.target.value }))}
                   className="input-field w-full"
-                  placeholder="Number of hits before shield"
+                  placeholder={t('shieldHitsPlaceholder')}
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Overtime Status</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('overtimeStatus')}</label>
                 <select
                   value={uploadData.overtime_type}
                   onChange={(e) => setUploadData((d) => ({ ...d, overtime_type: e.target.value }))}
                   className="input-field w-full"
                 >
-                  <option value="none">None</option>
-                  <option value="last_hit">Last hit went overtime</option>
+                  <option value="none">{t('none')}</option>
+                  <option value="last_hit">{t('lastHitOvertime')}</option>
                 </select>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Start Rank</label>
+                  <label className="block text-sm text-gray-400 mb-2">{t('startRank')}</label>
                   <input
                     type="text"
                     value={uploadData.start_rank}
                     onChange={(e) => setUploadData((d) => ({ ...d, start_rank: e.target.value }))}
                     className="input-field w-full"
-                    placeholder="Starting rank"
+                    placeholder={t('startingRank')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">End Rank</label>
+                  <label className="block text-sm text-gray-400 mb-2">{t('endRank')}</label>
                   <input
                     type="text"
                     value={uploadData.end_rank}
                     onChange={(e) => setUploadData((d) => ({ ...d, end_rank: e.target.value }))}
                     className="input-field w-full"
-                    placeholder="Ending rank"
+                    placeholder={t('endingRank')}
                   />
                 </div>
               </div>
@@ -630,22 +639,22 @@ export function VideosPage() {
                   className="w-4 h-4 rounded"
                 />
                 <label htmlFor="has_commentary" className="text-sm text-gray-400">
-                  Video has commentary
+                  {t('videoHasCommentary')}
                 </label>
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Description</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('description')}</label>
                 <textarea
                   value={uploadData.description}
                   onChange={(e) => setUploadData((d) => ({ ...d, description: e.target.value }))}
                   className="input-field w-full h-20 resize-none"
-                  placeholder="Enter video description (optional)"
+                  placeholder={t('descriptionPlaceholder')}
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Video File *</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('videoFile')} *</label>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -657,7 +666,7 @@ export function VideosPage() {
               {isUploading && (
                 <div>
                   <div className="flex justify-between text-sm mb-1">
-                    <span>Uploading...</span>
+                    <span>{t('uploading')}</span>
                     <span>{uploadProgress}%</span>
                   </div>
                   <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
@@ -679,7 +688,7 @@ export function VideosPage() {
                 ) : (
                   <Upload size={20} />
                 )}
-                {isUploading ? 'Uploading...' : 'Start Run'}
+                {isUploading ? t('uploading') : t('newRun')}
               </button>
             </div>
           </div>
