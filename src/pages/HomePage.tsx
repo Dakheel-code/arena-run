@@ -14,6 +14,7 @@ export function HomePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSeason, setSelectedSeason] = useState('')
+  const [activeTab, setActiveTab] = useState<'all' | 'new' | 'popular'>('all')
 
   const fetchVideos = async () => {
     try {
@@ -38,6 +39,21 @@ export function HomePage() {
     [...new Set(videos.map(v => v.season).filter(Boolean))].sort((a, b) => Number(b) - Number(a)),
     [videos]
   )
+
+  // Filter videos based on active tab
+  const tabFilteredVideos = useMemo(() => {
+    const now = Date.now()
+    const weekAgo = now - 7 * 24 * 60 * 60 * 1000
+    
+    switch (activeTab) {
+      case 'new':
+        return videos.filter(v => new Date(v.created_at).getTime() > weekAgo)
+      case 'popular':
+        return [...videos].sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0))
+      default:
+        return videos
+    }
+  }, [videos, activeTab])
   
 
   // Top uploaders (most videos)
@@ -58,14 +74,15 @@ export function HomePage() {
 
   // Filter videos
   const filteredVideos = useMemo(() => {
-    return videos.filter(v => {
+    let filtered = tabFilteredVideos
+    return filtered.filter(v => {
       const matchesSearch = !searchQuery || 
         v.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         v.uploader_name?.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesSeason = !selectedSeason || v.season === selectedSeason
       return matchesSearch && matchesSeason
     })
-  }, [videos, searchQuery, selectedSeason])
+  }, [tabFilteredVideos, searchQuery, selectedSeason])
 
   const hasActiveFilters = searchQuery || selectedSeason
 
@@ -95,6 +112,40 @@ export function HomePage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">{t('welcomeTitle')}</h1>
         <p className="text-gray-400">{t('welcomeSubtitle')}</p>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-2 md:pb-0">
+        <button
+          onClick={() => setActiveTab('all')}
+          className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+            activeTab === 'all' 
+              ? 'bg-theme text-white' 
+              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+          }`}
+        >
+          All Videos
+        </button>
+        <button
+          onClick={() => setActiveTab('new')}
+          className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+            activeTab === 'new' 
+              ? 'bg-theme text-white' 
+              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+          }`}
+        >
+          New (7 Days)
+        </button>
+        <button
+          onClick={() => setActiveTab('popular')}
+          className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+            activeTab === 'popular' 
+              ? 'bg-theme text-white' 
+              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+          }`}
+        >
+          Popular
+        </button>
       </div>
 
       {isLoading ? (

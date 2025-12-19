@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import Hls from 'hls.js'
 import { api } from '../lib/api'
 import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, PictureInPicture } from 'lucide-react'
+import { useWatchHistory } from '../hooks/useWatchHistory'
 
 interface VideoPlayerProps {
   videoId: string
@@ -25,6 +26,7 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const hlsRef = useRef<Hls | null>(null)
+  const { saveProgress, getProgress, clearProgress } = useWatchHistory(videoId)
   const [watermarkCode, setWatermarkCode] = useState('')
   const [watermarkPosition, setWatermarkPosition] = useState({ x: 10, y: 10 })
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -220,6 +222,8 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
       if (sessionId) {
         await api.endSession(sessionId)
       }
+      // Clear watch history when video ends
+      clearProgress()
     }
 
     video.addEventListener('timeupdate', handleTimeUpdate)
@@ -439,10 +443,21 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
         onTimeUpdate={(e) => {
           const video = e.currentTarget
           setCurrentTime(video.currentTime)
+          
+          // Save progress periodically
+          if (video.currentTime > 5 && video.duration) {
+            saveProgress(video.currentTime, video.duration)
+          }
         }}
         onLoadedMetadata={(e) => {
           const video = e.currentTarget
           setDuration(video.duration)
+          
+          // Resume from saved position
+          const savedTime = getProgress()
+          if (savedTime && savedTime > 5) {
+            video.currentTime = savedTime
+          }
         }}
         preload="metadata"
       />
