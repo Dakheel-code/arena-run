@@ -6,7 +6,6 @@ import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { Upload, Loader, ArrowLeft, Play } from 'lucide-react'
 import * as tus from 'tus-js-client'
-import { getVideoMetadata } from '../utils/videoCompression'
 
 export function NewRunPage() {
   const navigate = useNavigate()
