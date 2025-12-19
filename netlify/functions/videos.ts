@@ -4,7 +4,6 @@ import { createClient } from '@supabase/supabase-js'
 const CF_ACCOUNT_ID = process.env.CF_ACCOUNT_ID!
 const CF_STREAM_API_TOKEN = process.env.CF_STREAM_API_TOKEN!
 const JWT_SECRET = process.env.JWT_SECRET!
-const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -33,8 +32,22 @@ function getUser(event: any) {
 }
 
 async function sendDiscordNotification(title: string, description: string, fields?: Array<{name: string, value: string, inline?: boolean}>) {
-  if (!DISCORD_WEBHOOK_URL) return
-  await fetch(DISCORD_WEBHOOK_URL, {
+  // Get webhook URL from settings
+  const { data: settings } = await supabase
+    .from('settings')
+    .select('webhook_url, notify_new_upload, notify_new_publish')
+    .single()
+  
+  if (!settings?.webhook_url) return
+  
+  // Check if notifications are enabled
+  const isUploadNotification = title.includes('Upload')
+  const isPublishNotification = title.includes('Published')
+  
+  if (isUploadNotification && !settings.notify_new_upload) return
+  if (isPublishNotification && !settings.notify_new_publish) return
+  
+  await fetch(settings.webhook_url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
