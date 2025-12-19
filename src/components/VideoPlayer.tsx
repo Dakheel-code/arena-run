@@ -36,11 +36,15 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   const [showControls, setShowControls] = useState(true)
   const [volume, setVolume] = useState(1)
   const [isPiPSupported, setIsPiPSupported] = useState(false)
+  const [playbackRate, setPlaybackRate] = useState(1)
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false)
   const watchTimeRef = useRef(0)
   const lastUpdateRef = useRef(0)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const lastTapRef = useRef(0)
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 })
+  
+  const playbackSpeeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4]
 
   // Check PiP support
   useEffect(() => {
@@ -301,6 +305,15 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
     }
   }
 
+  const handleSpeedChange = (speed: number) => {
+    const video = videoRef.current
+    if (!video) return
+    
+    video.playbackRate = speed
+    setPlaybackRate(speed)
+    setShowSpeedMenu(false)
+  }
+
   const togglePiP = async () => {
     const video = videoRef.current
     if (!video || !isPiPSupported) return
@@ -451,6 +464,33 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
             </button>
 
             <div className="flex-1" />
+
+            {/* Playback Speed */}
+            <div className="relative">
+              <button
+                onClick={() => setShowSpeedMenu(!showSpeedMenu)}
+                className="p-2 hover:bg-white/20 rounded transition-colors active:scale-95 flex items-center gap-1"
+                title="Playback Speed"
+              >
+                <span className="text-xs font-bold text-white">{playbackRate}x</span>
+              </button>
+              
+              {showSpeedMenu && (
+                <div className="absolute bottom-full right-0 mb-2 bg-gray-900 rounded-lg shadow-xl border border-gray-700 py-2 min-w-[80px]">
+                  {playbackSpeeds.map((speed) => (
+                    <button
+                      key={speed}
+                      onClick={() => handleSpeedChange(speed)}
+                      className={`w-full px-4 py-2 text-sm text-left hover:bg-gray-800 transition-colors ${
+                        playbackRate === speed ? 'text-theme-light font-bold' : 'text-white'
+                      }`}
+                    >
+                      {speed}x
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* PiP */}
             {isPiPSupported && (
