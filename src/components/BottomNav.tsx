@@ -12,6 +12,11 @@ export function BottomNav() {
   const location = useLocation()
   const { user } = useAuth()
   
+  // Hide BottomNav completely for non-admin users
+  if (!user?.is_admin) {
+    return null
+  }
+  
   const isActive = (path: string) => {
     if (path === '/') {
       return location.pathname === path
@@ -21,12 +26,10 @@ export function BottomNav() {
   
   const navItems = [
     { path: '/', icon: Home, label: 'Home', badge: 0 },
-    { path: '/admin/videos', icon: Video, label: 'Videos', badge: 0, adminOnly: true },
-    { path: '/admin/members', icon: User, label: 'Members', badge: 0, adminOnly: true },
-    { path: '/admin/settings', icon: Settings, label: 'Settings', badge: 0, adminOnly: true },
+    { path: '/admin/videos', icon: Video, label: 'Videos', badge: 0 },
+    { path: '/admin/members', icon: User, label: 'Members', badge: 0 },
+    { path: '/admin/settings', icon: Settings, label: 'Settings', badge: 0 },
   ]
-  
-  const visibleItems = navItems.filter(item => !item.adminOnly || user?.is_admin)
   
   const handleClick = () => {
     triggerHapticFeedback()
@@ -38,7 +41,7 @@ export function BottomNav() {
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="flex items-center justify-around" style={{ height: '64px' }}>
-        {visibleItems.map((item) => {
+        {navItems.map((item) => {
           const Icon = item.icon
           const active = isActive(item.path)
           
