@@ -3,7 +3,7 @@ import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
 import { useLanguage } from '../../context/LanguageContext'
 import { Member } from '../../types'
-import { Upload, Search, UserCheck, UserX, Loader, FileSpreadsheet, Eye, ChevronLeft, ChevronRight, Plus, X, User } from 'lucide-react'
+import { Upload, Search, UserCheck, UserX, Loader, FileSpreadsheet, Eye, ChevronLeft, ChevronRight, Plus, X, User, Users } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
 import Papa from 'papaparse'
 
@@ -151,7 +151,10 @@ export function MembersPage() {
   return (
     <Layout>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">{t('manageMembersTitle')}</h1>
+        <div className="flex items-center gap-3 mb-2">
+          <Users className="w-8 h-8 text-theme" />
+          <h1 className="text-3xl font-bold text-theme">{t('manageMembersTitle')}</h1>
+        </div>
         <p className="text-gray-400">{t('authorizedMembers')}</p>
       </div>
 
