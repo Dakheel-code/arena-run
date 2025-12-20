@@ -81,6 +81,7 @@ export const handler: Handler = async (event) => {
         // Notification settings
         notify_country_change: true,
         notify_ip_change: true,
+        notify_unauthorized_login: true,
         notify_excessive_views: true,
         excessive_views_threshold: 5,
         excessive_views_interval: 10,
@@ -133,6 +134,7 @@ export const handler: Handler = async (event) => {
             // Notification settings
             notify_country_change: body.notifyCountryChange,
             notify_ip_change: body.notifyIpChange,
+            notify_unauthorized_login: body.notifyUnauthorizedLogin,
             notify_excessive_views: body.notifyExcessiveViews,
             excessive_views_threshold: body.excessiveViewsThreshold,
             excessive_views_interval: body.excessiveViewsInterval,
@@ -166,6 +168,7 @@ export const handler: Handler = async (event) => {
             // Notification settings
             notify_country_change: body.notifyCountryChange,
             notify_ip_change: body.notifyIpChange,
+            notify_unauthorized_login: body.notifyUnauthorizedLogin,
             notify_excessive_views: body.notifyExcessiveViews,
             excessive_views_threshold: body.excessiveViewsThreshold,
             excessive_views_interval: body.excessiveViewsInterval,
