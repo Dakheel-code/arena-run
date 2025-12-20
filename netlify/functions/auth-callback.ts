@@ -195,6 +195,7 @@ export const handler: Handler = async (event) => {
     let member = null
     if (!isAdmin) {
       member = await checkGuildMembership(discordUser.id)
+      console.log('Member data from Discord:', JSON.stringify(member, null, 2))
       if (!member) {
         await logLoginAttempt({
           discord_id: discordUser.id,
@@ -232,7 +233,14 @@ export const handler: Handler = async (event) => {
     }
 
     // Check for required role
-    const hasRole = member.roles.includes(DISCORD_REQUIRED_ROLE_ID)
+    console.log('=== ROLE CHECK DEBUG ===')
+    console.log('User Discord ID:', discordUser.id)
+    console.log('Member roles:', member?.roles)
+    console.log('Required role ID:', DISCORD_REQUIRED_ROLE_ID)
+    console.log('Role type:', typeof DISCORD_REQUIRED_ROLE_ID)
+    const hasRole = member?.roles?.includes(DISCORD_REQUIRED_ROLE_ID)
+    console.log('Has required role:', hasRole)
+    console.log('======================')
     if (!hasRole) {
       await logLoginAttempt({
         discord_id: discordUser.id,
