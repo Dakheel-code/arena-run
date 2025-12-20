@@ -231,30 +231,30 @@ export const handler: Handler = async (event) => {
       }
     }
 
-    // Check for required role (Deputy) - TEMPORARILY DISABLED FOR TESTING
-    // const hasRole = member.roles.includes(DISCORD_REQUIRED_ROLE_ID)
-    // if (!hasRole) {
-    //   await logLoginAttempt({
-    //     discord_id: discordUser.id,
-    //     discord_username: discordUser.username,
-    //     discord_discriminator: discordUser.discriminator,
-    //     discord_avatar: avatarUrl,
-    //     email: discordUser.email,
-    //     status: 'failed',
-    //     failure_reason: 'Missing required role (Deputy)',
-    //     ip_address,
-    //     country: location.country,
-    //     city: location.city,
-    //     user_agent,
-    //     is_admin: false,
-    //     is_member: true,
-    //     has_required_role: false,
-    //   })
-    //   return {
-    //     statusCode: 302,
-    //     headers: { Location: `${APP_URL}/login?error=missing_role` },
-    //   }
-    // }
+    // Check for required role
+    const hasRole = member.roles.includes(DISCORD_REQUIRED_ROLE_ID)
+    if (!hasRole) {
+      await logLoginAttempt({
+        discord_id: discordUser.id,
+        discord_username: discordUser.username,
+        discord_discriminator: discordUser.discriminator,
+        discord_avatar: avatarUrl || undefined,
+        email: discordUser.email,
+        status: 'failed',
+        failure_reason: 'Missing required role',
+        ip_address,
+        country: location.country,
+        city: location.city,
+        user_agent,
+        is_admin: false,
+        is_member: true,
+        has_required_role: false,
+      })
+      return {
+        statusCode: 302,
+        headers: { Location: `${APP_URL}/login?error=missing_role` },
+      }
+    }
 
     // Check allowlist - try to find member, if not found create one for testing
     console.log('Looking for member with discord_id:', discordUser.id)
@@ -310,7 +310,7 @@ export const handler: Handler = async (event) => {
 
     const isAdminInDB = !!adminData || isAdmin
     const isMember = !!memberData
-    const hasRequiredRole = true // member.roles.includes(DISCORD_REQUIRED_ROLE_ID)
+    const hasRequiredRole = member.roles.includes(DISCORD_REQUIRED_ROLE_ID)
 
     // Log successful login
     await logLoginAttempt({
