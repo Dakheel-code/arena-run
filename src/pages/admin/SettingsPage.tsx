@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
 import { useSettings } from '../../context/SettingsContext'
@@ -868,7 +868,7 @@ export function SettingsPage() {
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-3">
-                Last backup: Never • Next backup: {settings.autoBackup ? 'Scheduled' : 'Disabled'}
+                Last backup: Never â€¢ Next backup: {settings.autoBackup ? 'Scheduled' : 'Disabled'}
               </p>
             </div>
           </div>
@@ -1198,3 +1198,4 @@ export function SettingsPage() {
     </Layout>
   )
 }
+

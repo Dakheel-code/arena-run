@@ -219,16 +219,16 @@ export const handler: Handler = async (event) => {
           has_required_role: false,
         })
         
-        // Send unauthorized login notification - TEMPORARILY DISABLED
-        // await sendUnauthorizedLoginNotification({
-        //   username: discordUser.username,
-        //   discord_id: discordUser.id,
-        //   reason: 'Not a member of the required Discord server',
-        //   ip_address,
-        //   country: location.country,
-        //   city: location.city,
-        //   user_agent,
-        // })
+        // Send unauthorized login notification
+        await sendUnauthorizedLoginNotification({
+          username: discordUser.username,
+          discord_id: discordUser.id,
+          reason: 'Not a member of the required Discord server',
+          ip_address,
+          country: location.country,
+          city: location.city,
+          user_agent,
+        })
         
         return {
           statusCode: 302,
