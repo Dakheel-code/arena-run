@@ -7,7 +7,7 @@ import { Layout } from '../components/Layout'
 import { FloatingNewRunButton } from '../components/FloatingNewRunButton'
 import { useLanguage } from '../context/LanguageContext'
 import { usePullToRefresh } from '../hooks/usePullToRefresh'
-import { Film, Loader, Search, Trophy, User, X, RefreshCw } from 'lucide-react'
+import { Film, Loader, Search, Trophy, User, X, RefreshCw, Home } from 'lucide-react'
 
 export function HomePage() {
   const { t } = useLanguage()
@@ -111,7 +111,10 @@ export function HomePage() {
       )}
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">{t('welcomeTitle')}</h1>
+        <div className="flex items-center gap-3 mb-2">
+          <Home className="w-8 h-8 text-theme" />
+          <h1 className="text-3xl font-bold text-theme">{t('welcomeTitle')}</h1>
+        </div>
         <p className="text-gray-400">{t('welcomeSubtitle')}</p>
       </div>
 
