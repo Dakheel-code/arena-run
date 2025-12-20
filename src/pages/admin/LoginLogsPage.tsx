@@ -291,18 +291,21 @@ export default function LoginLogsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col gap-1">
                           {log.is_admin && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                              ✓ Admin
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                              <CheckCircle className="w-3 h-3" />
+                              Admin
                             </span>
                           )}
                           {log.is_member && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                              ✓ Member
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                              <CheckCircle className="w-3 h-3" />
+                              Member
                             </span>
                           )}
                           {log.has_required_role && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30">
-                              ✓ Role
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30">
+                              <CheckCircle className="w-3 h-3" />
+                              Role
                             </span>
                           )}
                           {!log.is_admin && !log.is_member && !log.has_required_role && (
