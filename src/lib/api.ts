@@ -173,6 +173,7 @@ export const api = {
     // Notification settings
     notify_country_change: boolean
     notify_ip_change: boolean
+    notify_unauthorized_login: boolean
     notify_excessive_views: boolean
     excessive_views_threshold: number
     excessive_views_interval: number
@@ -198,6 +199,7 @@ export const api = {
     // Notification settings
     notifyCountryChange: boolean
     notifyIpChange: boolean
+    notifyUnauthorizedLogin: boolean
     notifyExcessiveViews: boolean
     excessiveViewsThreshold: number
     excessiveViewsInterval: number

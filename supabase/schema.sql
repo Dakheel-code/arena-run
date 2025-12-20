@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS settings (
   -- Notification settings
   notify_country_change BOOLEAN DEFAULT true,
   notify_ip_change BOOLEAN DEFAULT true,
+  notify_unauthorized_login BOOLEAN DEFAULT true,
   notify_excessive_views BOOLEAN DEFAULT true,
   excessive_views_threshold INTEGER DEFAULT 5,
   excessive_views_interval INTEGER DEFAULT 10,

@@ -107,6 +107,53 @@ async function getLocationFromIP(ip?: string) {
   }
 }
 
+async function sendUnauthorizedLoginNotification(data: {
+  username: string
+  discord_id: string
+  reason: string
+  ip_address: string
+  country: string
+  city: string
+  user_agent?: string
+}) {
+  try {
+    const { data: settings } = await supabase
+      .from('settings')
+      .select('webhook_url, notify_unauthorized_login')
+      .single()
+
+    if (!settings?.notify_unauthorized_login || !settings?.webhook_url) {
+      return
+    }
+
+    const location = data.city ? `${data.city}, ${data.country}` : data.country
+    const userAgentShort = data.user_agent ? data.user_agent.substring(0, 100) : 'Unknown'
+
+    await fetch(settings.webhook_url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        embeds: [{
+          title: '🚫 Unauthorized Login Attempt',
+          description: `Someone tried to login without permission`,
+          color: 0xff0000,
+          fields: [
+            { name: 'Username', value: data.username, inline: true },
+            { name: 'Discord ID', value: data.discord_id, inline: true },
+            { name: 'Reason', value: data.reason, inline: false },
+            { name: 'IP Address', value: data.ip_address, inline: true },
+            { name: 'Location', value: location, inline: true },
+            { name: 'User Agent', value: userAgentShort, inline: false },
+          ],
+          timestamp: new Date().toISOString(),
+        }],
+      }),
+    })
+  } catch (error) {
+    console.error('Failed to send unauthorized login notification:', error)
+  }
+}
+
 export const handler: Handler = async (event) => {
   const code = event.queryStringParameters?.code
   // Get real IP address from headers (Netlify provides x-nf-client-connection-ip)
@@ -159,6 +206,18 @@ export const handler: Handler = async (event) => {
         is_member: false,
         has_required_role: false,
       })
+      
+      // Send unauthorized login notification
+      await sendUnauthorizedLoginNotification({
+        username: discordUser.username,
+        discord_id: discordUser.id,
+        reason: 'Not a member of the required Discord server',
+        ip_address,
+        country: location.country,
+        city: location.city,
+        user_agent,
+      })
+      
       return {
         statusCode: 302,
         headers: { Location: `${APP_URL}/login?error=not_in_guild` },

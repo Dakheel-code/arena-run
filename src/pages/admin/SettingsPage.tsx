@@ -70,6 +70,7 @@ export function SettingsPage() {
     // Notification settings
     notifyCountryChange: true,
     notifyIpChange: true,
+    notifyUnauthorizedLogin: true,
     notifyExcessiveViews: true,
     excessiveViewsThreshold: 5,
     excessiveViewsInterval: 10,
@@ -198,6 +199,7 @@ export function SettingsPage() {
           // Notification settings
           notifyCountryChange: result.settings.notify_country_change ?? true,
           notifyIpChange: result.settings.notify_ip_change ?? true,
+          notifyUnauthorizedLogin: result.settings.notify_unauthorized_login ?? true,
           notifyExcessiveViews: result.settings.notify_excessive_views ?? true,
           excessiveViewsThreshold: result.settings.excessive_views_threshold || 5,
           excessiveViewsInterval: result.settings.excessive_views_interval || 10,
@@ -243,7 +245,31 @@ export function SettingsPage() {
     console.log('Auto-saving settings...', settings)
     const saveSettings = async () => {
       try {
-        await api.saveSettings(settings)
+        await api.saveSettings({
+          siteName: settings.siteName,
+          siteDescription: settings.siteDescription,
+          requireRole: settings.requireRole,
+          allowNewMembers: settings.allowNewMembers,
+          maxSessionsPerUser: settings.maxSessionsPerUser,
+          sessionTimeout: settings.sessionTimeout,
+          notifyCountryChange: settings.notifyCountryChange,
+          notifyIpChange: settings.notifyIpChange,
+          notifyUnauthorizedLogin: settings.notifyUnauthorizedLogin,
+          notifyExcessiveViews: settings.notifyExcessiveViews,
+          excessiveViewsThreshold: settings.excessiveViewsThreshold,
+          excessiveViewsInterval: settings.excessiveViewsInterval,
+          notifySuspiciousActivity: settings.notifySuspiciousActivity,
+          notifyVpnProxy: settings.notifyVpnProxy,
+          notifyMultipleDevices: settings.notifyMultipleDevices,
+          notifyOddHours: settings.notifyOddHours,
+          oddHoursStart: settings.oddHoursStart,
+          oddHoursEnd: settings.oddHoursEnd,
+          notifyNewUpload: settings.notifyNewUpload,
+          notifyNewPublish: settings.notifyNewPublish,
+          notifyNewSession: settings.notifyNewSession,
+          allowedRoles: settings.allowedRoles,
+          webhookUrl: settings.webhookUrl,
+        })
         await refreshSettings()
         console.log('Settings saved successfully')
         
