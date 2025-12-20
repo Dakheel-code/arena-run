@@ -203,30 +203,31 @@ export default function LoginLogsPage() {
           </div>
         ) : (
           <div className="bg-discord-dark rounded-lg border border-gray-700 overflow-hidden">
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-800/50 border-b border-gray-700">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      User
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Time
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Failure Reason
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Location
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Device
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Permissions
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Time
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Device
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Location
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Failure Reason
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      User
                     </th>
                   </tr>
                 </thead>
@@ -234,58 +235,9 @@ export default function LoginLogsPage() {
                   {logs.map((log) => (
                     <tr key={log.id} className="hover:bg-gray-800/30">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          {log.discord_avatar ? (
-                            <img
-                              src={log.discord_avatar}
-                              alt={log.discord_username}
-                              className="w-10 h-10 rounded-full"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
-                              <User className="w-5 h-5 text-gray-400" />
-                            </div>
-                          )}
-                          <div>
-                            <Link
-                              to={`/admin/members/${log.discord_id}`}
-                              className="font-medium text-theme hover:text-theme-light"
-                            >
-                              {log.discord_username || 'Unknown'}
-                            </Link>
-                            <p className="text-xs text-gray-500">{log.discord_id.slice(0, 18)}...</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(log.status)}
-                      </td>
-                      <td className="px-6 py-4">
-                        {log.failure_reason ? (
-                          <div className="flex items-start gap-2 max-w-xs">
-                            <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-red-600">{log.failure_reason}</span>
-                          </div>
-                        ) : (
-                          <span className="text-gray-400 text-sm">-</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2 text-sm text-gray-300">
-                          <MapPin className="w-4 h-4 text-gray-400" />
-                          <div>
-                            <div>{log.city || 'Unknown'}</div>
-                            <div className="text-xs text-gray-500">{log.country || 'Unknown'}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2 text-sm text-gray-300">
-                          <Monitor className="w-4 h-4 text-gray-400" />
-                          <div>
-                            <div>{getUserAgent(log.user_agent)}</div>
-                            <div className="text-xs text-gray-500">{log.ip_address || 'Unknown'}</div>
-                          </div>
+                          <Clock className="w-4 h-4 text-gray-400" />
+                          <span>{formatDate(log.created_at)}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -315,14 +267,149 @@ export default function LoginLogsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2 text-sm text-gray-300">
-                          <Clock className="w-4 h-4 text-gray-400" />
-                          <span>{formatDate(log.created_at)}</span>
+                          <Monitor className="w-4 h-4 text-gray-400" />
+                          <div>
+                            <div>{getUserAgent(log.user_agent)}</div>
+                            <div className="text-xs text-gray-500">{log.ip_address || 'Unknown'}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2 text-sm text-gray-300">
+                          <MapPin className="w-4 h-4 text-gray-400" />
+                          <div>
+                            <div>{log.city || 'Unknown'}</div>
+                            <div className="text-xs text-gray-500">{log.country || 'Unknown'}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {log.failure_reason ? (
+                          <div className="flex items-start gap-2 max-w-xs">
+                            <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm text-red-600">{log.failure_reason}</span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm">-</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(log.status)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          {log.discord_avatar ? (
+                            <img
+                              src={log.discord_avatar}
+                              alt={log.discord_username}
+                              className="w-10 h-10 rounded-full"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
+                              <User className="w-5 h-5 text-gray-400" />
+                            </div>
+                          )}
+                          <div>
+                            <Link
+                              to={`/admin/members/${log.discord_id}`}
+                              className="font-medium text-theme hover:text-theme-light"
+                            >
+                              {log.discord_username || 'Unknown'}
+                            </Link>
+                            <p className="text-xs text-gray-500">{log.discord_id.slice(0, 18)}...</p>
+                          </div>
                         </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-gray-700">
+              {logs.map((log) => (
+                <div key={log.id} className="p-4 hover:bg-gray-800/30 transition-colors">
+                  {/* User Info */}
+                  <div className="flex items-center gap-3 mb-3">
+                    {log.discord_avatar ? (
+                      <img
+                        src={log.discord_avatar}
+                        alt={log.discord_username}
+                        className="w-12 h-12 rounded-full"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center">
+                        <User className="w-6 h-6 text-gray-400" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <Link
+                        to={`/admin/members/${log.discord_id}`}
+                        className="font-medium text-theme hover:text-theme-light block"
+                      >
+                        {log.discord_username || 'Unknown'}
+                      </Link>
+                      <p className="text-xs text-gray-500">{log.discord_id.slice(0, 18)}...</p>
+                    </div>
+                    {getStatusBadge(log.status)}
+                  </div>
+
+                  {/* Details Grid */}
+                  <div className="space-y-2 text-sm">
+                    {/* Time */}
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <Clock className="w-4 h-4 text-gray-400" />
+                      <span className="text-xs">{formatDate(log.created_at)}</span>
+                    </div>
+
+                    {/* Location */}
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <MapPin className="w-4 h-4 text-gray-400" />
+                      <span className="text-xs">{log.city || 'Unknown'}, {log.country || 'Unknown'}</span>
+                    </div>
+
+                    {/* Device */}
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <Monitor className="w-4 h-4 text-gray-400" />
+                      <span className="text-xs">{getUserAgent(log.user_agent)} • {log.ip_address || 'Unknown'}</span>
+                    </div>
+
+                    {/* Failure Reason */}
+                    {log.failure_reason && (
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-xs text-red-400">{log.failure_reason}</span>
+                      </div>
+                    )}
+
+                    {/* Permissions */}
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {log.is_admin && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                          <CheckCircle className="w-3 h-3" />
+                          Admin
+                        </span>
+                      )}
+                      {log.is_member && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                          <CheckCircle className="w-3 h-3" />
+                          Member
+                        </span>
+                      )}
+                      {log.has_required_role && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30">
+                          <CheckCircle className="w-3 h-3" />
+                          Role
+                        </span>
+                      )}
+                      {!log.is_admin && !log.is_member && !log.has_required_role && (
+                        <span className="text-gray-400 text-xs">No Permissions</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Pagination */}
