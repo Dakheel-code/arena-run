@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { Layout } from '../../components/Layout'
 import { useAuth } from '../../context/AuthContext'
-import { Shield, Search, Filter, CheckCircle, XCircle, User, Clock, MapPin, Monitor, AlertTriangle } from 'lucide-react'
+import { useLanguage } from '../../context/LanguageContext'
+import { Shield, Search, Filter, CheckCircle, XCircle, User, Clock, MapPin, Monitor, AlertTriangle, Loader } from 'lucide-react'
 
 interface LoginLog {
   id: string
@@ -33,6 +35,7 @@ interface LoginLogsResponse {
 export default function LoginLogsPage() {
   const navigate = useNavigate()
   const { user, token } = useAuth()
+  const { t } = useLanguage()
   const [logs, setLogs] = useState<LoginLog[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -133,21 +136,21 @@ export default function LoginLogsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <Layout>
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
-            <Shield className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Login Logs</h1>
+            <Shield className="w-8 h-8 text-theme" />
+            <h1 className="text-3xl font-bold text-theme-light">Login Logs</h1>
           </div>
-          <p className="text-gray-600">
+          <p className="text-gray-400">
             Track all login attempts including successful and failed attempts
           </p>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-discord-dark rounded-lg border border-gray-700 p-6 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
             <form onSubmit={handleSearch} className="flex-1">
@@ -158,7 +161,7 @@ export default function LoginLogsPage() {
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   placeholder="Search by username, Discord ID, or email..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-theme focus:border-transparent"
                 />
               </div>
             </form>
@@ -172,7 +175,7 @@ export default function LoginLogsPage() {
                   setStatusFilter(e.target.value as 'all' | 'success' | 'failed')
                   setPage(1)
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-theme focus:border-transparent"
               >
                 <option value="all">All Status</option>
                 <option value="success">Success Only</option>
@@ -182,56 +185,56 @@ export default function LoginLogsPage() {
           </div>
 
           {/* Stats */}
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <p className="text-sm text-gray-600">
-              Total Logs: <span className="font-semibold text-gray-900">{total}</span>
+          <div className="mt-4 pt-4 border-t border-gray-700">
+            <p className="text-sm text-gray-400">
+              Total Logs: <span className="font-semibold text-theme-light">{total}</span>
             </p>
           </div>
         </div>
 
         {/* Logs Table */}
         {loading ? (
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading logs...</p>
+          <div className="bg-discord-dark rounded-lg border border-gray-700 p-12 text-center">
+            <Loader className="animate-spin h-12 w-12 text-theme mx-auto" />
+            <p className="mt-4 text-gray-400">Loading logs...</p>
           </div>
         ) : logs.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <Shield className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-600">No login logs found</p>
+          <div className="bg-discord-dark rounded-lg border border-gray-700 p-12 text-center">
+            <Shield className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <p className="text-gray-400">No login logs found</p>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="bg-discord-dark rounded-lg border border-gray-700 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-gray-800/50 border-b border-gray-700">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       User
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Failure Reason
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Location
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Device
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Permissions
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Time
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-discord-dark divide-y divide-gray-700">
                   {logs.map((log) => (
-                    <tr key={log.id} className="hover:bg-gray-50">
+                    <tr key={log.id} className="hover:bg-gray-800/30">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           {log.discord_avatar ? (
@@ -241,18 +244,18 @@ export default function LoginLogsPage() {
                               className="w-10 h-10 rounded-full"
                             />
                           ) : (
-                            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
                               <User className="w-5 h-5 text-gray-400" />
                             </div>
                           )}
                           <div>
                             <Link
                               to={`/admin/members/${log.discord_id}`}
-                              className="font-medium text-blue-600 hover:text-blue-800"
+                              className="font-medium text-theme hover:text-theme-light"
                             >
                               {log.discord_username || 'Unknown'}
                             </Link>
-                            <p className="text-xs text-gray-500">{log.discord_id}</p>
+                            <p className="text-xs text-gray-500">{log.discord_id.slice(0, 18)}...</p>
                           </div>
                         </div>
                       </td>
@@ -270,7 +273,7 @@ export default function LoginLogsPage() {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2 text-sm text-gray-300">
                           <MapPin className="w-4 h-4 text-gray-400" />
                           <div>
                             <div>{log.city || 'Unknown'}</div>
@@ -279,7 +282,7 @@ export default function LoginLogsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2 text-sm text-gray-300">
                           <Monitor className="w-4 h-4 text-gray-400" />
                           <div>
                             <div>{getUserAgent(log.user_agent)}</div>
@@ -310,7 +313,7 @@ export default function LoginLogsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2 text-sm text-gray-300">
                           <Clock className="w-4 h-4 text-gray-400" />
                           <span>{formatDate(log.created_at)}</span>
                         </div>
@@ -323,22 +326,22 @@ export default function LoginLogsPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                <div className="text-sm text-gray-600">
+              <div className="px-6 py-4 border-t border-gray-700 flex items-center justify-between">
+                <div className="text-sm text-gray-400">
                   Page {page} of {totalPages}
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setPage(Math.max(1, page - 1))}
                     disabled={page === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => setPage(Math.min(totalPages, page + 1))}
                     disabled={page === totalPages}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                   </button>
@@ -348,6 +351,6 @@ export default function LoginLogsPage() {
           </div>
         )}
       </div>
-    </div>
+    </Layout>
   )
 }
