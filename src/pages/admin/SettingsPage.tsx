@@ -754,9 +754,18 @@ export function SettingsPage() {
               className="input-field w-full"
               placeholder="https://discord.com/api/webhooks/..."
             />
-            <p className="text-xs text-gray-500 mt-2">
-              All notifications will be sent to this webhook URL
-            </p>
+            {settings.webhookUrl ? (
+              <div className="mt-2 flex items-center gap-2 text-xs">
+                <div className="flex items-center gap-1.5 text-green-400">
+                  <CheckCircle size={14} />
+                  <span>Webhook URL configured and connected</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-500 mt-2">
+                All notifications will be sent to this webhook URL
+              </p>
+            )}
           </div>
         </div>
 
