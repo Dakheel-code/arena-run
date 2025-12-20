@@ -386,25 +386,41 @@ export function VideosPage() {
 
               <div>
                 <label className="block text-sm text-gray-400 mb-2">{t('uploader')}</label>
-                <select
-                  value={editingVideo?.uploaded_by || ''}
+                <input
+                  type="text"
+                  list="members-list"
+                  value={editingVideo?.uploader_name || ''}
                   onChange={(e) => {
-                    const selectedMember = members.find(m => m.discord_id === e.target.value)
-                    setEditingVideo(prev => prev ? {
-                      ...prev,
-                      uploaded_by: e.target.value,
-                      uploader_name: selectedMember?.discord_username || selectedMember?.game_id || ''
-                    } : null)
+                    const searchValue = e.target.value.toLowerCase()
+                    const selectedMember = members.find(m => 
+                      m.discord_username?.toLowerCase() === searchValue.toLowerCase() ||
+                      m.game_id?.toLowerCase() === searchValue.toLowerCase() ||
+                      m.discord_id === searchValue
+                    )
+                    
+                    if (selectedMember) {
+                      setEditingVideo(prev => prev ? {
+                        ...prev,
+                        uploaded_by: selectedMember.discord_id,
+                        uploader_name: selectedMember.discord_username || selectedMember.game_id || ''
+                      } : null)
+                    } else {
+                      setEditingVideo(prev => prev ? {
+                        ...prev,
+                        uploader_name: e.target.value
+                      } : null)
+                    }
                   }}
                   className="input-field w-full"
-                >
-                  <option value="">{t('selectUploader')}</option>
+                  placeholder="Search by name or Discord ID..."
+                />
+                <datalist id="members-list">
                   {members.map((member) => (
-                    <option key={member.discord_id} value={member.discord_id}>
-                      {member.discord_username || member.game_id} ({member.discord_id.slice(0, 8)}...)
+                    <option key={member.discord_id} value={member.discord_username || member.game_id}>
+                      {member.discord_id}
                     </option>
                   ))}
-                </select>
+                </datalist>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
