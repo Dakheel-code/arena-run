@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useSettings } from '../context/SettingsContext'
 import { useLanguage } from '../context/LanguageContext'
 import { Language } from '../i18n/translations'
-import { Home, Video, Users, Settings, LogOut, Shield, History, Plus, Globe, ChevronDown, Menu, X } from 'lucide-react'
+import { Home, Video, Users, Settings, LogOut, Shield, History, Plus, Globe, ChevronDown, Menu, X, KeyRound } from 'lucide-react'
 import { BottomNav } from './BottomNav'
 
 interface LayoutProps {
@@ -46,6 +46,7 @@ export function Layout({ children }: LayoutProps) {
     { path: '/admin/videos', icon: Video, label: t('manageVideos') },
     { path: '/admin/members', icon: Users, label: t('members') },
     { path: '/admin/sessions', icon: History, label: t('sessionsLog') },
+    { path: '/admin/login-logs', icon: KeyRound, label: 'Login Logs' },
     { path: '/admin/settings', icon: Settings, label: t('settings') },
   ]
 

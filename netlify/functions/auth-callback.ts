@@ -61,8 +61,46 @@ function createToken(payload: object): string {
   return `${header}.${body}.${signature}`
 }
 
+async function logLoginAttempt(data: {
+  discord_id: string
+  discord_username?: string
+  discord_discriminator?: string
+  discord_avatar?: string
+  email?: string
+  status: 'success' | 'failed'
+  failure_reason?: string
+  ip_address?: string
+  country?: string
+  city?: string
+  user_agent?: string
+  is_admin?: boolean
+  is_member?: boolean
+  has_required_role?: boolean
+}) {
+  try {
+    await supabase.from('login_logs').insert(data)
+  } catch (error) {
+    console.error('Failed to log login attempt:', error)
+  }
+}
+
+async function getLocationFromIP(ip?: string) {
+  if (!ip || ip === '::1' || ip === '127.0.0.1') {
+    return { country: 'Local', city: 'Local' }
+  }
+  try {
+    const response = await fetch(`http://ip-api.com/json/${ip}`)
+    const data = await response.json()
+    return { country: data.country || 'Unknown', city: data.city || 'Unknown' }
+  } catch {
+    return { country: 'Unknown', city: 'Unknown' }
+  }
+}
+
 export const handler: Handler = async (event) => {
   const code = event.queryStringParameters?.code
+  const ip_address = event.headers['x-forwarded-for'] || event.headers['client-ip']
+  const user_agent = event.headers['user-agent']
 
   if (!code) {
     return {
@@ -83,10 +121,30 @@ export const handler: Handler = async (event) => {
 
     // Get Discord user
     const discordUser = await getDiscordUser(tokens.access_token)
+    const location = await getLocationFromIP(ip_address)
+    const avatarUrl = discordUser.avatar 
+      ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`
+      : null
 
     // Check guild membership and role
     const member = await checkGuildMembership(discordUser.id)
     if (!member) {
+      await logLoginAttempt({
+        discord_id: discordUser.id,
+        discord_username: discordUser.username,
+        discord_discriminator: discordUser.discriminator,
+        discord_avatar: avatarUrl || undefined,
+        email: discordUser.email,
+        status: 'failed',
+        failure_reason: 'Not a member of the required Discord server',
+        ip_address,
+        country: location.country,
+        city: location.city,
+        user_agent,
+        is_admin: false,
+        is_member: false,
+        has_required_role: false,
+      })
       return {
         statusCode: 302,
         headers: { Location: `${APP_URL}/login?error=not_in_guild` },
@@ -96,6 +154,22 @@ export const handler: Handler = async (event) => {
     // Check for required role (Deputy) - TEMPORARILY DISABLED FOR TESTING
     // const hasRole = member.roles.includes(DISCORD_REQUIRED_ROLE_ID)
     // if (!hasRole) {
+    //   await logLoginAttempt({
+    //     discord_id: discordUser.id,
+    //     discord_username: discordUser.username,
+    //     discord_discriminator: discordUser.discriminator,
+    //     discord_avatar: avatarUrl,
+    //     email: discordUser.email,
+    //     status: 'failed',
+    //     failure_reason: 'Missing required role (Deputy)',
+    //     ip_address,
+    //     country: location.country,
+    //     city: location.city,
+    //     user_agent,
+    //     is_admin: false,
+    //     is_member: true,
+    //     has_required_role: false,
+    //   })
     //   return {
     //     statusCode: 302,
     //     headers: { Location: `${APP_URL}/login?error=missing_role` },
@@ -136,9 +210,6 @@ export const handler: Handler = async (event) => {
       memberData = newMember
     } else {
       // Update discord_username, avatar and login info for existing member
-      const avatarUrl = discordUser.avatar 
-        ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`
-        : null
       await supabase
         .from('members')
         .update({ 
@@ -157,18 +228,34 @@ export const handler: Handler = async (event) => {
       .eq('discord_id', discordUser.id)
       .single()
 
-    // Create full avatar URL
-    const avatarFullUrl = discordUser.avatar 
-      ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`
-      : null
+    const isAdmin = !!adminData
+    const isMember = !!memberData
+    const hasRequiredRole = true // member.roles.includes(DISCORD_REQUIRED_ROLE_ID)
+
+    // Log successful login
+    await logLoginAttempt({
+      discord_id: discordUser.id,
+      discord_username: discordUser.username,
+      discord_discriminator: discordUser.discriminator,
+      discord_avatar: avatarUrl || undefined,
+      email: discordUser.email,
+      status: 'success',
+      ip_address,
+      country: location.country,
+      city: location.city,
+      user_agent,
+      is_admin: isAdmin,
+      is_member: isMember,
+      has_required_role: hasRequiredRole,
+    })
 
     // Create JWT token
     const token = createToken({
       discord_id: discordUser.id,
       username: discordUser.username,
-      avatar: avatarFullUrl,
+      avatar: avatarUrl,
       game_id: memberData.game_id,
-      is_admin: !!adminData,
+      is_admin: isAdmin,
       role: memberData.role || 'member',
     })
 

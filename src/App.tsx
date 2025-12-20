@@ -12,6 +12,7 @@ import { MemberProfilePage } from './pages/admin/MemberProfilePage'
 import { VideosPage } from './pages/admin/VideosPage'
 import { SessionsPage } from './pages/admin/SessionsPage'
 import { SettingsPage } from './pages/admin/SettingsPage'
+import LoginLogsPage from './pages/admin/LoginLogsPage'
 import { NewRunPage } from './pages/NewRunPage'
 import { EditVideoPage } from './pages/EditVideoPage'
 import { Loader } from 'lucide-react'
@@ -140,6 +141,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute adminOnly>
             <SettingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/login-logs"
+        element={
+          <ProtectedRoute adminOnly>
+            <LoginLogsPage />
           </ProtectedRoute>
         }
       />
