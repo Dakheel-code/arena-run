@@ -138,11 +138,11 @@ export default function LoginLogsPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <Shield className="w-8 h-8 text-theme" />
+          <div className="flex items-center justify-end gap-3 mb-2">
             <h1 className="text-3xl font-bold text-theme-light">Login Logs</h1>
+            <Shield className="w-8 h-8 text-theme" />
           </div>
-          <p className="text-gray-400">
+          <p className="text-gray-400 text-right">
             Track all login attempts including successful and failed attempts
           </p>
         </div>

@@ -15,13 +15,13 @@ export function LoginPage() {
     if (errorParam) {
       switch (errorParam) {
         case 'not_in_guild':
-          setError('You are not a member of the required Discord server')
+          setError('You do not have permission to access. Contact admin to get authorization')
           break
         case 'missing_role':
-          setError('You do not have the required role (Deputy) in the Discord server')
+          setError('You do not have permission to access. Contact admin to get authorization')
           break
         case 'not_allowed':
-          setError('You are not in the allowed members list. Contact admin for access')
+          setError('You do not have permission to access. Contact admin to get authorization')
           break
         case 'token_exchange':
           setError('Failed to authenticate with Discord. Please try again')
