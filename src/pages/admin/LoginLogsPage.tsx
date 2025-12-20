@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Layout } from '../../components/Layout'
 import { useAuth } from '../../context/AuthContext'
-import { useLanguage } from '../../context/LanguageContext'
 import { Shield, Search, Filter, CheckCircle, XCircle, User, Clock, MapPin, Monitor, AlertTriangle, Loader } from 'lucide-react'
 
 interface LoginLog {
@@ -35,7 +34,6 @@ interface LoginLogsResponse {
 export default function LoginLogsPage() {
   const navigate = useNavigate()
   const { user, token } = useAuth()
-  const { t } = useLanguage()
   const [logs, setLogs] = useState<LoginLog[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
