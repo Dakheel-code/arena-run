@@ -19,6 +19,7 @@ const LANGUAGES = [
   { code: 'ru' as Language, name: 'Русский', flag: '🇷🇺' },
   { code: 'pt' as Language, name: 'Português', flag: '🇵🇹' },
   { code: 'fr' as Language, name: 'Français', flag: '🇫🇷' },
+  { code: 'de' as Language, name: 'Deutsch', flag: '🇩🇪' },
 ]
 
 export function Layout({ children }: LayoutProps) {
