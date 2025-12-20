@@ -70,6 +70,7 @@ export function SettingsPage() {
     // Notification settings
     notifyCountryChange: true,
     notifyIpChange: true,
+    notifyUnauthorizedLogin: true,
     notifyExcessiveViews: true,
     excessiveViewsThreshold: 5,
     excessiveViewsInterval: 10,
