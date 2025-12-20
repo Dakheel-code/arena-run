@@ -233,28 +233,31 @@ export function SettingsPage() {
     }
   }
 
-  // Auto-save settings whenever they change
+  // Auto-save settings whenever they change (but not on initial load)
   useEffect(() => {
-    if (!isLoading && !isInitialLoad) {
-      console.log('Auto-saving settings...', settings)
-      const saveSettings = async () => {
-        try {
-          await api.saveSettings(settings)
-          await refreshSettings()
-          console.log('Settings saved successfully')
-          
-          // Show save notification
-          setShowSaveNotification(true)
-          setTimeout(() => setShowSaveNotification(false), 3000)
-        } catch (error) {
-          console.error('Failed to auto-save settings:', error)
-        }
-      }
-      const timeoutId = setTimeout(saveSettings, 1000) // Debounce 1 second
-      return () => clearTimeout(timeoutId)
+    // Skip if still loading or if this is the initial load
+    if (isLoading || isInitialLoad) {
+      return
     }
+    
+    console.log('Auto-saving settings...', settings)
+    const saveSettings = async () => {
+      try {
+        await api.saveSettings(settings)
+        await refreshSettings()
+        console.log('Settings saved successfully')
+        
+        // Show save notification
+        setShowSaveNotification(true)
+        setTimeout(() => setShowSaveNotification(false), 3000)
+      } catch (error) {
+        console.error('Failed to auto-save settings:', error)
+      }
+    }
+    const timeoutId = setTimeout(saveSettings, 1000) // Debounce 1 second
+    return () => clearTimeout(timeoutId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings, isLoading, isInitialLoad])
+  }, [settings])
 
   const addRole = () => {
     if (newRole.trim() && !roles.includes(newRole.trim())) {
@@ -302,7 +305,7 @@ export function SettingsPage() {
       </div>
 
 
-      <div className="max-w-3xl space-y-6">
+      <div className="space-y-6">
         {/* Theme Settings */}
         <div className="card">
           <div className="flex items-center gap-3 mb-6">
