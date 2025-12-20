@@ -4,7 +4,7 @@ import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
 import { useLanguage } from '../../context/LanguageContext'
 import { Video as VideoType } from '../../types'
-import { Users, Video, Eye, ThumbsUp, Clock, Calendar, TrendingUp, Play, UserPlus, Loader, Upload, User } from 'lucide-react'
+import { Users, Video, Eye, ThumbsUp, Clock, Calendar, TrendingUp, Play, UserPlus, Loader, Upload, User, LayoutDashboard } from 'lucide-react'
 
 interface TopUploader {
   id: string
@@ -191,7 +191,10 @@ export function AdminDashboard() {
     <Layout>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-2">{t('dashboardTitle')}</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <LayoutDashboard className="w-8 h-8 text-theme" />
+            <h1 className="text-3xl font-bold text-theme">{t('dashboardTitle')}</h1>
+          </div>
           <p className="text-gray-400">{t('platformOverview')}</p>
         </div>
         

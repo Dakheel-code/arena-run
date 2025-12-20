@@ -5,7 +5,7 @@ import { useSettings } from '../../context/SettingsContext'
 import { useTheme, ThemeColor } from '../../context/ThemeContext'
 import { useLanguage } from '../../context/LanguageContext'
 import { Member, UserRole } from '../../types'
-import { Bell, Shield, Database, Globe, Loader, CheckCircle, AlertTriangle, MapPin, Wifi, Eye, Link, Smartphone, Clock, ShieldAlert, Palette, Upload, Plus, X, Download, HardDrive, Zap, Image, Code, Crown, Edit3, Users, User } from 'lucide-react'
+import { Bell, Shield, Database, Globe, Loader, CheckCircle, AlertTriangle, MapPin, Wifi, Eye, Link, Smartphone, Clock, ShieldAlert, Palette, Upload, Plus, X, Download, HardDrive, Zap, Image, Code, Crown, Edit3, Users, User, Settings } from 'lucide-react'
 
 const THEME_COLORS: { value: ThemeColor; label: string; color: string }[] = [
   { value: 'amber', label: 'Gold', color: 'bg-amber-500' },
@@ -294,7 +294,10 @@ export function SettingsPage() {
       )}
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">{t('settingsTitle')}</h1>
+        <div className="flex items-center gap-3 mb-2">
+          <Settings className="w-8 h-8 text-theme" />
+          <h1 className="text-3xl font-bold text-theme">{t('settingsTitle')}</h1>
+        </div>
         <p className="text-gray-400">{t('settingsSubtitle')}</p>
       </div>
 

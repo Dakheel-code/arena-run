@@ -165,7 +165,10 @@ export function SessionsPage() {
   return (
     <Layout>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">{t('sessionsLogTitle')}</h1>
+        <div className="flex items-center gap-3 mb-2">
+          <Clock className="w-8 h-8 text-theme" />
+          <h1 className="text-3xl font-bold text-theme">{t('sessionsLogTitle')}</h1>
+        </div>
         <p className="text-gray-400">{t('sessionsLogSubtitle')}</p>
       </div>
 

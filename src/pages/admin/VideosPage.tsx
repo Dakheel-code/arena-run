@@ -5,7 +5,7 @@ import { api } from '../../lib/api'
 import { useLanguage } from '../../context/LanguageContext'
 import { useAuth } from '../../context/AuthContext'
 import { Video, Member } from '../../types'
-import { Plus, Trash2, Eye, EyeOff, Loader, Upload, X, Edit } from 'lucide-react'
+import { Plus, Trash2, Eye, EyeOff, Loader, Upload, X, Edit, Video as VideoIcon } from 'lucide-react'
 import * as tus from 'tus-js-client'
 
 function getThumbnailUrl(streamUid: string): string {
@@ -227,7 +227,10 @@ export function VideosPage() {
     <Layout>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold mb-1 md:mb-2">{t('manageVideosTitle')}</h1>
+          <div className="flex items-center gap-3 mb-1 md:mb-2">
+            <VideoIcon className="w-6 h-6 md:w-8 md:h-8 text-theme" />
+            <h1 className="text-2xl md:text-3xl font-bold text-theme">{t('manageVideosTitle')}</h1>
+          </div>
           <p className="text-sm md:text-base text-gray-400">{t('uploadAndManage')}</p>
         </div>
         <button onClick={() => navigate('/new-run')} className="btn-discord text-sm md:text-base px-3 py-2 md:px-6 md:py-3">
