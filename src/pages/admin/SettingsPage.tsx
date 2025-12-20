@@ -1086,12 +1086,7 @@ export function SettingsPage() {
             <div className="text-center py-8 text-gray-400">
               <p>No members found matching "{searchQuery}"</p>
             </div>
-          ) : (
-            <div className="text-center py-8 text-gray-400">
-              <Shield size={48} className="mx-auto mb-4 opacity-50" />
-              <p>Search for a member to manage their permissions</p>
-            </div>
-          )}
+          ) : null}
 
           {/* Members with Roles List */}
           <div className="mt-6">
