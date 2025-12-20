@@ -1092,6 +1092,62 @@ export function SettingsPage() {
               <p>Search for a member to manage their permissions</p>
             </div>
           )}
+
+          {/* Members with Roles List */}
+          <div className="mt-6">
+            <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
+              <Users size={16} className="text-theme-light" />
+              Members with Assigned Roles
+            </h3>
+            {members.filter(m => m.role && m.role !== 'member').length > 0 ? (
+              <div className="space-y-2">
+                {members
+                  .filter(m => m.role && m.role !== 'member')
+                  .sort((a, b) => {
+                    const roleOrder = { super_admin: 0, admin: 1, editor: 2, member: 3 }
+                    return roleOrder[a.role || 'member'] - roleOrder[b.role || 'member']
+                  })
+                  .map((member) => {
+                    const currentRole = member.role || 'member'
+                    const RoleIcon = ROLE_CONFIG[currentRole].icon
+                    return (
+                      <div
+                        key={member.id}
+                        className="flex items-center gap-3 p-3 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 transition-colors cursor-pointer"
+                        onClick={() => handleSelectMember(member)}
+                      >
+                        {member.discord_avatar ? (
+                          <img 
+                            src={member.discord_avatar} 
+                            alt={member.discord_username || 'Avatar'}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-theme/20 flex items-center justify-center">
+                            <User size={20} className="text-theme-light" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{member.discord_username || member.game_id}</p>
+                          <p className="text-xs text-gray-500 truncate">{member.game_id}</p>
+                          {member.role_assigned_by_name && (
+                            <p className="text-xs text-theme/60 truncate mt-0.5">
+                              Assigned as: {member.role_assigned_by_name}
+                            </p>
+                          )}
+                        </div>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs ${ROLE_CONFIG[currentRole].color}`}>
+                          <RoleIcon size={14} />
+                          {ROLE_CONFIG[currentRole].label}
+                        </span>
+                      </div>
+                    )
+                  })}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-500 text-center py-4">No members with assigned roles yet</p>
+            )}
+          </div>
         </div>
 
         {/* API Info */}
