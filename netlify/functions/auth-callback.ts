@@ -187,40 +187,47 @@ export const handler: Handler = async (event) => {
       ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`
       : null
 
-    // Check guild membership and role
-    const member = await checkGuildMembership(discordUser.id)
-    if (!member) {
-      await logLoginAttempt({
-        discord_id: discordUser.id,
-        discord_username: discordUser.username,
-        discord_discriminator: discordUser.discriminator,
-        discord_avatar: avatarUrl || undefined,
-        email: discordUser.email,
-        status: 'failed',
-        failure_reason: 'Not a member of the required Discord server',
-        ip_address,
-        country: location.country,
-        city: location.city,
-        user_agent,
-        is_admin: false,
-        is_member: false,
-        has_required_role: false,
-      })
-      
-      // Send unauthorized login notification
-      await sendUnauthorizedLoginNotification({
-        username: discordUser.username,
-        discord_id: discordUser.id,
-        reason: 'Not a member of the required Discord server',
-        ip_address,
-        country: location.country,
-        city: location.city,
-        user_agent,
-      })
-      
-      return {
-        statusCode: 302,
-        headers: { Location: `${APP_URL}/login?error=not_in_guild` },
+    // Check if user is admin first (admins can bypass guild check)
+    const ADMIN_IDS = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(id => id.trim()).filter(Boolean)
+    const isAdmin = ADMIN_IDS.includes(discordUser.id)
+    
+    // Check guild membership and role (skip for admins)
+    let member = null
+    if (!isAdmin) {
+      member = await checkGuildMembership(discordUser.id)
+      if (!member) {
+        await logLoginAttempt({
+          discord_id: discordUser.id,
+          discord_username: discordUser.username,
+          discord_discriminator: discordUser.discriminator,
+          discord_avatar: avatarUrl || undefined,
+          email: discordUser.email,
+          status: 'failed',
+          failure_reason: 'Not a member of the required Discord server',
+          ip_address,
+          country: location.country,
+          city: location.city,
+          user_agent,
+          is_admin: false,
+          is_member: false,
+          has_required_role: false,
+        })
+        
+        // Send unauthorized login notification
+        await sendUnauthorizedLoginNotification({
+          username: discordUser.username,
+          discord_id: discordUser.id,
+          reason: 'Not a member of the required Discord server',
+          ip_address,
+          country: location.country,
+          city: location.city,
+          user_agent,
+        })
+        
+        return {
+          statusCode: 302,
+          headers: { Location: `${APP_URL}/login?error=not_in_guild` },
+        }
       }
     }
 
@@ -301,7 +308,7 @@ export const handler: Handler = async (event) => {
       .eq('discord_id', discordUser.id)
       .single()
 
-    const isAdmin = !!adminData
+    const isAdminInDB = !!adminData || isAdmin
     const isMember = !!memberData
     const hasRequiredRole = true // member.roles.includes(DISCORD_REQUIRED_ROLE_ID)
 
@@ -317,7 +324,7 @@ export const handler: Handler = async (event) => {
       country: location.country,
       city: location.city,
       user_agent,
-      is_admin: isAdmin,
+      is_admin: isAdminInDB,
       is_member: isMember,
       has_required_role: hasRequiredRole,
     })
@@ -328,7 +335,7 @@ export const handler: Handler = async (event) => {
       username: discordUser.username,
       avatar: avatarUrl,
       game_id: memberData.game_id,
-      is_admin: isAdmin,
+      is_admin: isAdminInDB,
       role: memberData.role || 'member',
     })
 
