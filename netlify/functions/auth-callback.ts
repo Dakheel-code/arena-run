@@ -85,21 +85,35 @@ async function logLoginAttempt(data: {
 }
 
 async function getLocationFromIP(ip?: string) {
-  if (!ip || ip === '::1' || ip === '127.0.0.1') {
+  if (!ip || ip === 'Unknown' || ip === '::1' || ip === '127.0.0.1' || ip.startsWith('192.168.') || ip.startsWith('10.')) {
     return { country: 'Local', city: 'Local' }
   }
   try {
-    const response = await fetch(`http://ip-api.com/json/${ip}`)
+    console.log('Fetching location for IP:', ip)
+    const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,city`)
     const data = await response.json()
-    return { country: data.country || 'Unknown', city: data.city || 'Unknown' }
-  } catch {
+    console.log('Location data:', data)
+    
+    if (data.status === 'success') {
+      return { 
+        country: data.country || 'Unknown', 
+        city: data.city || 'Unknown' 
+      }
+    }
+    return { country: 'Unknown', city: 'Unknown' }
+  } catch (error) {
+    console.error('Error fetching location:', error)
     return { country: 'Unknown', city: 'Unknown' }
   }
 }
 
 export const handler: Handler = async (event) => {
   const code = event.queryStringParameters?.code
-  const ip_address = event.headers['x-forwarded-for'] || event.headers['client-ip']
+  // Get real IP address from headers (Netlify provides x-nf-client-connection-ip)
+  const ip_address = event.headers['x-nf-client-connection-ip'] || 
+                     event.headers['x-forwarded-for']?.split(',')[0].trim() || 
+                     event.headers['client-ip'] || 
+                     'Unknown'
   const user_agent = event.headers['user-agent']
 
   if (!code) {
