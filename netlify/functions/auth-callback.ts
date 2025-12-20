@@ -42,12 +42,17 @@ async function getDiscordUser(accessToken: string) {
 
 async function checkGuildMembership(userId: string) {
   for (const guildId of DISCORD_GUILD_IDS) {
+    console.log('Checking guild:', guildId, 'for user:', userId)
     const response = await fetch(
       `https://discord.com/api/guilds/${guildId}/members/${userId}`,
       { headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` } }
     )
+    console.log('Response status:', response.status)
     if (response.ok) {
-      return response.json()
+      const memberData = await response.json()
+      console.log('Raw member data:', JSON.stringify(memberData, null, 2))
+      console.log('Member roles array:', memberData.roles)
+      return memberData
     }
   }
   return null
