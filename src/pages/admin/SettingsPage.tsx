@@ -1033,6 +1033,16 @@ export function SettingsPage() {
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{selectedMember.discord_username || selectedMember.game_id}</p>
                   <p className="text-xs text-gray-500 truncate">{selectedMember.game_id}</p>
+                  {selectedMember.role_assigned_by_name && (
+                    <p className="text-xs text-theme/70 truncate mt-0.5">
+                      Role assigned as: {selectedMember.role_assigned_by_name}
+                      {selectedMember.role_assigned_at && (
+                        <span className="text-gray-600 ml-1">
+                          ({new Date(selectedMember.role_assigned_at).toLocaleDateString()})
+                        </span>
+                      )}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   {(() => {

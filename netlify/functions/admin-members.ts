@@ -170,7 +170,21 @@ export const handler: Handler = async (event) => {
 
     const updateData: any = {}
     if (is_active !== undefined) updateData.is_active = is_active
-    if (role !== undefined) updateData.role = role
+    if (role !== undefined) {
+      updateData.role = role
+      
+      // Get current member data to save their name when role is assigned
+      const { data: memberData } = await supabase
+        .from('members')
+        .select('discord_username, game_id')
+        .eq('discord_id', discord_id)
+        .single()
+      
+      if (memberData) {
+        updateData.role_assigned_by_name = memberData.discord_username || memberData.game_id
+        updateData.role_assigned_at = new Date().toISOString()
+      }
+    }
 
     const { error } = await supabase
       .from('members')

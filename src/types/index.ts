@@ -64,6 +64,8 @@ export interface Member {
   game_id: string;
   is_active: boolean;
   role?: UserRole;
+  role_assigned_by_name?: string;
+  role_assigned_at?: string;
   created_at: string;
   last_login?: string;
   login_count?: number;
