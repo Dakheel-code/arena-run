@@ -40,6 +40,7 @@ export function Layout({ children }: LayoutProps) {
   const { themeColor, setThemeColor, themeMode, setThemeMode } = useTheme()
   const location = useLocation()
   const [showLanguageMenu, setShowLanguageMenu] = useState(false)
+  const [showColorPicker, setShowColorPicker] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const currentLanguage = LANGUAGES.find(l => l.code === language) || LANGUAGES[0]
@@ -177,50 +178,52 @@ export function Layout({ children }: LayoutProps) {
           )}
         </nav>
 
-        {/* Theme Switcher */}
+        {/* Theme Switcher - Compact */}
         <div className="px-4 py-2 border-t border-gray-700">
-          {/* Dark/Light Mode Toggle */}
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2">
+            {/* Dark/Light Mode Toggle */}
             <button
-              onClick={() => setThemeMode('dark')}
-              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all ${
-                themeMode === 'dark'
-                  ? 'bg-theme text-white'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-              }`}
+              onClick={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
+              className="p-2.5 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all"
+              title={themeMode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
-              <Moon size={16} />
-              <span className="text-xs font-medium">Dark</span>
+              {themeMode === 'dark' ? <Moon size={18} className="text-blue-400" /> : <Sun size={18} className="text-yellow-500" />}
             </button>
-            <button
-              onClick={() => setThemeMode('light')}
-              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all ${
-                themeMode === 'light'
-                  ? 'bg-theme text-white'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-              }`}
-            >
-              <Sun size={16} />
-              <span className="text-xs font-medium">Light</span>
-            </button>
-          </div>
 
-          {/* Color Theme Selector */}
-          <div className="grid grid-cols-7 gap-1.5">
-            {THEME_COLORS.map((theme) => (
+            {/* Color Picker */}
+            <div className="relative flex-1">
               <button
-                key={theme.value}
-                onClick={() => setThemeColor(theme.value)}
-                className={`aspect-square rounded-lg transition-all ${
-                  themeColor === theme.value
-                    ? 'ring-2 ring-white ring-offset-2 ring-offset-discord-dark scale-110'
-                    : 'hover:scale-105'
-                }`}
-                title={theme.label}
+                onClick={() => setShowColorPicker(!showColorPicker)}
+                className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all"
               >
-                <div className={`w-full h-full rounded-lg ${theme.color}`} />
+                <div className={`w-5 h-5 rounded-full ${THEME_COLORS.find(c => c.value === themeColor)?.color}`} />
+                <span className="text-xs text-gray-400 flex-1 text-left">Theme Color</span>
               </button>
-            ))}
+
+              {showColorPicker && (
+                <div className="absolute bottom-full left-0 right-0 mb-2 p-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-50">
+                  <div className="grid grid-cols-7 gap-1.5">
+                    {THEME_COLORS.map((theme) => (
+                      <button
+                        key={theme.value}
+                        onClick={() => {
+                          setThemeColor(theme.value)
+                          setShowColorPicker(false)
+                        }}
+                        className={`aspect-square rounded-lg transition-all ${
+                          themeColor === theme.value
+                            ? 'ring-2 ring-white scale-110'
+                            : 'hover:scale-105'
+                        }`}
+                        title={theme.label}
+                      >
+                        <div className={`w-full h-full rounded-lg ${theme.color}`} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
