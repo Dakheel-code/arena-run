@@ -285,8 +285,10 @@ export function SettingsPage() {
         // Show save notification
         setShowSaveNotification(true)
         setTimeout(() => setShowSaveNotification(false), 3000)
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to auto-save settings:', error)
+        console.error('Error details:', error.message, error.response?.data)
+        alert(`Failed to save settings: ${error.message || 'Unknown error'}. Check console for details.`)
       }
     }
     const timeoutId = setTimeout(saveSettings, 1000) // Debounce 1 second
