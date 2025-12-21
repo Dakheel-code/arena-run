@@ -125,11 +125,30 @@ body {
 
 /* Light mode hover states */
 .light-mode .hover\:bg-gray-700:hover {
-  @apply bg-gray-200;
+  @apply bg-gray-100;
 }
 
 .light-mode .hover\:bg-gray-700\/50:hover {
-  @apply bg-gray-100;
+  @apply bg-gray-50;
+}
+
+/* Light mode button hover - lighter shade */
+.light-mode .btn-discord:hover {
+  opacity: 0.85;
+  filter: brightness(1.1);
+}
+
+.light-mode button:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Light mode table/card row hover */
+.light-mode .hover\:bg-gray-800\/50:hover {
+  background-color: rgba(0, 0, 0, 0.02) !important;
+}
+
+.light-mode .hover\:bg-gray-800:hover {
+  background-color: rgba(0, 0, 0, 0.03) !important;
 }
 
 /* Light mode video cards */
