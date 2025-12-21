@@ -3,7 +3,7 @@ import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
 import { useLanguage } from '../../context/LanguageContext'
 import { Member } from '../../types'
-import { Upload, Search, UserCheck, UserX, Loader, FileSpreadsheet, Eye, ChevronLeft, ChevronRight, Plus, X, User, Users } from 'lucide-react'
+import { Upload, Search, UserCheck, UserX, Loader, FileSpreadsheet, Eye, ChevronLeft, ChevronRight, Plus, X, User, Users, Shield, Crown, Edit3 } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
 import Papa from 'papaparse'
 
@@ -248,9 +248,29 @@ export function MembersPage() {
                           <User size={16} className="text-theme-light" />
                         </div>
                       )}
-                      <span className="text-theme-light font-medium">
-                        {member.discord_username || member.game_id}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-theme-light font-medium">
+                          {member.discord_username || member.game_id}
+                        </span>
+                        {member.role === 'super_admin' && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                            <Crown size={12} />
+                            Super Admin
+                          </span>
+                        )}
+                        {member.role === 'admin' && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-red-500/20 text-red-400 border border-red-500/30">
+                            <Shield size={12} />
+                            Admin
+                          </span>
+                        )}
+                        {member.role === 'editor' && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                            <Edit3 size={12} />
+                            Editor
+                          </span>
+                        )}
+                      </div>
                     </Link>
                   </td>
                   {/* Game ID */}
@@ -412,9 +432,29 @@ export function MembersPage() {
                     </div>
                   )}
                   <div className="flex-1">
-                    <h3 className="text-theme-light font-medium">
-                      {member.discord_username || member.game_id}
-                    </h3>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-theme-light font-medium">
+                        {member.discord_username || member.game_id}
+                      </h3>
+                      {member.role === 'super_admin' && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                          <Crown size={12} />
+                          Super Admin
+                        </span>
+                      )}
+                      {member.role === 'admin' && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-red-500/20 text-red-400 border border-red-500/30">
+                          <Shield size={12} />
+                          Admin
+                        </span>
+                      )}
+                      {member.role === 'editor' && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                          <Edit3 size={12} />
+                          Editor
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-400">{member.game_id}</p>
                   </div>
                   <span
