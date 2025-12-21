@@ -69,6 +69,12 @@ export function Layout({ children }: LayoutProps) {
     <div className="min-h-screen flex">
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-discord-dark/95 backdrop-blur-lg border-b border-gray-700 px-4 py-3 flex items-center justify-between">
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 text-gray-300 hover:text-white transition-colors"
+        >
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
         <Link 
           to="/" 
           className="flex items-center gap-2 hover:opacity-80 transition-opacity"
@@ -84,12 +90,6 @@ export function Layout({ children }: LayoutProps) {
             <p className="text-[10px] text-gray-400">{settings.siteDescription}</p>
           </div>
         </Link>
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 text-gray-300 hover:text-white transition-colors"
-        >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
       </div>
 
       {/* Sidebar */}
