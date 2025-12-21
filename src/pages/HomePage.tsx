@@ -128,7 +128,7 @@ export function HomePage() {
               : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
           }`}
         >
-          All Videos
+          {t('allVideos')}
         </button>
         <button
           onClick={() => setActiveTab('new')}
@@ -138,7 +138,7 @@ export function HomePage() {
               : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
           }`}
         >
-          New (7 Days)
+          {t('newSevenDays')}
         </button>
         <button
           onClick={() => setActiveTab('popular')}
@@ -148,7 +148,7 @@ export function HomePage() {
               : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
           }`}
         >
-          Popular
+          {t('popular')}
         </button>
       </div>
 

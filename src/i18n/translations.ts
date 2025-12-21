@@ -15,6 +15,8 @@ export const translations = {
     // Home Page
     welcomeTitle: 'Welcome to Arena Run',
     welcomeSubtitle: 'Watch the latest exclusive videos',
+    popular: 'Popular',
+    newSevenDays: 'New (7 Days)',
     searchPlaceholder: 'Search videos...',
     allSeasons: 'All Seasons',
     season: 'Season',
@@ -360,6 +362,8 @@ export const translations = {
     // Home Page
     welcomeTitle: 'مرحباً بك في Arena Run',
     welcomeSubtitle: 'شاهد أحدث الفيديوهات الحصرية',
+    popular: 'شائع',
+    newSevenDays: 'جديد (7 أيام)',
     searchPlaceholder: 'البحث عن فيديو...',
     allSeasons: 'جميع المواسم',
     season: 'الموسم',
@@ -705,6 +709,8 @@ export const translations = {
     // Home Page
     welcomeTitle: 'Arena Runへようこそ',
     welcomeSubtitle: '最新の限定動画を視聴',
+    popular: '人気',
+    newSevenDays: '新着 (7日間)',
     searchPlaceholder: '動画を検索...',
     allSeasons: 'すべてのシーズン',
     season: 'シーズン',
@@ -1053,6 +1059,8 @@ export const translations = {
     // Home Page
     welcomeTitle: 'Arena Run에 오신 것을 환영합니다',
     welcomeSubtitle: '최신 독점 동영상 시청',
+    popular: '인기',
+    newSevenDays: '신규 (7일)',
     searchPlaceholder: '동영상 검색...',
     allSeasons: '모든 시즌',
     season: '시즌',
@@ -1401,6 +1409,8 @@ export const translations = {
     // Home Page
     welcomeTitle: 'Добро пожаловать в Arena Run',
     welcomeSubtitle: 'Смотрите эксклюзивные видео',
+    popular: 'Популярные',
+    newSevenDays: 'Новые (7 дней)',
     searchPlaceholder: 'Поиск видео...',
     allSeasons: 'Все сезоны',
     season: 'Сезон',
@@ -1749,6 +1759,8 @@ export const translations = {
     // Home Page
     welcomeTitle: 'Bem-vindo ao Arena Run',
     welcomeSubtitle: 'Assista aos vídeos exclusivos',
+    popular: 'Popular',
+    newSevenDays: 'Novo (7 Dias)',
     searchPlaceholder: 'Buscar vídeos...',
     allSeasons: 'Todas as Temporadas',
     season: 'Temporada',
@@ -2097,6 +2109,8 @@ export const translations = {
     // Home Page
     welcomeTitle: 'Bienvenue sur Arena Run',
     welcomeSubtitle: 'Regardez les dernières vidéos exclusives',
+    popular: 'Populaire',
+    newSevenDays: 'Nouveau (7 Jours)',
     searchPlaceholder: 'Rechercher des vidéos...',
     allSeasons: 'Toutes les saisons',
     season: 'Saison',
@@ -2445,6 +2459,8 @@ export const translations = {
     // Home Page
     welcomeTitle: 'Willkommen bei Arena Run',
     welcomeSubtitle: 'Sehen Sie sich die neuesten exklusiven Videos an',
+    popular: 'Beliebt',
+    newSevenDays: 'Neu (7 Tage)',
     searchPlaceholder: 'Videos suchen...',
     allSeasons: 'Alle Staffeln',
     season: 'Staffel',
