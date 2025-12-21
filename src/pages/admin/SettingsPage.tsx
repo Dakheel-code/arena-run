@@ -51,6 +51,7 @@ export function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [showSaveNotification, setShowSaveNotification] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(true)
   const [newRole, setNewRole] = useState('')
   const [roles, setRoles] = useState<string[]>([])
   const [newServerId, setNewServerId] = useState('')
@@ -390,30 +391,48 @@ export function SettingsPage() {
               <h3 className="text-sm font-semibold text-gray-300 mb-3">Appearance Mode</h3>
               <div className="flex items-center gap-4">
                 <button
-                  className="flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 border-white bg-gray-700 transition-all"
+                  onClick={() => setIsDarkMode(true)}
+                  className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${
+                    isDarkMode 
+                      ? 'border-white bg-gray-700' 
+                      : 'border-transparent hover:bg-gray-700/50'
+                  }`}
                 >
                   <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
                     <div className="w-4 h-4 rounded-full bg-gray-600"></div>
                   </div>
                   <div className="text-left">
                     <p className="font-medium text-sm">Dark Mode</p>
-                    <p className="text-xs text-gray-400">Currently Active</p>
+                    <p className="text-xs text-gray-400">{isDarkMode ? 'Currently Active' : 'Click to activate'}</p>
                   </div>
                 </button>
                 
                 <button
-                  className="flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 border-transparent hover:bg-gray-700/50 transition-all opacity-50 cursor-not-allowed"
-                  disabled
+                  onClick={() => setIsDarkMode(false)}
+                  className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${
+                    !isDarkMode 
+                      ? 'border-white bg-gray-700' 
+                      : 'border-transparent hover:bg-gray-700/50'
+                  }`}
                 >
                   <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
                     <div className="w-5 h-5 rounded-full bg-yellow-400"></div>
                   </div>
                   <div className="text-left">
                     <p className="font-medium text-sm">Light Mode</p>
-                    <p className="text-xs text-gray-400">Coming Soon</p>
+                    <p className="text-xs text-gray-400">{!isDarkMode ? 'Currently Active' : 'Click to activate'}</p>
                   </div>
                 </button>
               </div>
+              
+              {!isDarkMode && (
+                <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                  <p className="text-sm text-yellow-400 flex items-center gap-2">
+                    <AlertTriangle size={16} />
+                    Light mode is currently in preview. Some elements may not display correctly.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
