@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
 import { useSettings } from '../../context/SettingsContext'
@@ -794,9 +794,8 @@ export function SettingsPage() {
             )}
           </div>
         </div>
-
-        {/* Backup & Restore */}
-        <div className="card">
+        {/* Backup & Restore - Hidden (not functional) */}
+        <div className="card" style={{ display: 'none' }}>
           <div className="flex items-center gap-3 mb-6">
             <HardDrive className="text-theme-light" size={24} />
             <h2 className="text-xl font-bold text-theme-light">Backup & Restore</h2>
