@@ -216,5 +216,3 @@ export const handler: Handler = async (event) => {
     return { statusCode: 500, body: JSON.stringify({ message: err.message || 'Internal server error' }) }
   }
 }
-/ /   F o r c e   d e p l o y  
- 
