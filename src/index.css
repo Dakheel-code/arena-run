@@ -301,6 +301,17 @@ body {
   color: #4b5563 !important;
 }
 
+/* Light mode - Floating New Run Button - Keep icon and text white */
+.light-mode .bg-theme svg,
+.light-mode .bg-theme span {
+  color: white !important;
+}
+
+.light-mode button.bg-theme svg,
+.light-mode button.bg-theme span {
+  color: white !important;
+}
+
 .btn-discord {
   background-color: rgb(var(--tc)) !important;
   @apply hover:bg-opacity-80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center gap-2 justify-center;
