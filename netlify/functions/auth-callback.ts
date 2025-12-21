@@ -18,6 +18,25 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+async function getAllowedRoles() {
+  const { data: settings } = await supabase
+    .from('settings')
+    .select('allowed_roles')
+    .single()
+  return settings?.allowed_roles || []
+}
+
+async function getGuildRoles(guildId: string) {
+  const response = await fetch(
+    `https://discord.com/api/guilds/${guildId}/roles`,
+    { headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` } }
+  )
+  if (response.ok) {
+    return response.json()
+  }
+  return []
+}
+
 async function exchangeCode(code: string) {
   const response = await fetch('https://discord.com/api/oauth2/token', {
     method: 'POST',
@@ -240,12 +259,36 @@ export const handler: Handler = async (event) => {
     // Check for required role
     console.log('=== ROLE CHECK DEBUG ===')
     console.log('User Discord ID:', discordUser.id)
-    console.log('Member roles:', member?.roles)
-    console.log('Required role ID:', DISCORD_REQUIRED_ROLE_ID)
-    console.log('Role type:', typeof DISCORD_REQUIRED_ROLE_ID)
-    const hasRole = member?.roles?.includes(DISCORD_REQUIRED_ROLE_ID)
+    console.log('Member role IDs:', member?.roles)
+    
+    // Get allowed roles from settings
+    const allowedRoleNames = await getAllowedRoles()
+    console.log('Allowed role names from settings:', allowedRoleNames)
+    
+    let hasRole = false
+    
+    // If no allowed roles specified, use the Role ID from env
+    if (!allowedRoleNames || allowedRoleNames.length === 0) {
+      console.log('No allowed roles in settings, using Role ID:', DISCORD_REQUIRED_ROLE_ID)
+      hasRole = member?.roles?.includes(DISCORD_REQUIRED_ROLE_ID)
+    } else {
+      // Get guild roles to map IDs to names
+      const guildRoles = await getGuildRoles(DISCORD_GUILD_IDS[0])
+      console.log('Guild roles fetched:', guildRoles.length)
+      
+      // Check if user has any of the allowed roles
+      for (const roleId of member?.roles || []) {
+        const role = guildRoles.find((r: any) => r.id === roleId)
+        if (role && allowedRoleNames.includes(role.name)) {
+          console.log('User has allowed role:', role.name)
+          hasRole = true
+          break
+        }
+      }
+    }
+    
     console.log('Has required role:', hasRole)
-    console.log('======================')
+    console.log('=======================')
     if (!hasRole) {
       await logLoginAttempt({
         discord_id: discordUser.id,
@@ -323,7 +366,22 @@ export const handler: Handler = async (event) => {
 
     const isAdminInDB = !!adminData || isAdmin
     const isMember = !!memberData
-    const hasRequiredRole = member.roles.includes(DISCORD_REQUIRED_ROLE_ID)
+    
+    // Check role again for logging (same logic as above)
+    const allowedRoleNamesForLog = await getAllowedRoles()
+    let hasRequiredRole = false
+    if (!allowedRoleNamesForLog || allowedRoleNamesForLog.length === 0) {
+      hasRequiredRole = member.roles.includes(DISCORD_REQUIRED_ROLE_ID)
+    } else {
+      const guildRoles = await getGuildRoles(DISCORD_GUILD_IDS[0])
+      for (const roleId of member?.roles || []) {
+        const role = guildRoles.find((r: any) => r.id === roleId)
+        if (role && allowedRoleNamesForLog.includes(role.name)) {
+          hasRequiredRole = true
+          break
+        }
+      }
+    }
 
     // Log successful login
     await logLoginAttempt({
