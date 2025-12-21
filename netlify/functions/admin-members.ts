@@ -125,9 +125,55 @@ export const handler: Handler = async (event) => {
     }
   }
 
-  // POST - Upload members from CSV
+  // POST - Upload members from CSV or add single member
   if (method === 'POST') {
     const body = JSON.parse(event.body || '{}')
+    
+    // Handle single member addition
+    if (body.discord_id && body.game_id) {
+      const { discord_id, game_id, discord_username } = body
+      
+      // Validate required fields
+      if (!discord_id || !game_id) {
+        return { statusCode: 400, body: JSON.stringify({ message: 'Discord ID and Game ID are required' }) }
+      }
+      
+      // Check if member already exists
+      const { data: existingMember } = await supabase
+        .from('members')
+        .select('discord_id')
+        .eq('discord_id', discord_id)
+        .single()
+      
+      if (existingMember) {
+        return { statusCode: 409, body: JSON.stringify({ message: 'Member with this Discord ID already exists' }) }
+      }
+      
+      // Add new member
+      const { data, error } = await supabase
+        .from('members')
+        .insert({
+          discord_id,
+          game_id,
+          discord_username: discord_username || null,
+          is_active: true,
+        })
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Error adding member:', error)
+        return { statusCode: 500, body: JSON.stringify({ message: error.message || 'Failed to add member' }) }
+      }
+      
+      return {
+        statusCode: 201,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ success: true, member: data }),
+      }
+    }
+    
+    // Handle CSV upload (existing functionality)
     const { members } = body
 
     if (!members || !Array.isArray(members)) {
