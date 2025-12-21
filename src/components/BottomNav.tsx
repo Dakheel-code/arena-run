@@ -1,4 +1,4 @@
-import { Home, Video, User, Settings } from 'lucide-react'
+import { Home, Video, History, KeyRound, Settings } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
@@ -27,7 +27,8 @@ export function BottomNav() {
   const navItems = [
     { path: '/', icon: Home, label: 'Home', badge: 0 },
     { path: '/admin/videos', icon: Video, label: 'Videos', badge: 0 },
-    { path: '/admin/members', icon: User, label: 'Members', badge: 0 },
+    { path: '/admin/sessions', icon: History, label: 'Sessions', badge: 0 },
+    { path: '/admin/login-logs', icon: KeyRound, label: 'Login', badge: 0 },
     { path: '/admin/settings', icon: Settings, label: 'Settings', badge: 0 },
   ]
   

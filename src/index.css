@@ -103,12 +103,14 @@ body {
 
 /* Light mode buttons - keep text white */
 .light-mode .btn-discord {
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.1);
   color: white !important;
 }
 
 .light-mode .btn-discord:hover {
   color: white !important;
+  box-shadow: 0 4px 6px 0 rgb(0 0 0 / 0.15);
+  transform: translateY(-1px);
 }
 
 /* Light mode button text - white for theme buttons */
@@ -123,23 +125,32 @@ body {
   color: white !important;
 }
 
-/* Light mode hover states */
-.light-mode .hover\:bg-gray-700:hover {
-  @apply bg-gray-100;
-}
-
-.light-mode .hover\:bg-gray-700\/50:hover {
-  @apply bg-gray-50;
-}
-
 /* Light mode button hover - lighter shade */
 .light-mode .btn-discord:hover {
-  opacity: 0.85;
-  filter: brightness(1.1);
+  opacity: 0.9;
 }
 
 .light-mode button:hover {
   background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Light mode - specific button improvements */
+.light-mode button[class*="bg-"] {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+}
+
+.light-mode button[class*="bg-"]:hover {
+  box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.15);
+}
+
+/* Light mode - Upload/Action buttons */
+.light-mode .btn-primary {
+  box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.1);
+}
+
+.light-mode .btn-primary:hover {
+  box-shadow: 0 4px 6px 0 rgb(0 0 0 / 0.15);
+  transform: translateY(-1px);
 }
 
 /* Light mode table/card row hover */
@@ -215,6 +226,29 @@ body {
 /* Light mode stats and borders in cards */
 .light-mode .border-gray-700\/50 {
   @apply border-gray-300;
+}
+
+/* Light mode - Mobile Header */
+.light-mode .bg-discord-dark\/95 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Light mode - Bottom Navigation */
+.light-mode .bg-gray-900\/95 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.light-mode .border-gray-800 {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.light-mode .text-gray-400 {
+  color: #6b7280 !important;
+}
+
+.light-mode .hover\:text-gray-300:hover {
+  color: #4b5563 !important;
 }
 
 .btn-discord {
