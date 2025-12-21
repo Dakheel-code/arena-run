@@ -89,11 +89,23 @@ body {
 
 /* Light mode borders */
 .light-mode .border-gray-700 {
-  @apply border-gray-300;
+  border-color: #d1d5db !important;
 }
 
 .light-mode .border-gray-600 {
-  @apply border-gray-400;
+  border-color: #9ca3af !important;
+}
+
+/* Light mode - Card borders more visible */
+.light-mode .card {
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1) !important;
+}
+
+/* Light mode - New Run button icon color */
+.light-mode .bg-theme\/20 svg,
+.light-mode .text-theme-light svg {
+  color: inherit !important;
 }
 
 /* Light mode theme colors - much darker shades */

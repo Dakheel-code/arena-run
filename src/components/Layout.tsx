@@ -91,10 +91,10 @@ export function Layout({ children }: LayoutProps) {
 
       {/* Sidebar */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-40
+        fixed lg:static inset-y-0 left-0 z-50
         w-64 bg-discord-dark border-l border-gray-700 flex flex-col
         transform transition-transform duration-300 ease-in-out
-        lg:transform-none
+        lg:transform-none overflow-y-auto pb-20
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <Link 
@@ -292,7 +292,7 @@ export function Layout({ children }: LayoutProps) {
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          className="lg:hidden fixed inset-0 bg-black/50 z-40"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
