@@ -273,7 +273,11 @@ export default function LoginLogsPage() {
                         {log.failure_reason ? (
                           <div className="flex items-start gap-2 max-w-xs">
                             <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-red-600">{log.failure_reason}</span>
+                            <span className="text-sm text-red-600">
+                              {log.failure_reason === 'Not a member of the required Discord server' ? t('notMemberOfServer') :
+                               log.failure_reason === 'Missing required role' ? t('missingRequiredRole') :
+                               log.failure_reason}
+                            </span>
                           </div>
                         ) : (
                           <span className="text-gray-400 text-sm">-</span>
@@ -391,7 +395,11 @@ export default function LoginLogsPage() {
                     {log.failure_reason && (
                       <div className="flex items-start gap-2">
                         <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-xs text-red-400">{log.failure_reason}</span>
+                        <span className="text-xs text-red-400">
+                          {log.failure_reason === 'Not a member of the required Discord server' ? t('notMemberOfServer') :
+                           log.failure_reason === 'Missing required role' ? t('missingRequiredRole') :
+                           log.failure_reason}
+                        </span>
                       </div>
                     )}
 

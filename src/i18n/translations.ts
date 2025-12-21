@@ -325,6 +325,8 @@ export const translations = {
     isAdmin: 'Admin',
     isMember: 'Member',
     hasRequiredRole: 'Has Role',
+    notMemberOfServer: 'Not a member of the required Discord server',
+    missingRequiredRole: 'Missing required role',
     
     // Common
     loading: 'Loading...',
@@ -668,6 +670,8 @@ export const translations = {
     isAdmin: 'مدير',
     isMember: 'عضو',
     hasRequiredRole: 'لديه الدور',
+    notMemberOfServer: 'ليس عضواً في خادم Discord المطلوب',
+    missingRequiredRole: 'الدور المطلوب مفقود',
     
     // Common
     loading: 'جاري التحميل...',
@@ -1014,6 +1018,8 @@ export const translations = {
     isAdmin: '管理者',
     isMember: 'メンバー',
     hasRequiredRole: 'ロール所持',
+    notMemberOfServer: '必要なDiscordサーバーのメンバーではありません',
+    missingRequiredRole: '必要なロールがありません',
     
     // Common
     loading: '読み込み中...',
@@ -1360,6 +1366,8 @@ export const translations = {
     isAdmin: '관리자',
     isMember: '회원',
     hasRequiredRole: '역할 보유',
+    notMemberOfServer: '필요한 Discord 서버의 회원이 아닙니다',
+    missingRequiredRole: '필요한 역할이 없습니다',
     
     // Common
     loading: '로딩 중...',
@@ -1669,6 +1677,8 @@ export const translations = {
     isAdmin: 'Админ',
     isMember: 'Участник',
     hasRequiredRole: 'Имеет роль',
+    notMemberOfServer: 'Не является участником необходимого сервера Discord',
+    missingRequiredRole: 'Отсутствует необходимая роль',
     
     // Manage Members Page
     manageMembersTitle: 'Управление участниками',
@@ -2015,6 +2025,8 @@ export const translations = {
     isAdmin: 'Admin',
     isMember: 'Membro',
     hasRequiredRole: 'Tem Função',
+    notMemberOfServer: 'Não é membro do servidor Discord necessário',
+    missingRequiredRole: 'Função necessária ausente',
     
     // Manage Members Page
     manageMembersTitle: 'Gerenciar Membros',
@@ -2361,6 +2373,8 @@ export const translations = {
     isAdmin: 'Admin',
     isMember: 'Membre',
     hasRequiredRole: 'A le rôle',
+    notMemberOfServer: 'N\'est pas membre du serveur Discord requis',
+    missingRequiredRole: 'Rôle requis manquant',
     
     // Manage Members Page
     manageMembersTitle: 'Gérer les Membres',
@@ -2704,6 +2718,8 @@ export const translations = {
     isAdmin: 'Admin',
     isMember: 'Mitglied',
     hasRequiredRole: 'Hat Rolle',
+    notMemberOfServer: 'Ist kein Mitglied des erforderlichen Discord-Servers',
+    missingRequiredRole: 'Erforderliche Rolle fehlt',
     
     // Manage Members Page
     manageMembersTitle: 'Mitglieder verwalten',
