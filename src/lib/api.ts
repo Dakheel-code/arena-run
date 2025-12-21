@@ -192,6 +192,7 @@ export const api = {
   saveSettings: (settings: {
     siteName: string
     siteDescription: string
+    discordGuildId?: string
     requireRole: boolean
     allowNewMembers: boolean
     maxSessionsPerUser: number

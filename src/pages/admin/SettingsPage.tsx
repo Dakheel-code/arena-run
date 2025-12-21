@@ -62,6 +62,7 @@ export function SettingsPage() {
   const [settings, setSettings] = useState({
     siteName: 'The Regulators RGR',
     siteDescription: 'Arena Run',
+    discordGuildId: '',
     requireRole: true,
     allowedRoles: '',
     allowNewMembers: true,
@@ -191,6 +192,7 @@ export function SettingsPage() {
         setSettings({
           siteName: result.settings.site_name || 'The Regulators RGR',
           siteDescription: result.settings.site_description || 'Arena Run',
+          discordGuildId: (result.settings as any).discord_guild_id || '',
           requireRole: result.settings.require_role ?? true,
           allowedRoles: rolesString,
           allowNewMembers: result.settings.allow_new_members ?? true,
@@ -248,6 +250,7 @@ export function SettingsPage() {
         await api.saveSettings({
           siteName: settings.siteName,
           siteDescription: settings.siteDescription,
+          discordGuildId: settings.discordGuildId,
           requireRole: settings.requireRole,
           allowNewMembers: settings.allowNewMembers,
           maxSessionsPerUser: settings.maxSessionsPerUser,
@@ -365,6 +368,21 @@ export function SettingsPage() {
           </div>
           
           <div className="space-y-4">
+            {/* Discord Server ID */}
+            <div>
+              <label className="block font-medium mb-2">Discord Server ID</label>
+              <input
+                type="text"
+                value={settings.discordGuildId || ''}
+                onChange={(e) => setSettings({ ...settings, discordGuildId: e.target.value })}
+                placeholder="Enter Discord Server (Guild) ID"
+                className="input-field w-full font-mono"
+              />
+              <p className="text-sm text-gray-400 mt-2">
+                The Discord server ID where members must be present to access the site
+              </p>
+            </div>
+
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">{t('requireDiscordRole')}</p>
