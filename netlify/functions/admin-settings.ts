@@ -127,6 +127,7 @@ export const handler: Handler = async (event) => {
           .update({
             site_name: body.siteName,
             site_description: body.siteDescription,
+            discord_guild_ids: body.discordGuildIds,
             require_role: body.requireRole,
             allow_new_members: body.allowNewMembers,
             max_sessions_per_user: body.maxSessionsPerUser,
@@ -161,6 +162,7 @@ export const handler: Handler = async (event) => {
           .insert({
             site_name: body.siteName,
             site_description: body.siteDescription,
+            discord_guild_ids: body.discordGuildIds,
             require_role: body.requireRole,
             allow_new_members: body.allowNewMembers,
             max_sessions_per_user: body.maxSessionsPerUser,
