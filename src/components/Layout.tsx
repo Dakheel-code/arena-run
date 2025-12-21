@@ -3,8 +3,9 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useSettings } from '../context/SettingsContext'
 import { useLanguage } from '../context/LanguageContext'
+import { useTheme, ThemeColor } from '../context/ThemeContext'
 import { Language } from '../i18n/translations'
-import { Home, Video, Users, Settings, LogOut, Shield, History, Plus, Globe, ChevronDown, Menu, X, KeyRound } from 'lucide-react'
+import { Home, Video, Users, Settings, LogOut, Shield, History, Plus, Globe, ChevronDown, Menu, X, KeyRound, Moon, Sun } from 'lucide-react'
 import { BottomNav } from './BottomNav'
 
 interface LayoutProps {
@@ -22,10 +23,21 @@ const LANGUAGES = [
   { code: 'de' as Language, name: 'Deutsch', flag: '🇩🇪' },
 ]
 
+const THEME_COLORS: { value: ThemeColor; label: string; color: string }[] = [
+  { value: 'amber', label: 'Gold', color: 'bg-amber-500' },
+  { value: 'blue', label: 'Blue', color: 'bg-blue-500' },
+  { value: 'green', label: 'Green', color: 'bg-green-500' },
+  { value: 'purple', label: 'Purple', color: 'bg-purple-500' },
+  { value: 'red', label: 'Red', color: 'bg-red-500' },
+  { value: 'pink', label: 'Pink', color: 'bg-pink-500' },
+  { value: 'cyan', label: 'Cyan', color: 'bg-cyan-500' },
+]
+
 export function Layout({ children }: LayoutProps) {
   const { user, logout } = useAuth()
   const { settings } = useSettings()
   const { language, setLanguage, t } = useLanguage()
+  const { themeColor, setThemeColor, themeMode, setThemeMode } = useTheme()
   const location = useLocation()
   const [showLanguageMenu, setShowLanguageMenu] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -164,6 +176,53 @@ export function Layout({ children }: LayoutProps) {
             </>
           )}
         </nav>
+
+        {/* Theme Switcher */}
+        <div className="px-4 py-2 border-t border-gray-700">
+          {/* Dark/Light Mode Toggle */}
+          <div className="flex items-center gap-2 mb-3">
+            <button
+              onClick={() => setThemeMode('dark')}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all ${
+                themeMode === 'dark'
+                  ? 'bg-theme text-white'
+                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+              }`}
+            >
+              <Moon size={16} />
+              <span className="text-xs font-medium">Dark</span>
+            </button>
+            <button
+              onClick={() => setThemeMode('light')}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all ${
+                themeMode === 'light'
+                  ? 'bg-theme text-white'
+                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+              }`}
+            >
+              <Sun size={16} />
+              <span className="text-xs font-medium">Light</span>
+            </button>
+          </div>
+
+          {/* Color Theme Selector */}
+          <div className="grid grid-cols-7 gap-1.5">
+            {THEME_COLORS.map((theme) => (
+              <button
+                key={theme.value}
+                onClick={() => setThemeColor(theme.value)}
+                className={`aspect-square rounded-lg transition-all ${
+                  themeColor === theme.value
+                    ? 'ring-2 ring-white ring-offset-2 ring-offset-discord-dark scale-110'
+                    : 'hover:scale-105'
+                }`}
+                title={theme.label}
+              >
+                <div className={`w-full h-full rounded-lg ${theme.color}`} />
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Language Selector */}
         <div className="px-4 py-2 border-t border-gray-700">
