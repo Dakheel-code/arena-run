@@ -147,8 +147,26 @@ body {
   background-color: rgba(0, 0, 0, 0.02) !important;
 }
 
+.light-mode .hover\:bg-gray-800\/30:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
 .light-mode .hover\:bg-gray-800:hover {
   background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Light mode table backgrounds */
+.light-mode .bg-gray-800\/50 {
+  background-color: rgba(0, 0, 0, 0.02) !important;
+}
+
+.light-mode .bg-gray-800\/30 {
+  background-color: rgba(0, 0, 0, 0.01) !important;
+}
+
+/* Light mode table borders and dividers */
+.light-mode .divide-gray-700 > * + * {
+  border-color: rgba(0, 0, 0, 0.08) !important;
 }
 
 /* Light mode video cards */
