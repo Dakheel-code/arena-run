@@ -26,6 +26,23 @@ async function getAllowedRoles() {
   return settings?.allowed_roles || []
 }
 
+async function getDiscordGuildIds() {
+  const { data: settings } = await supabase
+    .from('settings')
+    .select('discord_guild_ids')
+    .single()
+  
+  const guildIdsString = settings?.discord_guild_ids || ''
+  const guildIds = guildIdsString ? guildIdsString.split(',').map((id: string) => id.trim()).filter(Boolean) : []
+  
+  // Fallback to environment variables if no settings found
+  if (guildIds.length === 0) {
+    return DISCORD_GUILD_IDS
+  }
+  
+  return guildIds
+}
+
 async function getGuildRoles(guildId: string) {
   const response = await fetch(
     `https://discord.com/api/guilds/${guildId}/roles`,
@@ -60,7 +77,10 @@ async function getDiscordUser(accessToken: string) {
 }
 
 async function checkGuildMembership(userId: string) {
-  for (const guildId of DISCORD_GUILD_IDS) {
+  const guildIds = await getDiscordGuildIds()
+  console.log('Checking guilds from settings:', guildIds)
+  
+  for (const guildId of guildIds) {
     console.log('Checking guild:', guildId, 'for user:', userId)
     const response = await fetch(
       `https://discord.com/api/guilds/${guildId}/members/${userId}`,
