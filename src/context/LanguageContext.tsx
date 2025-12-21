@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { translations, Language, TranslationKey } from '../i18n/translations'
 
 interface LanguageContextType {
@@ -15,6 +15,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem('language') as Language
     return saved && translations[saved] ? saved : 'en'
   })
+
+  // Set LTR direction on initial load
+  useEffect(() => {
+    document.documentElement.dir = 'ltr'
+    document.documentElement.lang = language
+  }, [])
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang)
