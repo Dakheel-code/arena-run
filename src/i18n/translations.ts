@@ -266,6 +266,8 @@ export const translations = {
     getNotifiedNewSession: 'Get notified when a new watch session starts',
     unauthorizedLoginAttempt: 'Unauthorized Login Attempt',
     getNotifiedUnauthorizedLogin: 'Get notified when someone tries to login without permission',
+    contentActivity: 'Content Activity',
+    securityAlerts: 'Security Alerts',
     
     // Manage Members Page
     manageMembersTitle: 'Manage Members',
@@ -604,6 +606,8 @@ export const translations = {
     getNotifiedNewSession: 'احصل على إشعار عند بدء جلسة مشاهدة جديدة',
     unauthorizedLoginAttempt: 'محاولة دخول غير مصرحة',
     getNotifiedUnauthorizedLogin: 'احصل على إشعار عندما يحاول شخص تسجيل الدخول بدون إذن',
+    contentActivity: 'نشاط المحتوى',
+    securityAlerts: 'تنبيهات الأمان',
     
     // Manage Members Page
     manageMembersTitle: 'إدارة الأعضاء',
@@ -945,6 +949,8 @@ export const translations = {
     getNotifiedNewSession: '新しい視聴セッションが開始されたときに通知を受け取る',
     unauthorizedLoginAttempt: '不正ログイン試行',
     getNotifiedUnauthorizedLogin: '許可なしでログインしようとしたときに通知を受け取る',
+    contentActivity: 'コンテンツアクティビティ',
+    securityAlerts: 'セキュリティアラート',
     
     // Manage Members Page
     manageMembersTitle: 'メンバー管理',
@@ -1286,6 +1292,8 @@ export const translations = {
     getNotifiedNewSession: '새 시청 세션이 시작될 때 알림 받기',
     unauthorizedLoginAttempt: '무단 로그인 시도',
     getNotifiedUnauthorizedLogin: '권한 없이 로그인을 시도할 때 알림 받기',
+    contentActivity: '콘텐츠 활동',
+    securityAlerts: '보안 경고',
     
     // Manage Members Page
     manageMembersTitle: '회원 관리',
@@ -1901,6 +1909,8 @@ export const translations = {
     getNotifiedNewSession: 'Receba notificação quando uma nova sessão de visualização começar',
     unauthorizedLoginAttempt: 'Tentativa de Login Não Autorizada',
     getNotifiedUnauthorizedLogin: 'Receba notificação quando alguém tentar fazer login sem permissão',
+    contentActivity: 'Atividade de Conteúdo',
+    securityAlerts: 'Alertas de Segurança',
     
     // Login Logs Page
     loginLogs: 'Logs de Login',

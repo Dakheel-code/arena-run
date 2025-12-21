@@ -597,7 +597,7 @@ export function SettingsPage() {
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
                 <Upload size={16} className="text-green-400" />
-                Content Activity
+                {t('contentActivity')}
               </h3>
               
               {/* New Upload Alert */}
@@ -605,8 +605,8 @@ export function SettingsPage() {
                 <div className="flex items-center gap-3">
                   <Upload className="text-green-400" size={18} />
                   <div>
-                    <p className="font-medium">New Video Upload</p>
-                    <p className="text-sm text-gray-400">Get notified when a new video is uploaded</p>
+                    <p className="font-medium">{t('newVideoUpload')}</p>
+                    <p className="text-sm text-gray-400">{t('getNotifiedNewVideo')}</p>
                   </div>
                 </div>
                 <button
@@ -626,8 +626,8 @@ export function SettingsPage() {
                 <div className="flex items-center gap-3">
                   <CheckCircle className="text-cyan-400" size={18} />
                   <div>
-                    <p className="font-medium">New Video Published</p>
-                    <p className="text-sm text-gray-400">Get notified when a video is published</p>
+                    <p className="font-medium">{t('newVideoPublished')}</p>
+                    <p className="text-sm text-gray-400">{t('getNotifiedVideoPublished')}</p>
                   </div>
                 </div>
                 <button
@@ -647,8 +647,8 @@ export function SettingsPage() {
                 <div className="flex items-center gap-3">
                   <Eye className="text-pink-400" size={18} />
                   <div>
-                    <p className="font-medium">New Watch Session</p>
-                    <p className="text-sm text-gray-400">Get notified when a new watch session starts</p>
+                    <p className="font-medium">{t('newWatchSession')}</p>
+                    <p className="text-sm text-gray-400">{t('getNotifiedNewSession')}</p>
                   </div>
                 </div>
                 <button
@@ -670,7 +670,7 @@ export function SettingsPage() {
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
                 <ShieldAlert size={16} className="text-red-400" />
-                Security Alerts
+                {t('securityAlerts')}
               </h3>
 
               {/* Unauthorized Login Alert */}
@@ -678,8 +678,8 @@ export function SettingsPage() {
                 <div className="flex items-center gap-3">
                   <AlertTriangle className="text-red-400" size={18} />
                   <div>
-                    <p className="font-medium">Unauthorized Login Attempt</p>
-                    <p className="text-sm text-gray-400">Get notified when someone tries to login without permission</p>
+                    <p className="font-medium">{t('unauthorizedLoginAttempt')}</p>
+                    <p className="text-sm text-gray-400">{t('getNotifiedUnauthorizedLogin')}</p>
                   </div>
                 </div>
                 <button
