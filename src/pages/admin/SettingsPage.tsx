@@ -423,15 +423,6 @@ export function SettingsPage() {
                   </div>
                 </button>
               </div>
-              
-              {themeMode === 'light' && (
-                <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                  <p className="text-sm text-yellow-400 flex items-center gap-2">
-                    <AlertTriangle size={16} />
-                    Light mode is currently in preview. Some elements may not display correctly.
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </div>
