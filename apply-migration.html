@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Apply Migration - Unauthorized Login Notification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        h1 { color: #fbbf24; }
+        button {
+            background: #fbbf24;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        button:hover { background: #f59e0b; }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .log {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .info { color: #3b82f6; }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            color: #fbbf24;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Apply Migration: Unauthorized Login Notification</h1>
+        <p>This will add the <code>notify_unauthorized_login</code> field to your settings table.</p>
+        
+        <label>Supabase URL:</label>
+        <input type="text" id="supabaseUrl" placeholder="https://your-project.supabase.co">
+        
+        <label>Supabase Service Role Key:</label>
+        <input type="password" id="supabaseKey" placeholder="Your service role key">
+        
+        <button onclick="applyMigration()" id="applyBtn">Apply Migration</button>
+        
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            logDiv.innerHTML += `<span class="${className}">${message}</span>\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        async function applyMigration() {
+            const url = document.getElementById('supabaseUrl').value.trim();
+            const key = document.getElementById('supabaseKey').value.trim();
+            const btn = document.getElementById('applyBtn');
+            
+            if (!url || !key) {
+                log('❌ Please enter both Supabase URL and Service Role Key', 'error');
+                return;
+            }
+            
+            btn.disabled = true;
+            document.getElementById('log').innerHTML = '';
+            log('🚀 Starting migration...', 'info');
+            
+            try {
+                // Step 1: Check if column exists
+                log('📋 Checking current settings table structure...', 'info');
+                const checkResponse = await fetch(`${url}/rest/v1/settings?select=*&limit=1`, {
+                    headers: {
+                        'apikey': key,
+                        'Authorization': `Bearer ${key}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!checkResponse.ok) {
+                    throw new Error(`Failed to check settings: ${checkResponse.statusText}`);
+                }
+                
+                const settings = await checkResponse.json();
+                log(`✓ Found ${settings.length} settings record(s)`, 'success');
+                
+                if (settings.length > 0 && settings[0].hasOwnProperty('notify_unauthorized_login')) {
+                    log('✓ Column notify_unauthorized_login already exists!', 'success');
+                    log('✓ Migration already applied - nothing to do', 'success');
+                } else {
+                    log('⚠️ Column notify_unauthorized_login does not exist', 'info');
+                    log('ℹ️ The column will be created automatically when you save settings', 'info');
+                    log('ℹ️ Or you can run the SQL manually in Supabase SQL Editor:', 'info');
+                    log('\nALTER TABLE settings ADD COLUMN IF NOT EXISTS notify_unauthorized_login BOOLEAN DEFAULT true;\n', 'info');
+                }
+                
+                // Step 2: Try to update existing settings
+                if (settings.length > 0) {
+                    log('📝 Updating existing settings record...', 'info');
+                    const updateResponse = await fetch(`${url}/rest/v1/settings?id=eq.${settings[0].id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': key,
+                            'Authorization': `Bearer ${key}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
+                        },
+                        body: JSON.stringify({
+                            notify_unauthorized_login: true
+                        })
+                    });
+                    
+                    if (updateResponse.ok) {
+                        log('✅ Successfully updated settings with notify_unauthorized_login = true', 'success');
+                    } else {
+                        const error = await updateResponse.text();
+                        if (error.includes('column') && error.includes('does not exist')) {
+                            log('⚠️ Column does not exist yet - will be created on next settings save', 'info');
+                        } else {
+                            log(`⚠️ Update warning: ${error}`, 'error');
+                        }
+                    }
+                }
+                
+                log('\n✅ Migration process completed!', 'success');
+                log('ℹ️ The new notification setting is now available in Admin Settings', 'info');
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

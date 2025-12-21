@@ -5,7 +5,7 @@ import { useSettings } from '../../context/SettingsContext'
 import { useTheme, ThemeColor } from '../../context/ThemeContext'
 import { useLanguage } from '../../context/LanguageContext'
 import { Member, UserRole } from '../../types'
-import { Bell, Shield, Database, Globe, Loader, CheckCircle, AlertTriangle, MapPin, Wifi, Eye, Link, Smartphone, Clock, ShieldAlert, Palette, Upload, Plus, X, Download, HardDrive, Zap, Image, Code, Crown, Edit3, Users, User, Settings } from 'lucide-react'
+import { Bell, Shield, Database, Globe, Loader, CheckCircle, AlertTriangle, MapPin, Wifi, Eye, Smartphone, Clock, ShieldAlert, Palette, Upload, Plus, X, Download, HardDrive, Zap, Image, Code, Crown, Edit3, Users, User, Settings } from 'lucide-react'
 
 const THEME_COLORS: { value: ThemeColor; label: string; color: string }[] = [
   { value: 'amber', label: 'Gold', color: 'bg-amber-500' },
@@ -363,21 +363,58 @@ export function SettingsPage() {
             <h2 className="text-xl font-bold text-theme-light">{t('themeColor')}</h2>
           </div>
           
-          <div className="grid grid-cols-7 gap-3">
-            {THEME_COLORS.map((theme) => (
-              <button
-                key={theme.value}
-                onClick={() => setThemeColor(theme.value)}
-                className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
-                  themeColor === theme.value
-                    ? 'border-white bg-gray-700'
-                    : 'border-transparent hover:bg-gray-700/50'
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-full ${theme.color}`} />
-                <span className="text-xs">{theme.label}</span>
-              </button>
-            ))}
+          <div className="space-y-6">
+            {/* Theme Color Selection */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-300 mb-3">Theme Color</h3>
+              <div className="grid grid-cols-7 gap-3">
+                {THEME_COLORS.map((theme) => (
+                  <button
+                    key={theme.value}
+                    onClick={() => setThemeColor(theme.value)}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                      themeColor === theme.value
+                        ? 'border-white bg-gray-700'
+                        : 'border-transparent hover:bg-gray-700/50'
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-full ${theme.color}`} />
+                    <span className="text-xs">{theme.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Dark/Light Mode Toggle */}
+            <div className="pt-4 border-t border-gray-700">
+              <h3 className="text-sm font-semibold text-gray-300 mb-3">Appearance Mode</h3>
+              <div className="flex items-center gap-4">
+                <button
+                  className="flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 border-white bg-gray-700 transition-all"
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
+                    <div className="w-4 h-4 rounded-full bg-gray-600"></div>
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-sm">Dark Mode</p>
+                    <p className="text-xs text-gray-400">Currently Active</p>
+                  </div>
+                </button>
+                
+                <button
+                  className="flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 border-transparent hover:bg-gray-700/50 transition-all opacity-50 cursor-not-allowed"
+                  disabled
+                >
+                  <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-yellow-400"></div>
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-sm">Light Mode</p>
+                    <p className="text-xs text-gray-400">Coming Soon</p>
+                  </div>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -548,339 +585,493 @@ export function SettingsPage() {
             <h2 className="text-xl font-bold text-theme-light">{t('notifications')}</h2>
           </div>
           
-          <div className="space-y-4">
-            {/* Country Change */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <MapPin className="text-orange-400" size={18} />
-                <div>
-                  <p className="font-medium">{t('countryChangeAlert')}</p>
-                  <p className="text-sm text-gray-400">{t('countryChangeAlertDesc')}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setSettings({ ...settings, notifyCountryChange: !settings.notifyCountryChange })}
-                className={`w-12 h-6 rounded-full transition-colors ${
-                  settings.notifyCountryChange ? 'bg-theme' : 'bg-gray-600'
-                }`}
-              >
-                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                  settings.notifyCountryChange ? 'translate-x-6' : 'translate-x-0.5'
-                }`} />
-              </button>
-            </div>
-
-            {/* IP Change */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Wifi className="text-blue-400" size={18} />
-                <div>
-                  <p className="font-medium">{t('ipChangeAlert')}</p>
-                  <p className="text-sm text-gray-400">{t('ipChangeAlertDesc')}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setSettings({ ...settings, notifyIpChange: !settings.notifyIpChange })}
-                className={`w-12 h-6 rounded-full transition-colors ${
-                  settings.notifyIpChange ? 'bg-theme' : 'bg-gray-600'
-                }`}
-              >
-                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                  settings.notifyIpChange ? 'translate-x-6' : 'translate-x-0.5'
-                }`} />
-              </button>
-            </div>
-
-            {/* Excessive Views */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Eye className="text-purple-400" size={18} />
-                <div>
-                  <p className="font-medium">{t('excessiveViewsAlert')}</p>
-                  <p className="text-sm text-gray-400">{t('excessiveViewsAlertDesc')}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setSettings({ ...settings, notifyExcessiveViews: !settings.notifyExcessiveViews })}
-                className={`w-12 h-6 rounded-full transition-colors ${
-                  settings.notifyExcessiveViews ? 'bg-theme' : 'bg-gray-600'
-                }`}
-              >
-                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                  settings.notifyExcessiveViews ? 'translate-x-6' : 'translate-x-0.5'
-                }`} />
-              </button>
-            </div>
-
-            {/* Excessive Views Threshold & Interval */}
-            {settings.notifyExcessiveViews && (
-              <div className="ml-9 pl-3 border-l-2 border-gray-700 space-y-3">
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">{t('firstAlertAfter')}</label>
-                  <input
-                    type="number"
-                    value={settings.excessiveViewsThreshold}
-                    onChange={(e) => setSettings({ ...settings, excessiveViewsThreshold: parseInt(e.target.value) || 5 })}
-                    className="input-field w-24"
-                    min="2"
-                    max="50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">{t('thenAlertEvery')}</label>
-                  <input
-                    type="number"
-                    value={settings.excessiveViewsInterval}
-                    onChange={(e) => setSettings({ ...settings, excessiveViewsInterval: parseInt(e.target.value) || 10 })}
-                    className="input-field w-24"
-                    min="1"
-                    max="100"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Alerts at: {settings.excessiveViewsThreshold}, {settings.excessiveViewsThreshold + settings.excessiveViewsInterval}, {settings.excessiveViewsThreshold + (settings.excessiveViewsInterval * 2)}...
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Suspicious Activity */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="text-red-400" size={18} />
-                <div>
-                  <p className="font-medium">{t('suspiciousActivityAlert')}</p>
-                  <p className="text-sm text-gray-400">{t('suspiciousActivityAlertDesc')}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setSettings({ ...settings, notifySuspiciousActivity: !settings.notifySuspiciousActivity })}
-                className={`w-12 h-6 rounded-full transition-colors ${
-                  settings.notifySuspiciousActivity ? 'bg-theme' : 'bg-gray-600'
-                }`}
-              >
-                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                  settings.notifySuspiciousActivity ? 'translate-x-6' : 'translate-x-0.5'
-                }`} />
-              </button>
-            </div>
-
-            {/* Sub-options for Suspicious Activity */}
-            {settings.notifySuspiciousActivity && (
-              <div className="ml-9 pl-3 border-l-2 border-gray-700 space-y-4">
-                {/* VPN/Proxy Detection */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <ShieldAlert className="text-red-500" size={16} />
-                    <div>
-                      <p className="font-medium text-sm">{t('vpnProxyDetection')}</p>
-                      <p className="text-xs text-gray-400">{t('vpnProxyDetectionDesc')}</p>
-                    </div>
+          <div className="space-y-6">
+            {/* Content Activity Notifications */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
+                <Upload size={16} className="text-green-400" />
+                Content Activity
+              </h3>
+              
+              {/* New Upload Alert */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Upload className="text-green-400" size={18} />
+                  <div>
+                    <p className="font-medium">New Video Upload</p>
+                    <p className="text-sm text-gray-400">Get notified when a new video is uploaded</p>
                   </div>
-                  <button
-                    onClick={() => setSettings({ ...settings, notifyVpnProxy: !settings.notifyVpnProxy })}
-                    className={`w-10 h-5 rounded-full transition-colors ${
-                      settings.notifyVpnProxy ? 'bg-theme' : 'bg-gray-600'
-                    }`}
-                  >
-                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
-                      settings.notifyVpnProxy ? 'translate-x-5' : 'translate-x-0.5'
-                    }`} />
-                  </button>
                 </div>
-
-                {/* Multiple Devices */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Smartphone className="text-orange-500" size={16} />
-                    <div>
-                      <p className="font-medium text-sm">{t('multipleDevices')}</p>
-                      <p className="text-xs text-gray-400">{t('multipleDevicesDesc')}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setSettings({ ...settings, notifyMultipleDevices: !settings.notifyMultipleDevices })}
-                    className={`w-10 h-5 rounded-full transition-colors ${
-                      settings.notifyMultipleDevices ? 'bg-theme' : 'bg-gray-600'
-                    }`}
-                  >
-                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
-                      settings.notifyMultipleDevices ? 'translate-x-5' : 'translate-x-0.5'
-                    }`} />
-                  </button>
-                </div>
-
-                {/* Odd Hours Activity */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Clock className="text-purple-500" size={16} />
-                    <div>
-                      <p className="font-medium text-sm">{t('oddHoursActivity')}</p>
-                      <p className="text-xs text-gray-400">{t('oddHoursActivityDesc')}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setSettings({ ...settings, notifyOddHours: !settings.notifyOddHours })}
-                    className={`w-10 h-5 rounded-full transition-colors ${
-                      settings.notifyOddHours ? 'bg-theme' : 'bg-gray-600'
-                    }`}
-                  >
-                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
-                      settings.notifyOddHours ? 'translate-x-5' : 'translate-x-0.5'
-                    }`} />
-                  </button>
-                </div>
-
-                {/* Odd Hours Time Range */}
-                {settings.notifyOddHours && (
-                  <div className="ml-7 pl-3 border-l-2 border-gray-600">
-                    <label className="block text-xs text-gray-400 mb-2">{t('oddHoursRange')}</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        value={settings.oddHoursStart}
-                        onChange={(e) => setSettings({ ...settings, oddHoursStart: parseInt(e.target.value) || 0 })}
-                        className="input-field w-16 text-sm"
-                        min="0"
-                        max="23"
-                      />
-                      <span className="text-gray-400">{t('toText')}</span>
-                      <input
-                        type="number"
-                        value={settings.oddHoursEnd}
-                        onChange={(e) => setSettings({ ...settings, oddHoursEnd: parseInt(e.target.value) || 0 })}
-                        className="input-field w-16 text-sm"
-                        min="0"
-                        max="23"
-                      />
-                      <span className="text-gray-500 text-xs">{t('format24h')}</span>
-                    </div>
-                  </div>
-                )}
+                <button
+                  onClick={() => setSettings({ ...settings, notifyNewUpload: !settings.notifyNewUpload })}
+                  className={`w-12 h-6 rounded-full transition-colors ${
+                    settings.notifyNewUpload ? 'bg-theme' : 'bg-gray-600'
+                  }`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                    settings.notifyNewUpload ? 'translate-x-6' : 'translate-x-0.5'
+                  }`} />
+                </button>
               </div>
-            )}
 
-            {/* New Upload Alert */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Upload className="text-green-400" size={18} />
-                <div>
-                  <p className="font-medium">New Video Upload</p>
-                  <p className="text-sm text-gray-400">Get notified when a new video is uploaded</p>
+              {/* New Publish Alert */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="text-cyan-400" size={18} />
+                  <div>
+                    <p className="font-medium">New Video Published</p>
+                    <p className="text-sm text-gray-400">Get notified when a video is published</p>
+                  </div>
                 </div>
+                <button
+                  onClick={() => setSettings({ ...settings, notifyNewPublish: !settings.notifyNewPublish })}
+                  className={`w-12 h-6 rounded-full transition-colors ${
+                    settings.notifyNewPublish ? 'bg-theme' : 'bg-gray-600'
+                  }`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                    settings.notifyNewPublish ? 'translate-x-6' : 'translate-x-0.5'
+                  }`} />
+                </button>
               </div>
-              <button
-                onClick={() => setSettings({ ...settings, notifyNewUpload: !settings.notifyNewUpload })}
-                className={`w-12 h-6 rounded-full transition-colors ${
-                  settings.notifyNewUpload ? 'bg-theme' : 'bg-gray-600'
-                }`}
-              >
-                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                  settings.notifyNewUpload ? 'translate-x-6' : 'translate-x-0.5'
-                }`} />
-              </button>
+
+              {/* New Session Alert */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Eye className="text-pink-400" size={18} />
+                  <div>
+                    <p className="font-medium">New Watch Session</p>
+                    <p className="text-sm text-gray-400">Get notified when a new watch session starts</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSettings({ ...settings, notifyNewSession: !settings.notifyNewSession })}
+                  className={`w-12 h-6 rounded-full transition-colors ${
+                    settings.notifyNewSession ? 'bg-theme' : 'bg-gray-600'
+                  }`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                    settings.notifyNewSession ? 'translate-x-6' : 'translate-x-0.5'
+                  }`} />
+                </button>
+              </div>
             </div>
 
-            {/* New Publish Alert */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="text-cyan-400" size={18} />
-                <div>
-                  <p className="font-medium">New Video Published</p>
-                  <p className="text-sm text-gray-400">Get notified when a video is published</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setSettings({ ...settings, notifyNewPublish: !settings.notifyNewPublish })}
-                className={`w-12 h-6 rounded-full transition-colors ${
-                  settings.notifyNewPublish ? 'bg-theme' : 'bg-gray-600'
-                }`}
-              >
-                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                  settings.notifyNewPublish ? 'translate-x-6' : 'translate-x-0.5'
-                }`} />
-              </button>
-            </div>
+            <div className="border-t border-gray-700"></div>
 
-            {/* New Session Alert */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Eye className="text-pink-400" size={18} />
-                <div>
-                  <p className="font-medium">New Watch Session</p>
-                  <p className="text-sm text-gray-400">Get notified when a new watch session starts</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setSettings({ ...settings, notifyNewSession: !settings.notifyNewSession })}
-                className={`w-12 h-6 rounded-full transition-colors ${
-                  settings.notifyNewSession ? 'bg-theme' : 'bg-gray-600'
-                }`}
-              >
-                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                  settings.notifyNewSession ? 'translate-x-6' : 'translate-x-0.5'
-                }`} />
-              </button>
-            </div>
+            {/* Security Alerts */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
+                <ShieldAlert size={16} className="text-red-400" />
+                Security Alerts
+              </h3>
 
-            {/* Unauthorized Login Alert */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="text-red-400" size={18} />
-                <div>
-                  <p className="font-medium">Unauthorized Login Attempt</p>
-                  <p className="text-sm text-gray-400">Get notified when someone tries to login without permission</p>
+              {/* Unauthorized Login Alert */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="text-red-400" size={18} />
+                  <div>
+                    <p className="font-medium">Unauthorized Login Attempt</p>
+                    <p className="text-sm text-gray-400">Get notified when someone tries to login without permission</p>
+                  </div>
                 </div>
+                <button
+                  onClick={() => setSettings({ ...settings, notifyUnauthorizedLogin: !settings.notifyUnauthorizedLogin })}
+                  className={`w-12 h-6 rounded-full transition-colors ${
+                    settings.notifyUnauthorizedLogin ? 'bg-theme' : 'bg-gray-600'
+                  }`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                    settings.notifyUnauthorizedLogin ? 'translate-x-6' : 'translate-x-0.5'
+                  }`} />
+                </button>
               </div>
-              <button
-                onClick={() => setSettings({ ...settings, notifyUnauthorizedLogin: !settings.notifyUnauthorizedLogin })}
-                className={`w-12 h-6 rounded-full transition-colors ${
-                  settings.notifyUnauthorizedLogin ? 'bg-theme' : 'bg-gray-600'
-                }`}
-              >
-                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                  settings.notifyUnauthorizedLogin ? 'translate-x-6' : 'translate-x-0.5'
-                }`} />
-              </button>
+
+              {/* Country Change */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <MapPin className="text-orange-400" size={18} />
+                  <div>
+                    <p className="font-medium">{t('countryChangeAlert')}</p>
+                    <p className="text-sm text-gray-400">{t('countryChangeAlertDesc')}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSettings({ ...settings, notifyCountryChange: !settings.notifyCountryChange })}
+                  className={`w-12 h-6 rounded-full transition-colors ${
+                    settings.notifyCountryChange ? 'bg-theme' : 'bg-gray-600'
+                  }`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                    settings.notifyCountryChange ? 'translate-x-6' : 'translate-x-0.5'
+                  }`} />
+                </button>
+              </div>
+
+              {/* IP Change */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Wifi className="text-blue-400" size={18} />
+                  <div>
+                    <p className="font-medium">{t('ipChangeAlert')}</p>
+                    <p className="text-sm text-gray-400">{t('ipChangeAlertDesc')}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSettings({ ...settings, notifyIpChange: !settings.notifyIpChange })}
+                  className={`w-12 h-6 rounded-full transition-colors ${
+                    settings.notifyIpChange ? 'bg-theme' : 'bg-gray-600'
+                  }`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                    settings.notifyIpChange ? 'translate-x-6' : 'translate-x-0.5'
+                  }`} />
+                </button>
+              </div>
+
+              {/* Excessive Views */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Eye className="text-purple-400" size={18} />
+                  <div>
+                    <p className="font-medium">{t('excessiveViewsAlert')}</p>
+                    <p className="text-sm text-gray-400">{t('excessiveViewsAlertDesc')}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSettings({ ...settings, notifyExcessiveViews: !settings.notifyExcessiveViews })}
+                  className={`w-12 h-6 rounded-full transition-colors ${
+                    settings.notifyExcessiveViews ? 'bg-theme' : 'bg-gray-600'
+                  }`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                    settings.notifyExcessiveViews ? 'translate-x-6' : 'translate-x-0.5'
+                  }`} />
+                </button>
+              </div>
+
+              {/* Excessive Views Threshold & Interval */}
+              {settings.notifyExcessiveViews && (
+                <div className="ml-9 pl-3 border-l-2 border-gray-700 space-y-3">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">{t('firstAlertAfter')}</label>
+                    <input
+                      type="number"
+                      value={settings.excessiveViewsThreshold}
+                      onChange={(e) => setSettings({ ...settings, excessiveViewsThreshold: parseInt(e.target.value) || 5 })}
+                      className="input-field w-24"
+                      min="2"
+                      max="50"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">{t('thenAlertEvery')}</label>
+                    <input
+                      type="number"
+                      value={settings.excessiveViewsInterval}
+                      onChange={(e) => setSettings({ ...settings, excessiveViewsInterval: parseInt(e.target.value) || 10 })}
+                      className="input-field w-24"
+                      min="1"
+                      max="100"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Alerts at: {settings.excessiveViewsThreshold}, {settings.excessiveViewsThreshold + settings.excessiveViewsInterval}, {settings.excessiveViewsThreshold + (settings.excessiveViewsInterval * 2)}...
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Suspicious Activity */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="text-red-400" size={18} />
+                  <div>
+                    <p className="font-medium">{t('suspiciousActivityAlert')}</p>
+                    <p className="text-sm text-gray-400">{t('suspiciousActivityAlertDesc')}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSettings({ ...settings, notifySuspiciousActivity: !settings.notifySuspiciousActivity })}
+                  className={`w-12 h-6 rounded-full transition-colors ${
+                    settings.notifySuspiciousActivity ? 'bg-theme' : 'bg-gray-600'
+                  }`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                    settings.notifySuspiciousActivity ? 'translate-x-6' : 'translate-x-0.5'
+                  }`} />
+                </button>
+              </div>
+
+              {/* Sub-options for Suspicious Activity */}
+              {settings.notifySuspiciousActivity && (
+                <div className="ml-9 pl-3 border-l-2 border-gray-700 space-y-4">
+                  {/* VPN/Proxy Detection */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <ShieldAlert className="text-red-500" size={16} />
+                      <div>
+                        <p className="font-medium text-sm">{t('vpnProxyDetection')}</p>
+                        <p className="text-xs text-gray-400">{t('vpnProxyDetectionDesc')}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setSettings({ ...settings, notifyVpnProxy: !settings.notifyVpnProxy })}
+                      className={`w-10 h-5 rounded-full transition-colors ${
+                        settings.notifyVpnProxy ? 'bg-theme' : 'bg-gray-600'
+                      }`}
+                    >
+                      <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
+                        settings.notifyVpnProxy ? 'translate-x-5' : 'translate-x-0.5'
+                      }`} />
+                    </button>
+                  </div>
+
+                  {/* Multiple Devices */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Smartphone className="text-orange-500" size={16} />
+                      <div>
+                        <p className="font-medium text-sm">{t('multipleDevices')}</p>
+                        <p className="text-xs text-gray-400">{t('multipleDevicesDesc')}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setSettings({ ...settings, notifyMultipleDevices: !settings.notifyMultipleDevices })}
+                      className={`w-10 h-5 rounded-full transition-colors ${
+                        settings.notifyMultipleDevices ? 'bg-theme' : 'bg-gray-600'
+                      }`}
+                    >
+                      <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
+                        settings.notifyMultipleDevices ? 'translate-x-5' : 'translate-x-0.5'
+                      }`} />
+                    </button>
+                  </div>
+
+                  {/* Odd Hours Activity */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Clock className="text-purple-500" size={16} />
+                      <div>
+                        <p className="font-medium text-sm">{t('oddHoursActivity')}</p>
+                        <p className="text-xs text-gray-400">{t('oddHoursActivityDesc')}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setSettings({ ...settings, notifyOddHours: !settings.notifyOddHours })}
+                      className={`w-10 h-5 rounded-full transition-colors ${
+                        settings.notifyOddHours ? 'bg-theme' : 'bg-gray-600'
+                      }`}
+                    >
+                      <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
+                        settings.notifyOddHours ? 'translate-x-5' : 'translate-x-0.5'
+                      }`} />
+                    </button>
+                  </div>
+
+                  {/* Odd Hours Time Range */}
+                  {settings.notifyOddHours && (
+                    <div className="ml-7 pl-3 border-l-2 border-gray-600">
+                      <label className="block text-xs text-gray-400 mb-2">{t('oddHoursRange')}</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={settings.oddHoursStart}
+                          onChange={(e) => setSettings({ ...settings, oddHoursStart: parseInt(e.target.value) || 0 })}
+                          className="input-field w-16 text-sm"
+                          min="0"
+                          max="23"
+                        />
+                        <span className="text-gray-400">{t('toText')}</span>
+                        <input
+                          type="number"
+                          value={settings.oddHoursEnd}
+                          onChange={(e) => setSettings({ ...settings, oddHoursEnd: parseInt(e.target.value) || 0 })}
+                          className="input-field w-16 text-sm"
+                          min="0"
+                          max="23"
+                        />
+                        <span className="text-gray-500 text-xs">{t('format24h')}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Webhook URLs */}
+        {/* Permissions Management */}
         <div className="card">
           <div className="flex items-center gap-3 mb-6">
-            <Link className="text-theme-light" size={24} />
-            <h2 className="text-xl font-bold text-theme-light">{t('discordWebhooks')}</h2>
+            <Shield className="text-theme-light" size={24} />
+            <h2 className="text-xl font-bold text-theme-light">Permissions Management</h2>
           </div>
-          <p className="text-sm text-gray-400 mb-4">{t('webhooksDesc')}</p>
-          
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">
-              <span className="flex items-center gap-2">
-                <Bell className="text-theme-light" size={14} />
-                Discord Webhook URL
-              </span>
-            </label>
-            <input
-              type="url"
-              value={settings.webhookUrl}
-              onChange={(e) => setSettings({ ...settings, webhookUrl: e.target.value })}
-              className="input-field w-full"
-              placeholder="https://discord.com/api/webhooks/..."
-            />
-            {settings.webhookUrl ? (
-              <div className="mt-2 flex items-center gap-2 text-xs">
-                <div className="flex items-center gap-1.5 text-green-400">
-                  <CheckCircle size={14} />
-                  <span>Webhook URL configured and connected</span>
+
+          {/* Search Bar with Autocomplete */}
+          <div className="mb-6 relative">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search by name, game ID, or Discord ID..."
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                onFocus={() => searchResults.length > 0 && setShowSuggestions(true)}
+                className="input-field w-full pr-10"
+              />
+              <Eye className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            </div>
+
+            {/* Autocomplete Suggestions */}
+            {showSuggestions && searchResults.length > 0 && (
+              <div className="absolute z-50 w-full mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                {searchResults.map((member) => (
+                  <button
+                    key={member.id}
+                    onClick={() => handleSelectMember(member)}
+                    className="w-full flex items-center gap-3 p-3 hover:bg-gray-700 transition-colors text-left"
+                  >
+                    {member.discord_avatar ? (
+                      <img 
+                        src={member.discord_avatar} 
+                        alt={member.discord_username || 'Avatar'}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-theme/20 flex items-center justify-center">
+                        <User size={20} className="text-theme-light" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{member.discord_username || member.game_id}</p>
+                      <p className="text-xs text-gray-500 truncate">{member.game_id}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Selected Member */}
+          {selectedMember ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg">
+                {selectedMember.discord_avatar ? (
+                  <img 
+                    src={selectedMember.discord_avatar} 
+                    alt={selectedMember.discord_username || 'Avatar'}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-theme/20 flex items-center justify-center">
+                    <User size={20} className="text-theme-light" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{selectedMember.discord_username || selectedMember.game_id}</p>
+                  <p className="text-xs text-gray-500 truncate">{selectedMember.game_id}</p>
+                  {selectedMember.role_assigned_by_name && (
+                    <p className="text-xs text-theme/70 truncate mt-0.5">
+                      Role assigned as: {selectedMember.role_assigned_by_name}
+                      {selectedMember.role_assigned_at && (
+                        <span className="text-gray-600 ml-1">
+                          ({new Date(selectedMember.role_assigned_at).toLocaleDateString()})
+                        </span>
+                      )}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {(() => {
+                    const currentRole = selectedMember.role || 'member'
+                    const RoleIcon = ROLE_CONFIG[currentRole].icon
+                    return (
+                      <>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs ${ROLE_CONFIG[currentRole].color}`}>
+                          <RoleIcon size={14} />
+                          {ROLE_CONFIG[currentRole].label}
+                        </span>
+                        <select
+                          value={currentRole}
+                          onChange={(e) => updateRole(selectedMember, e.target.value as UserRole)}
+                          className="input-field text-xs py-1 px-2"
+                        >
+                          {(Object.keys(ROLE_CONFIG) as UserRole[]).map((role) => (
+                            <option key={role} value={role}>{ROLE_CONFIG[role].label}</option>
+                          ))}
+                        </select>
+                      </>
+                    )
+                  })()}
                 </div>
               </div>
+            </div>
+          ) : isLoadingMembers ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader className="animate-spin text-theme-light" size={32} />
+            </div>
+          ) : searchQuery && searchResults.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              <p>No members found matching "{searchQuery}"</p>
+            </div>
+          ) : null}
+
+          {/* Members with Roles List */}
+          <div className="mt-6">
+            <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
+              <Users size={16} className="text-theme-light" />
+              Members with Assigned Roles
+            </h3>
+            {members.filter(m => m.role && m.role !== 'member').length > 0 ? (
+              <div className="space-y-2">
+                {members
+                  .filter(m => m.role && m.role !== 'member')
+                  .sort((a, b) => {
+                    const roleOrder = { super_admin: 0, admin: 1, editor: 2, member: 3 }
+                    return roleOrder[a.role || 'member'] - roleOrder[b.role || 'member']
+                  })
+                  .map((member) => {
+                    const currentRole = member.role || 'member'
+                    const RoleIcon = ROLE_CONFIG[currentRole].icon
+                    return (
+                      <div
+                        key={member.id}
+                        className="flex items-center gap-3 p-3 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 transition-colors cursor-pointer"
+                        onClick={() => handleSelectMember(member)}
+                      >
+                        {member.discord_avatar ? (
+                          <img 
+                            src={member.discord_avatar} 
+                            alt={member.discord_username || 'Avatar'}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-theme/20 flex items-center justify-center">
+                            <User size={20} className="text-theme-light" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{member.discord_username || member.game_id}</p>
+                          <p className="text-xs text-gray-500 truncate">{member.game_id}</p>
+                          {member.role_assigned_by_name && (
+                            <p className="text-xs text-theme/60 truncate mt-0.5">
+                              Assigned as: {member.role_assigned_by_name}
+                            </p>
+                          )}
+                        </div>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs ${ROLE_CONFIG[currentRole].color}`}>
+                          <RoleIcon size={14} />
+                          {ROLE_CONFIG[currentRole].label}
+                        </span>
+                      </div>
+                    )
+                  })}
+              </div>
             ) : (
-              <p className="text-xs text-gray-500 mt-2">
-                All notifications will be sent to this webhook URL
-              </p>
+              <p className="text-xs text-gray-500 text-center py-4">No members with assigned roles yet</p>
             )}
           </div>
         </div>
+
         {/* Backup & Restore - Hidden (not functional) */}
         <div className="card" style={{ display: 'none' }}>
           <div className="flex items-center gap-3 mb-6">
@@ -1085,174 +1276,39 @@ export function SettingsPage() {
           </div>
         </div>
 
-        {/* Permissions Management */}
+        {/* Discord Webhooks */}
         <div className="card">
           <div className="flex items-center gap-3 mb-6">
-            <Shield className="text-theme-light" size={24} />
-            <h2 className="text-xl font-bold text-theme-light">Permissions Management</h2>
+            <Bell className="text-theme-light" size={24} />
+            <h2 className="text-xl font-bold text-theme-light">{t('discordWebhooks')}</h2>
           </div>
-
-          {/* Search Bar with Autocomplete */}
-          <div className="mb-6 relative">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search by name, game ID, or Discord ID..."
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                onFocus={() => searchResults.length > 0 && setShowSuggestions(true)}
-                className="input-field w-full pr-10"
-              />
-              <Eye className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            </div>
-
-            {/* Autocomplete Suggestions */}
-            {showSuggestions && searchResults.length > 0 && (
-              <div className="absolute z-50 w-full mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-64 overflow-y-auto">
-                {searchResults.map((member) => (
-                  <button
-                    key={member.id}
-                    onClick={() => handleSelectMember(member)}
-                    className="w-full flex items-center gap-3 p-3 hover:bg-gray-700 transition-colors text-left"
-                  >
-                    {member.discord_avatar ? (
-                      <img 
-                        src={member.discord_avatar} 
-                        alt={member.discord_username || 'Avatar'}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-theme/20 flex items-center justify-center">
-                        <User size={20} className="text-theme-light" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{member.discord_username || member.game_id}</p>
-                      <p className="text-xs text-gray-500 truncate">{member.game_id}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Selected Member */}
-          {selectedMember ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg">
-                {selectedMember.discord_avatar ? (
-                  <img 
-                    src={selectedMember.discord_avatar} 
-                    alt={selectedMember.discord_username || 'Avatar'}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-theme/20 flex items-center justify-center">
-                    <User size={20} className="text-theme-light" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{selectedMember.discord_username || selectedMember.game_id}</p>
-                  <p className="text-xs text-gray-500 truncate">{selectedMember.game_id}</p>
-                  {selectedMember.role_assigned_by_name && (
-                    <p className="text-xs text-theme/70 truncate mt-0.5">
-                      Role assigned as: {selectedMember.role_assigned_by_name}
-                      {selectedMember.role_assigned_at && (
-                        <span className="text-gray-600 ml-1">
-                          ({new Date(selectedMember.role_assigned_at).toLocaleDateString()})
-                        </span>
-                      )}
-                    </p>
-                  )}
+          <p className="text-sm text-gray-400 mb-4">{t('webhooksDesc')}</p>
+          
+          <div>
+            <label className="block text-sm text-gray-400 mb-2">
+              <span className="flex items-center gap-2">
+                <Bell className="text-theme-light" size={14} />
+                Discord Webhook URL
+              </span>
+            </label>
+            <input
+              type="url"
+              value={settings.webhookUrl}
+              onChange={(e) => setSettings({ ...settings, webhookUrl: e.target.value })}
+              className="input-field w-full"
+              placeholder="https://discord.com/api/webhooks/..."
+            />
+            {settings.webhookUrl ? (
+              <div className="mt-2 flex items-center gap-2 text-xs">
+                <div className="flex items-center gap-1.5 text-green-400">
+                  <CheckCircle size={14} />
+                  <span>Webhook URL configured and connected</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  {(() => {
-                    const currentRole = selectedMember.role || 'member'
-                    const RoleIcon = ROLE_CONFIG[currentRole].icon
-                    return (
-                      <>
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs ${ROLE_CONFIG[currentRole].color}`}>
-                          <RoleIcon size={14} />
-                          {ROLE_CONFIG[currentRole].label}
-                        </span>
-                        <select
-                          value={currentRole}
-                          onChange={(e) => updateRole(selectedMember, e.target.value as UserRole)}
-                          className="input-field text-xs py-1 px-2"
-                        >
-                          {(Object.keys(ROLE_CONFIG) as UserRole[]).map((role) => (
-                            <option key={role} value={role}>{ROLE_CONFIG[role].label}</option>
-                          ))}
-                        </select>
-                      </>
-                    )
-                  })()}
-                </div>
-              </div>
-            </div>
-          ) : isLoadingMembers ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader className="animate-spin text-theme-light" size={32} />
-            </div>
-          ) : searchQuery && searchResults.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
-              <p>No members found matching "{searchQuery}"</p>
-            </div>
-          ) : null}
-
-          {/* Members with Roles List */}
-          <div className="mt-6">
-            <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
-              <Users size={16} className="text-theme-light" />
-              Members with Assigned Roles
-            </h3>
-            {members.filter(m => m.role && m.role !== 'member').length > 0 ? (
-              <div className="space-y-2">
-                {members
-                  .filter(m => m.role && m.role !== 'member')
-                  .sort((a, b) => {
-                    const roleOrder = { super_admin: 0, admin: 1, editor: 2, member: 3 }
-                    return roleOrder[a.role || 'member'] - roleOrder[b.role || 'member']
-                  })
-                  .map((member) => {
-                    const currentRole = member.role || 'member'
-                    const RoleIcon = ROLE_CONFIG[currentRole].icon
-                    return (
-                      <div
-                        key={member.id}
-                        className="flex items-center gap-3 p-3 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 transition-colors cursor-pointer"
-                        onClick={() => handleSelectMember(member)}
-                      >
-                        {member.discord_avatar ? (
-                          <img 
-                            src={member.discord_avatar} 
-                            alt={member.discord_username || 'Avatar'}
-                            className="w-10 h-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-theme/20 flex items-center justify-center">
-                            <User size={20} className="text-theme-light" />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{member.discord_username || member.game_id}</p>
-                          <p className="text-xs text-gray-500 truncate">{member.game_id}</p>
-                          {member.role_assigned_by_name && (
-                            <p className="text-xs text-theme/60 truncate mt-0.5">
-                              Assigned as: {member.role_assigned_by_name}
-                            </p>
-                          )}
-                        </div>
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs ${ROLE_CONFIG[currentRole].color}`}>
-                          <RoleIcon size={14} />
-                          {ROLE_CONFIG[currentRole].label}
-                        </span>
-                      </div>
-                    )
-                  })}
               </div>
             ) : (
-              <p className="text-xs text-gray-500 text-center py-4">No members with assigned roles yet</p>
+              <p className="text-xs text-gray-500 mt-2">
+                All notifications will be sent to this webhook URL
+              </p>
             )}
           </div>
         </div>

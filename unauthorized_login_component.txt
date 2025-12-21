@@ -1,0 +1,35 @@
+﻿            {/* IP Change */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Wifi className="text-blue-400" size={18} />
+                <div>
+                  <p className="font-medium">{t('ipChangeAlert')}</p>
+                  <p className="text-sm text-gray-400">{t('ipChangeAlertDesc')}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSettings({ ...settings, notifyIpChange: !settings.notifyIpChange })}
+                className={w-12 h-6 rounded-full transition-colors }
+              >
+                <div className={w-5 h-5 bg-white rounded-full transition-transform } />
+              </button>
+            </div>
+
+            {/* Unauthorized Login */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <ShieldAlert className="text-red-400" size={18} />
+                <div>
+                  <p className="font-medium">Unauthorized Login Attempts</p>
+                  <p className="text-sm text-gray-400">Alert when someone tries to login without permission</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSettings({ ...settings, notifyUnauthorizedLogin: !settings.notifyUnauthorizedLogin })}
+                className={w-12 h-6 rounded-full transition-colors }
+              >
+                <div className={w-5 h-5 bg-white rounded-full transition-transform } />
+              </button>
+            </div>
+
+            {/* Excessive Views */}
