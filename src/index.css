@@ -12,6 +12,113 @@ body {
   @apply bg-discord-darker text-white min-h-screen;
 }
 
+/* ========== LIGHT MODE STYLES ========== */
+.light-mode body {
+  @apply bg-gray-50 text-gray-900;
+}
+
+.light-mode .card {
+  @apply bg-white border border-gray-200 shadow-md;
+}
+
+.light-mode .input-field {
+  @apply bg-white border-gray-300 text-gray-900;
+}
+
+.light-mode .input-field:focus {
+  @apply border-gray-400;
+}
+
+/* Light mode text colors */
+.light-mode h1,
+.light-mode h2,
+.light-mode h3,
+.light-mode h4,
+.light-mode h5,
+.light-mode h6 {
+  @apply text-gray-900;
+}
+
+.light-mode p,
+.light-mode span,
+.light-mode div,
+.light-mode label {
+  @apply text-gray-900;
+}
+
+.light-mode .text-gray-400 {
+  @apply text-gray-600;
+}
+
+.light-mode .text-gray-300 {
+  @apply text-gray-700;
+}
+
+.light-mode .text-white {
+  @apply text-gray-900;
+}
+
+/* Light mode backgrounds */
+.light-mode .bg-discord-dark {
+  @apply bg-white;
+}
+
+.light-mode .bg-discord-darker {
+  @apply bg-gray-50;
+}
+
+.light-mode .bg-gray-800 {
+  @apply bg-gray-100;
+}
+
+.light-mode .bg-gray-700 {
+  @apply bg-gray-200;
+}
+
+.light-mode .bg-gray-800\/50 {
+  @apply bg-gray-100;
+}
+
+.light-mode .bg-gray-800\/30 {
+  @apply bg-gray-50;
+}
+
+/* Light mode borders */
+.light-mode .border-gray-700 {
+  @apply border-gray-300;
+}
+
+.light-mode .border-gray-600 {
+  @apply border-gray-400;
+}
+
+/* Light mode theme colors - darker shades */
+.light-mode [data-theme="amber"] { --tc: 217 119 6; --tc-light: 180 83 9; }
+.light-mode [data-theme="blue"] { --tc: 37 99 235; --tc-light: 29 78 216; }
+.light-mode [data-theme="green"] { --tc: 22 163 74; --tc-light: 21 128 61; }
+.light-mode [data-theme="purple"] { --tc: 147 51 234; --tc-light: 126 34 206; }
+.light-mode [data-theme="red"] { --tc: 220 38 38; --tc-light: 185 28 28; }
+.light-mode [data-theme="pink"] { --tc: 219 39 119; --tc-light: 190 24 93; }
+.light-mode [data-theme="cyan"] { --tc: 8 145 178; --tc-light: 14 116 144; }
+
+/* Light mode buttons */
+.light-mode .btn-discord {
+  @apply shadow-sm;
+}
+
+.light-mode button {
+  @apply text-gray-900;
+}
+
+/* Light mode hover states */
+.light-mode .hover\:bg-gray-700:hover {
+  @apply bg-gray-200;
+}
+
+.light-mode .hover\:bg-gray-700\/50:hover {
+  @apply bg-gray-100;
+}
+
 .btn-discord {
   background-color: rgb(var(--tc)) !important;
   @apply hover:bg-opacity-80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center gap-2 justify-center;

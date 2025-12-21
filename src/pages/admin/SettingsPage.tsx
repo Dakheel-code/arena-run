@@ -47,11 +47,10 @@ const ROLE_CONFIG: Record<UserRole, { label: string; color: string; icon: any; d
 export function SettingsPage() {
   const { t } = useLanguage()
   const { refreshSettings } = useSettings()
-  const { themeColor, setThemeColor } = useTheme()
+  const { themeColor, setThemeColor, themeMode, setThemeMode } = useTheme()
   const [isLoading, setIsLoading] = useState(true)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [showSaveNotification, setShowSaveNotification] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(true)
   const [newRole, setNewRole] = useState('')
   const [roles, setRoles] = useState<string[]>([])
   const [newServerId, setNewServerId] = useState('')
@@ -391,9 +390,9 @@ export function SettingsPage() {
               <h3 className="text-sm font-semibold text-gray-300 mb-3">Appearance Mode</h3>
               <div className="flex items-center gap-4">
                 <button
-                  onClick={() => setIsDarkMode(true)}
+                  onClick={() => setThemeMode('dark')}
                   className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${
-                    isDarkMode 
+                    themeMode === 'dark'
                       ? 'border-white bg-gray-700' 
                       : 'border-transparent hover:bg-gray-700/50'
                   }`}
@@ -403,14 +402,14 @@ export function SettingsPage() {
                   </div>
                   <div className="text-left">
                     <p className="font-medium text-sm">Dark Mode</p>
-                    <p className="text-xs text-gray-400">{isDarkMode ? 'Currently Active' : 'Click to activate'}</p>
+                    <p className="text-xs text-gray-400">{themeMode === 'dark' ? 'Currently Active' : 'Click to activate'}</p>
                   </div>
                 </button>
                 
                 <button
-                  onClick={() => setIsDarkMode(false)}
+                  onClick={() => setThemeMode('light')}
                   className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${
-                    !isDarkMode 
+                    themeMode === 'light'
                       ? 'border-white bg-gray-700' 
                       : 'border-transparent hover:bg-gray-700/50'
                   }`}
@@ -420,12 +419,12 @@ export function SettingsPage() {
                   </div>
                   <div className="text-left">
                     <p className="font-medium text-sm">Light Mode</p>
-                    <p className="text-xs text-gray-400">{!isDarkMode ? 'Currently Active' : 'Click to activate'}</p>
+                    <p className="text-xs text-gray-400">{themeMode === 'light' ? 'Currently Active' : 'Click to activate'}</p>
                   </div>
                 </button>
               </div>
               
-              {!isDarkMode && (
+              {themeMode === 'light' && (
                 <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
                   <p className="text-sm text-yellow-400 flex items-center gap-2">
                     <AlertTriangle size={16} />

@@ -1,10 +1,13 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
 export type ThemeColor = 'amber' | 'blue' | 'green' | 'purple' | 'red' | 'pink' | 'cyan'
+export type ThemeMode = 'dark' | 'light'
 
 interface ThemeContextType {
   themeColor: ThemeColor
   setThemeColor: (color: ThemeColor) => void
+  themeMode: ThemeMode
+  setThemeMode: (mode: ThemeMode) => void
   colors: {
     primary: string
     primaryHover: string
@@ -70,22 +73,41 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [themeColor, setThemeColorState] = useState<ThemeColor>('amber')
+  const [themeMode, setThemeModeState] = useState<ThemeMode>('dark')
 
   useEffect(() => {
     // Load theme from localStorage or use default
     const savedTheme = localStorage.getItem('themeColor') as ThemeColor
+    const savedMode = localStorage.getItem('themeMode') as ThemeMode
+    
     if (savedTheme && themeColors[savedTheme]) {
       setThemeColorState(savedTheme)
       applyThemeToCSS(savedTheme)
     } else {
-      // Apply default theme on first load
       applyThemeToCSS('amber')
+    }
+    
+    if (savedMode && (savedMode === 'dark' || savedMode === 'light')) {
+      setThemeModeState(savedMode)
+      applyModeToCSS(savedMode)
+    } else {
+      applyModeToCSS('dark')
     }
   }, [])
 
   const applyThemeToCSS = (color: ThemeColor) => {
-    // Set data-theme attribute on html element
     document.documentElement.setAttribute('data-theme', color)
+  }
+
+  const applyModeToCSS = (mode: ThemeMode) => {
+    document.documentElement.setAttribute('data-mode', mode)
+    if (mode === 'light') {
+      document.documentElement.classList.add('light-mode')
+      document.documentElement.classList.remove('dark-mode')
+    } else {
+      document.documentElement.classList.add('dark-mode')
+      document.documentElement.classList.remove('light-mode')
+    }
   }
 
   const setThemeColor = (color: ThemeColor) => {
@@ -94,10 +116,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('themeColor', color)
   }
 
+  const setThemeMode = (mode: ThemeMode) => {
+    setThemeModeState(mode)
+    applyModeToCSS(mode)
+    localStorage.setItem('themeMode', mode)
+  }
+
   return (
     <ThemeContext.Provider value={{ 
       themeColor, 
-      setThemeColor, 
+      setThemeColor,
+      themeMode,
+      setThemeMode,
       colors: themeColors[themeColor] 
     }}>
       {children}
