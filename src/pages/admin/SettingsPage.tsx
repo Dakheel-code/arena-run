@@ -53,6 +53,8 @@ export function SettingsPage() {
   const [showSaveNotification, setShowSaveNotification] = useState(false)
   const [newRole, setNewRole] = useState('')
   const [roles, setRoles] = useState<string[]>([])
+  const [newServerId, setNewServerId] = useState('')
+  const [serverIds, setServerIds] = useState<string[]>([])
   const [members, setMembers] = useState<Member[]>([])
   const [isLoadingMembers, setIsLoadingMembers] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -62,7 +64,7 @@ export function SettingsPage() {
   const [settings, setSettings] = useState({
     siteName: 'The Regulators RGR',
     siteDescription: 'Arena Run',
-    discordGuildId: '',
+    discordGuildIds: '',
     requireRole: true,
     allowedRoles: '',
     allowNewMembers: true,
@@ -186,13 +188,17 @@ export function SettingsPage() {
         const rolesString = (result.settings as any).allowed_roles || ''
         setRoles(rolesString ? rolesString.split(',').map((r: string) => r.trim()).filter(Boolean) : [])
         
+        // Parse server IDs from comma-separated string
+        const serverIdsString = (result.settings as any).discord_guild_ids || ''
+        setServerIds(serverIdsString ? serverIdsString.split(',').map((id: string) => id.trim()).filter(Boolean) : [])
+        
         const webhookUrl = (result.settings as any).webhook_url || ''
         console.log('Webhook URL from DB:', webhookUrl)
         
         setSettings({
           siteName: result.settings.site_name || 'The Regulators RGR',
           siteDescription: result.settings.site_description || 'Arena Run',
-          discordGuildId: (result.settings as any).discord_guild_id || '',
+          discordGuildIds: serverIdsString,
           requireRole: result.settings.require_role ?? true,
           allowedRoles: rolesString,
           allowNewMembers: result.settings.allow_new_members ?? true,
@@ -250,7 +256,7 @@ export function SettingsPage() {
         await api.saveSettings({
           siteName: settings.siteName,
           siteDescription: settings.siteDescription,
-          discordGuildId: settings.discordGuildId,
+          discordGuildIds: serverIds.join(','),
           requireRole: settings.requireRole,
           allowNewMembers: settings.allowNewMembers,
           maxSessionsPerUser: settings.maxSessionsPerUser,
@@ -298,9 +304,24 @@ export function SettingsPage() {
   }
 
   const removeRole = (roleToRemove: string) => {
-    const updatedRoles = roles.filter(r => r !== roleToRemove)
-    setRoles(updatedRoles)
-    setSettings({ ...settings, allowedRoles: updatedRoles.join(', ') })
+    setRoles(roles.filter(r => r !== roleToRemove))
+    const newRoles = roles.filter(r => r !== roleToRemove)
+    setSettings({ ...settings, allowedRoles: newRoles.join(',') })
+  }
+
+  const addServerId = () => {
+    if (newServerId.trim() && !serverIds.includes(newServerId.trim())) {
+      const updatedServerIds = [...serverIds, newServerId.trim()]
+      setServerIds(updatedServerIds)
+      setSettings({ ...settings, discordGuildIds: updatedServerIds.join(',') })
+      setNewServerId('')
+    }
+  }
+
+  const removeServerId = (idToRemove: string) => {
+    const updatedServerIds = serverIds.filter(id => id !== idToRemove)
+    setServerIds(updatedServerIds)
+    setSettings({ ...settings, discordGuildIds: updatedServerIds.join(',') })
   }
 
   if (isLoading) {
@@ -368,18 +389,45 @@ export function SettingsPage() {
           </div>
           
           <div className="space-y-4">
-            {/* Discord Server ID */}
+            {/* Discord Server IDs */}
             <div>
-              <label className="block font-medium mb-2">Discord Server ID</label>
-              <input
-                type="text"
-                value={settings.discordGuildId || ''}
-                onChange={(e) => setSettings({ ...settings, discordGuildId: e.target.value })}
-                placeholder="Enter Discord Server (Guild) ID"
-                className="input-field w-full font-mono"
-              />
+              <label className="block font-medium mb-2">Discord Server IDs</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newServerId}
+                  onChange={(e) => setNewServerId(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && addServerId()}
+                  placeholder="Enter Discord Server (Guild) ID"
+                  className="input-field flex-1 font-mono"
+                />
+                <button
+                  onClick={addServerId}
+                  className="btn-discord px-4"
+                >
+                  <Plus size={18} />
+                </button>
+              </div>
+              {serverIds.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {serverIds.map((serverId) => (
+                    <div
+                      key={serverId}
+                      className="flex items-center gap-2 bg-theme/20 text-theme-light px-3 py-1.5 rounded-lg border border-theme/30 font-mono"
+                    >
+                      <span className="text-sm font-medium">{serverId}</span>
+                      <button
+                        onClick={() => removeServerId(serverId)}
+                        className="hover:text-red-400 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
               <p className="text-sm text-gray-400 mt-2">
-                The Discord server ID where members must be present to access the site
+                Add Discord server IDs one by one. Members must be present in at least one of these servers to access the site.
               </p>
             </div>
 
