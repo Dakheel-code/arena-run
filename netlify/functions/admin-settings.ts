@@ -119,42 +119,51 @@ export const handler: Handler = async (event) => {
         .select('id')
         .single()
 
+      console.log('PUT request body:', body)
+      console.log('Existing settings:', existing)
+      
       let result
       if (existing) {
         // Update existing
+        console.log('Updating existing settings...')
+        const updateData = {
+          site_name: body.siteName,
+          site_description: body.siteDescription,
+          discord_guild_ids: body.discordGuildIds,
+          require_role: body.requireRole,
+          allow_new_members: body.allowNewMembers,
+          max_sessions_per_user: body.maxSessionsPerUser,
+          session_timeout: body.sessionTimeout,
+          // Notification settings
+          notify_country_change: body.notifyCountryChange,
+          notify_ip_change: body.notifyIpChange,
+          notify_unauthorized_login: body.notifyUnauthorizedLogin,
+          notify_excessive_views: body.notifyExcessiveViews,
+          excessive_views_threshold: body.excessiveViewsThreshold,
+          excessive_views_interval: body.excessiveViewsInterval,
+          notify_suspicious_activity: body.notifySuspiciousActivity,
+          notify_vpn_proxy: body.notifyVpnProxy,
+          notify_multiple_devices: body.notifyMultipleDevices,
+          notify_odd_hours: body.notifyOddHours,
+          odd_hours_start: body.oddHoursStart,
+          odd_hours_end: body.oddHoursEnd,
+          notify_new_upload: body.notifyNewUpload,
+          notify_new_publish: body.notifyNewPublish,
+          notify_new_session: body.notifyNewSession,
+          allowed_roles: body.allowedRoles,
+          webhook_url: body.webhookUrl,
+          updated_at: new Date().toISOString(),
+        }
+        console.log('Update data:', updateData)
+        
         result = await supabase
           .from('settings')
-          .update({
-            site_name: body.siteName,
-            site_description: body.siteDescription,
-            discord_guild_ids: body.discordGuildIds,
-            require_role: body.requireRole,
-            allow_new_members: body.allowNewMembers,
-            max_sessions_per_user: body.maxSessionsPerUser,
-            session_timeout: body.sessionTimeout,
-            // Notification settings
-            notify_country_change: body.notifyCountryChange,
-            notify_ip_change: body.notifyIpChange,
-            notify_unauthorized_login: body.notifyUnauthorizedLogin,
-            notify_excessive_views: body.notifyExcessiveViews,
-            excessive_views_threshold: body.excessiveViewsThreshold,
-            excessive_views_interval: body.excessiveViewsInterval,
-            notify_suspicious_activity: body.notifySuspiciousActivity,
-            notify_vpn_proxy: body.notifyVpnProxy,
-            notify_multiple_devices: body.notifyMultipleDevices,
-            notify_odd_hours: body.notifyOddHours,
-            odd_hours_start: body.oddHoursStart,
-            odd_hours_end: body.oddHoursEnd,
-            notify_new_upload: body.notifyNewUpload,
-            notify_new_publish: body.notifyNewPublish,
-            notify_new_session: body.notifyNewSession,
-            allowed_roles: body.allowedRoles,
-            webhook_url: body.webhookUrl,
-            updated_at: new Date().toISOString(),
-          })
+          .update(updateData)
           .eq('id', existing.id)
           .select()
           .single()
+        
+        console.log('Update result:', result)
       } else {
         // Insert new
         result = await supabase
