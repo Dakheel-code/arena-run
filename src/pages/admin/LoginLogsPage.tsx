@@ -430,7 +430,7 @@ export default function LoginLogsPage() {
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                   {/* Page Size Selector */}
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-400">Show:</span>
+                    <span className="text-sm text-gray-400">{t('show')}:</span>
                     <select
                       value={limit}
                       onChange={(e) => {
@@ -443,7 +443,7 @@ export default function LoginLogsPage() {
                         <option key={size} value={size}>{size}</option>
                       ))}
                     </select>
-                    <span className="text-sm text-gray-400">per page</span>
+                    <span className="text-sm text-gray-400">{t('perPage')}</span>
                   </div>
 
                   {/* Page Numbers */}
@@ -495,7 +495,7 @@ export default function LoginLogsPage() {
 
                   {/* Info Text */}
                   <div className="text-sm text-gray-400">
-                    Showing {((page - 1) * limit) + 1}-{Math.min(page * limit, total)} of {total}
+                    {t('showing')} {((page - 1) * limit) + 1}-{Math.min(page * limit, total)} {t('of')} {total}
                   </div>
                 </div>
               </div>

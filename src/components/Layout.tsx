@@ -200,7 +200,7 @@ export function Layout({ children }: LayoutProps) {
                 className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all"
               >
                 <div className={`w-5 h-5 rounded-full ${THEME_COLORS.find(c => c.value === themeColor)?.color}`} />
-                <span className="text-xs text-gray-400 flex-1 text-left">Theme Color</span>
+                <span className="text-xs text-gray-400 flex-1 text-left">{t('themeColor')}</span>
               </button>
 
               {showColorPicker && (

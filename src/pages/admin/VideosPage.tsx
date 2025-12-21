@@ -311,7 +311,7 @@ export function VideosPage() {
                     className="flex items-center justify-center gap-2 p-2 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-lg transition-colors"
                   >
                     <Edit size={18} />
-                    <span className="text-sm">Edit</span>
+                    <span className="text-sm">{t('edit')}</span>
                   </button>
 
                   <button
@@ -319,7 +319,7 @@ export function VideosPage() {
                     className="flex items-center justify-center gap-2 p-2 bg-gray-700/50 hover:bg-gray-700 rounded-lg transition-colors"
                   >
                     {video.is_published ? <EyeOff size={18} /> : <Eye size={18} />}
-                    <span className="text-sm">{video.is_published ? 'Hide' : 'Show'}</span>
+                    <span className="text-sm">{video.is_published ? t('hide') : t('show')}</span>
                   </button>
 
                   <button
@@ -327,7 +327,7 @@ export function VideosPage() {
                     className="flex items-center justify-center gap-2 p-2 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg transition-colors"
                   >
                     <Trash2 size={18} />
-                    <span className="text-sm">Delete</span>
+                    <span className="text-sm">{t('delete')}</span>
                   </button>
                 </div>
               </div>

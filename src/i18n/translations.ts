@@ -336,6 +336,9 @@ export const translations = {
     yes: 'Yes',
     no: 'No',
     show: 'Show',
+    hide: 'Hide',
+    showing: 'Showing',
+    of: 'of',
     perPage: 'per page',
   },
   
@@ -676,6 +679,9 @@ export const translations = {
     yes: 'نعم',
     no: 'لا',
     show: 'عرض',
+    hide: 'إخفاء',
+    showing: 'عرض',
+    of: 'من',
     perPage: 'لكل صفحة',
   },
   
@@ -1019,6 +1025,9 @@ export const translations = {
     yes: 'はい',
     no: 'いいえ',
     show: '表示',
+    hide: '非表示',
+    showing: '表示中',
+    of: 'の',
     perPage: '件表示',
   },
   
@@ -1362,6 +1371,9 @@ export const translations = {
     yes: '예',
     no: '아니오',
     show: '표시',
+    hide: '숨기기',
+    showing: '표시 중',
+    of: '중',
     perPage: '개씩 표시',
   },
   
@@ -1705,6 +1717,9 @@ export const translations = {
     yes: 'Да',
     no: 'Нет',
     show: 'Показать',
+    hide: 'Скрыть',
+    showing: 'Показано',
+    of: 'из',
     perPage: 'на странице',
   },
   
@@ -2048,6 +2063,9 @@ export const translations = {
     yes: 'Sim',
     no: 'Não',
     show: 'Mostrar',
+    hide: 'Ocultar',
+    showing: 'Mostrando',
+    of: 'de',
     perPage: 'por página',
   },
   
@@ -2391,6 +2409,9 @@ export const translations = {
     yes: 'Oui',
     no: 'Non',
     show: 'Afficher',
+    hide: 'Masquer',
+    showing: 'Affichage',
+    of: 'sur',
     perPage: 'par page',
   },
   
@@ -2731,6 +2752,9 @@ export const translations = {
     yes: 'Ja',
     no: 'Nein',
     show: 'Anzeigen',
+    hide: 'Ausblenden',
+    showing: 'Anzeige',
+    of: 'von',
     perPage: 'pro Seite',
   },
 }
