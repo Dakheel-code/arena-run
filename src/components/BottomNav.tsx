@@ -1,6 +1,7 @@
 import { Home, Video, History, KeyRound, Settings } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useLanguage } from '../context/LanguageContext'
 
 const triggerHapticFeedback = () => {
   if ('vibrate' in navigator) {
@@ -11,6 +12,7 @@ const triggerHapticFeedback = () => {
 export function BottomNav() {
   const location = useLocation()
   const { user } = useAuth()
+  const { t } = useLanguage()
   
   // Hide BottomNav completely for non-admin users
   if (!user?.is_admin) {
@@ -25,11 +27,11 @@ export function BottomNav() {
   }
   
   const navItems = [
-    { path: '/', icon: Home, label: 'Home', badge: 0 },
-    { path: '/admin/videos', icon: Video, label: 'Videos', badge: 0 },
-    { path: '/admin/sessions', icon: History, label: 'Sessions', badge: 0 },
-    { path: '/admin/login-logs', icon: KeyRound, label: 'Login', badge: 0 },
-    { path: '/admin/settings', icon: Settings, label: 'Settings', badge: 0 },
+    { path: '/', icon: Home, label: t('home'), badge: 0 },
+    { path: '/admin/videos', icon: Video, label: t('videos'), badge: 0 },
+    { path: '/admin/sessions', icon: History, label: t('sessions'), badge: 0 },
+    { path: '/admin/login-logs', icon: KeyRound, label: t('loginLogs'), badge: 0 },
+    { path: '/admin/settings', icon: Settings, label: t('settings'), badge: 0 },
   ]
   
   const handleClick = () => {
