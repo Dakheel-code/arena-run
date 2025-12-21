@@ -55,7 +55,7 @@ body {
 }
 
 .light-mode .text-white {
-  @apply text-gray-900;
+  color: #111827 !important;
 }
 
 /* Light mode backgrounds */
@@ -103,23 +103,24 @@ body {
 
 /* Light mode buttons - keep text white */
 .light-mode .btn-discord {
-  @apply shadow-sm text-white;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  color: white !important;
 }
 
 .light-mode .btn-discord:hover {
-  @apply text-white;
+  color: white !important;
 }
 
 /* Light mode button text - white for theme buttons */
 .light-mode button.btn-discord,
 .light-mode button.btn-primary,
 .light-mode .bg-theme {
-  @apply text-white;
+  color: white !important;
 }
 
 .light-mode .bg-theme button,
 .light-mode .bg-theme span {
-  @apply text-white;
+  color: white !important;
 }
 
 /* Light mode hover states */
@@ -166,7 +167,8 @@ body {
 
 /* Light mode video card badges */
 .light-mode .bg-black\/80 {
-  @apply bg-gray-900 text-white;
+  background-color: #111827;
+  color: white !important;
 }
 
 .light-mode .bg-black\/40 {
