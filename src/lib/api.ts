@@ -105,6 +105,11 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ members }),
     }),
+  addMember: (member: { discord_id: string; game_id: string; discord_username?: string }) =>
+    fetchAPI<{ success: boolean; member: import('../types').Member }>('/admin-members', {
+      method: 'POST',
+      body: JSON.stringify(member),
+    }),
   toggleMember: (discordId: string, isActive: boolean) =>
     fetchAPI<{ success: boolean }>('/admin-members', {
       method: 'PATCH',

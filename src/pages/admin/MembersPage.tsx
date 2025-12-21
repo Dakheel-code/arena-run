@@ -135,7 +135,11 @@ export function MembersPage() {
 
     setIsAdding(true)
     try {
-      await api.uploadMembers([{ discord_id: newMember.discord_id, game_id: newMember.game_id }])
+      await api.addMember({
+        discord_id: newMember.discord_id,
+        game_id: newMember.game_id,
+        discord_username: newMember.discord_username
+      })
       await fetchMembers()
       setShowAddModal(false)
       setNewMember({ discord_id: '', game_id: '', discord_username: '' })
