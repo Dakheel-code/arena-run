@@ -60,7 +60,7 @@ export function Layout({ children }: LayoutProps) {
     { path: '/admin/videos', icon: Video, label: t('manageVideos') },
     { path: '/admin/members', icon: Users, label: t('members') },
     { path: '/admin/sessions', icon: History, label: t('sessionsLog') },
-    { path: '/admin/login-logs', icon: KeyRound, label: 'Login Logs' },
+    { path: '/admin/login-logs', icon: KeyRound, label: t('loginLogs') },
     { path: '/admin/settings', icon: Settings, label: t('settings') },
   ]
 

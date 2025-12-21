@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Layout } from '../../components/Layout'
 import { useAuth } from '../../context/AuthContext'
+import { useLanguage } from '../../context/LanguageContext'
 import { Shield, Search, Filter, CheckCircle, XCircle, User, Clock, MapPin, Monitor, AlertTriangle, Loader, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface LoginLog {
@@ -34,6 +35,7 @@ interface LoginLogsResponse {
 export default function LoginLogsPage() {
   const navigate = useNavigate()
   const { user, token } = useAuth()
+  const { t } = useLanguage()
   const [logs, setLogs] = useState<LoginLog[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -103,14 +105,14 @@ export default function LoginLogsPage() {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
           <CheckCircle className="w-3 h-3" />
-          Success
+          {t('success')}
         </span>
       )
     }
     return (
       <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
         <XCircle className="w-3 h-3" />
-        Failed
+        {t('failed')}
       </span>
     )
   }
@@ -143,10 +145,10 @@ export default function LoginLogsPage() {
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
             <Shield className="w-8 h-8 text-theme" />
-            <h1 className="text-3xl font-bold text-theme">Login Logs</h1>
+            <h1 className="text-3xl font-bold text-theme">{t('loginLogs')}</h1>
           </div>
           <p className="text-gray-400">
-            Track all login attempts including successful and failed attempts
+            {t('trackLoginAttempts')}
           </p>
         </div>
 
@@ -161,7 +163,7 @@ export default function LoginLogsPage() {
                   type="text"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder="Search by username, Discord ID, or email..."
+                  placeholder={t('searchByUsername')}
                   className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-theme focus:border-transparent"
                 />
               </div>
@@ -178,9 +180,9 @@ export default function LoginLogsPage() {
                 }}
                 className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-theme focus:border-transparent"
               >
-                <option value="all">All Status</option>
-                <option value="success">Success Only</option>
-                <option value="failed">Failed Only</option>
+                <option value="all">{t('allStatus')}</option>
+                <option value="success">{t('successOnly')}</option>
+                <option value="failed">{t('failedOnly')}</option>
               </select>
             </div>
           </div>
@@ -188,7 +190,7 @@ export default function LoginLogsPage() {
           {/* Stats */}
           <div className="mt-4 pt-4 border-t border-gray-700">
             <p className="text-sm text-gray-400">
-              Total Logs: <span className="font-semibold text-theme-light">{total}</span>
+              {t('totalLogs')}: <span className="font-semibold text-theme-light">{total}</span>
             </p>
           </div>
         </div>
@@ -197,12 +199,12 @@ export default function LoginLogsPage() {
         {loading ? (
           <div className="bg-discord-dark rounded-lg border border-gray-700 p-12 text-center">
             <Loader className="animate-spin h-12 w-12 text-theme mx-auto" />
-            <p className="mt-4 text-gray-400">Loading logs...</p>
+            <p className="mt-4 text-gray-400">{t('loadingLogs')}</p>
           </div>
         ) : logs.length === 0 ? (
           <div className="bg-discord-dark rounded-lg border border-gray-700 p-12 text-center">
             <Shield className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-400">No login logs found</p>
+            <p className="text-gray-400">{t('noLoginLogsFound')}</p>
           </div>
         ) : (
           <div className="bg-discord-dark rounded-lg border border-gray-700 overflow-hidden">
@@ -212,25 +214,25 @@ export default function LoginLogsPage() {
                 <thead className="bg-gray-800/50 border-b border-gray-700">
                   <tr>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      User
+                      {t('user')}
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Status
+                      {t('status')}
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Failure Reason
+                      {t('failureReason')}
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Location
+                      {t('location')}
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Device
+                      {t('device')}
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Permissions
+                      {t('permissions')}
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Time
+                      {t('time')}
                     </th>
                   </tr>
                 </thead>
@@ -256,7 +258,7 @@ export default function LoginLogsPage() {
                               to={`/admin/members/${log.discord_id}`}
                               className="font-medium text-theme hover:text-theme-light"
                             >
-                              {log.discord_username || 'Unknown'}
+                              {log.discord_username || t('unknown')}
                             </Link>
                             <p className="text-xs text-gray-500">{log.discord_id.slice(0, 18)}...</p>
                           </div>
@@ -282,8 +284,8 @@ export default function LoginLogsPage() {
                         <div className="flex items-center gap-2 text-sm text-gray-300">
                           <MapPin className="w-4 h-4 text-gray-400" />
                           <div>
-                            <div>{log.city || 'Unknown'}</div>
-                            <div className="text-xs text-gray-500">{log.country || 'Unknown'}</div>
+                            <div>{log.city || t('unknown')}</div>
+                            <div className="text-xs text-gray-500">{log.country || t('unknown')}</div>
                           </div>
                         </div>
                       </td>
