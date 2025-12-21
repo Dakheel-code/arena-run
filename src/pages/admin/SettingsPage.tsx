@@ -1026,7 +1026,7 @@ export function SettingsPage() {
           <div className="mt-6">
             <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
               <Users size={16} className="text-theme-light" />
-              Members with Assigned Roles
+              {t('membersWithAssignedRoles')}
             </h3>
             {members.filter(m => m.role && m.role !== 'member').length > 0 ? (
               <div className="space-y-2">
@@ -1074,7 +1074,7 @@ export function SettingsPage() {
                   })}
               </div>
             ) : (
-              <p className="text-xs text-gray-500 text-center py-4">No members with assigned roles yet</p>
+              <p className="text-xs text-gray-500 text-center py-4">{t('noMembersMatch')}</p>
             )}
           </div>
         </div>
@@ -1309,12 +1309,12 @@ export function SettingsPage() {
               <div className="mt-2 flex items-center gap-2 text-xs">
                 <div className="flex items-center gap-1.5 text-green-400">
                   <CheckCircle size={14} />
-                  <span>Webhook URL configured and connected</span>
+                  <span>{t('webhookConfigured')}</span>
                 </div>
               </div>
             ) : (
               <p className="text-xs text-gray-500 mt-2">
-                All notifications will be sent to this webhook URL
+                {t('allNotificationsSent')}
               </p>
             )}
           </div>
