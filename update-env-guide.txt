@@ -1,0 +1,15 @@
+# افتح ملف .env واستبدل هذه القيم بالمفاتيح الصحيحة من Supabase
+
+# Supabase
+SUPABASE_URL=https://dlytcwpwtcfwacktpeur.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=املأ_هنا_بمفتاح_service_role_من_Supabase
+VITE_SUPABASE_URL=https://dlytcwpwtcfwacktpeur.supabase.co
+VITE_SUPABASE_ANON_KEY=املأ_هنا_بمفتاح_anon_public_من_Supabase
+
+# كيف تجد المفاتيح:
+# 1. اذهب إلى https://supabase.com/dashboard
+# 2. اختر مشروعك
+# 3. Settings → API
+# 4. انسخ Project URL
+# 5. انسخ service_role key (للـ backend)
+# 6. انسخ anon public key (للـ frontend)
