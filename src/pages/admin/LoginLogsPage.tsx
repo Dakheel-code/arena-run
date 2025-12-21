@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Layout } from '../../components/Layout'
 import { useAuth } from '../../context/AuthContext'
-import { Shield, Search, Filter, CheckCircle, XCircle, User, Clock, MapPin, Monitor, AlertTriangle, Loader } from 'lucide-react'
+import { Shield, Search, Filter, CheckCircle, XCircle, User, Clock, MapPin, Monitor, AlertTriangle, Loader, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface LoginLog {
   id: string
@@ -39,9 +39,12 @@ export default function LoginLogsPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
+  const [limit, setLimit] = useState(50)
   const [statusFilter, setStatusFilter] = useState<'all' | 'success' | 'failed'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchInput, setSearchInput] = useState('')
+
+  const PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
 
   useEffect(() => {
     if (!user?.is_admin) {
@@ -49,14 +52,14 @@ export default function LoginLogsPage() {
       return
     }
     fetchLogs()
-  }, [page, statusFilter, searchQuery])
+  }, [page, limit, statusFilter, searchQuery])
 
   const fetchLogs = async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams({
         page: page.toString(),
-        limit: '50',
+        limit: limit.toString(),
       })
 
       if (statusFilter !== 'all') {
@@ -420,26 +423,78 @@ export default function LoginLogsPage() {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="px-6 py-4 border-t border-gray-700 flex items-center justify-between">
-                <div className="text-sm text-gray-400">
-                  Page {page} of {totalPages}
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setPage(Math.max(1, page - 1))}
-                    disabled={page === 1}
-                    className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() => setPage(Math.min(totalPages, page + 1))}
-                    disabled={page === totalPages}
-                    className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
+            {logs.length > 0 && (
+              <div className="px-6 py-4 border-t border-gray-700">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                  {/* Page Size Selector */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-400">Show:</span>
+                    <select
+                      value={limit}
+                      onChange={(e) => {
+                        setLimit(Number(e.target.value))
+                        setPage(1)
+                      }}
+                      className="px-3 py-1 text-sm bg-gray-800 border border-gray-600 rounded text-white"
+                    >
+                      {PAGE_SIZE_OPTIONS.map(size => (
+                        <option key={size} value={size}>{size}</option>
+                      ))}
+                    </select>
+                    <span className="text-sm text-gray-400">per page</span>
+                  </div>
+
+                  {/* Page Numbers */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                        className="p-2 rounded-lg bg-gray-700/50 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <ChevronLeft size={18} />
+                      </button>
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          let pageNum: number
+                          if (totalPages <= 5) {
+                            pageNum = i + 1
+                          } else if (page <= 3) {
+                            pageNum = i + 1
+                          } else if (page >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i
+                          } else {
+                            pageNum = page - 2 + i
+                          }
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => setPage(pageNum)}
+                              className={`w-8 h-8 rounded-lg text-sm transition-colors ${
+                                page === pageNum
+                                  ? 'bg-theme text-white'
+                                  : 'bg-gray-700/50 hover:bg-gray-700'
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          )
+                        })}
+                      </div>
+                      <button
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        disabled={page === totalPages}
+                        className="p-2 rounded-lg bg-gray-700/50 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <ChevronRight size={18} />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Info Text */}
+                  <div className="text-sm text-gray-400">
+                    Showing {((page - 1) * limit) + 1}-{Math.min(page * limit, total)} of {total}
+                  </div>
                 </div>
               </div>
             )}
