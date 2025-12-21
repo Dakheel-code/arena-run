@@ -79,7 +79,10 @@ export function Layout({ children }: LayoutProps) {
             alt="Logo" 
             className="w-8 h-8 object-contain"
           />
-          <h1 className="text-sm font-bold text-theme-light">{settings.siteName}</h1>
+          <div className="flex flex-col">
+            <h1 className="text-sm font-bold text-theme-light">{settings.siteName}</h1>
+            <p className="text-[10px] text-gray-400">{settings.siteDescription}</p>
+          </div>
         </Link>
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
