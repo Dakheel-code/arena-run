@@ -6,8 +6,8 @@ export function FloatingNewRunButton() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  // Only show for logged-in users
-  if (!user) return null
+  // Only show for admin users
+  if (!user?.is_admin) return null
 
   return (
     <button

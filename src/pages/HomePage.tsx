@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
 import { Video } from '../types'
 import { api } from '../lib/api'
 import { VideoCard } from '../components/VideoCard'
@@ -214,7 +213,7 @@ export function HomePage() {
             )}
           </div>
 
-          {/* Top Uploaders */}
+          {/* Top Uploaders - Public View */}
           {topUploaders.length > 0 && !hasActiveFilters && (
             <div className="card mb-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -223,10 +222,9 @@ export function HomePage() {
               </h2>
               <div className="flex flex-wrap gap-3">
                 {topUploaders.map((uploader, index) => (
-                  <Link
+                  <div
                     key={uploader.id}
-                    to={`/admin/members/${uploader.id}`}
-                    className="flex items-center gap-2 bg-gray-800/50 hover:bg-gray-800 px-3 py-2 rounded-lg transition-colors"
+                    className="flex items-center gap-2 bg-gray-800/50 px-3 py-2 rounded-lg"
                   >
                     <span className={`text-sm font-bold ${index === 0 ? 'text-yellow-400' : index === 1 ? 'text-gray-300' : index === 2 ? 'text-amber-600' : 'text-gray-500'}`}>
                       #{index + 1}
@@ -244,7 +242,7 @@ export function HomePage() {
                     )}
                     <span className="text-sm">{uploader.name}</span>
                     <span className="text-xs text-gray-500 bg-gray-700 px-1.5 py-0.5 rounded">{uploader.count}</span>
-                  </Link>
+                  </div>
                 ))}
               </div>
             </div>
