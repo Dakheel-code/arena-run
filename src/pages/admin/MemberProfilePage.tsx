@@ -308,12 +308,12 @@ export function MemberProfilePage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-700">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Member</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">video</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Country</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Duration</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Started</th>
-                      <th className="text-center py-3 px-4 text-sm font-medium text-gray-400">More</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">{t('member')}</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">{t('video')}</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">{t('country')}</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">{t('duration')}</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">{t('started')}</th>
+                      <th className="text-center py-3 px-4 text-sm font-medium text-gray-400">{t('more')}</th>
                     </tr>
                   </thead>
                   <tbody>

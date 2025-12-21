@@ -312,6 +312,15 @@ body {
   color: white !important;
 }
 
+/* Light mode - Upload button gradient - Keep text white */
+.light-mode button.bg-gradient-to-r {
+  color: white !important;
+}
+
+.light-mode button.bg-gradient-to-r svg {
+  color: white !important;
+}
+
 .btn-discord {
   background-color: rgb(var(--tc)) !important;
   @apply hover:bg-opacity-80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center gap-2 justify-center;
