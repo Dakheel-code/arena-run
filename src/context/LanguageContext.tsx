@@ -19,8 +19,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const setLanguage = (lang: Language) => {
     setLanguageState(lang)
     localStorage.setItem('language', lang)
-    // Update document direction for RTL languages
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
+    // Keep LTR direction for all languages
+    document.documentElement.dir = 'ltr'
     document.documentElement.lang = lang
   }
 
@@ -28,7 +28,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     return translations[language]?.[key] || translations.en[key] || key
   }
 
-  const isRTL = language === 'ar'
+  const isRTL = false // Always LTR for all languages
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t, isRTL }}>
