@@ -755,6 +755,27 @@ export function SettingsPage() {
                 }`} />
               </button>
             </div>
+
+            {/* Unauthorized Login Alert */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="text-red-400" size={18} />
+                <div>
+                  <p className="font-medium">Unauthorized Login Attempt</p>
+                  <p className="text-sm text-gray-400">Get notified when someone tries to login without permission</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSettings({ ...settings, notifyUnauthorizedLogin: !settings.notifyUnauthorizedLogin })}
+                className={`w-12 h-6 rounded-full transition-colors ${
+                  settings.notifyUnauthorizedLogin ? 'bg-theme' : 'bg-gray-600'
+                }`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                  settings.notifyUnauthorizedLogin ? 'translate-x-6' : 'translate-x-0.5'
+                }`} />
+              </button>
+            </div>
           </div>
         </div>
 
