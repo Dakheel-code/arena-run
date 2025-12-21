@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
+import { supabase } from '../../lib/supabase'
+import { Layout } from '../../components/Layout'
 import { useSettings } from '../../context/SettingsContext'
 import { useTheme, ThemeColor } from '../../context/ThemeContext'
 import { useLanguage } from '../../context/LanguageContext'
@@ -253,32 +254,45 @@ export function SettingsPage() {
     console.log('Auto-saving settings...', settings)
     const saveSettings = async () => {
       try {
-        await api.saveSettings({
-          siteName: settings.siteName,
-          siteDescription: settings.siteDescription,
-          discordGuildIds: serverIds.join(','),
-          requireRole: settings.requireRole,
-          allowNewMembers: settings.allowNewMembers,
-          maxSessionsPerUser: settings.maxSessionsPerUser,
-          sessionTimeout: settings.sessionTimeout,
-          notifyCountryChange: settings.notifyCountryChange,
-          notifyIpChange: settings.notifyIpChange,
-          notifyUnauthorizedLogin: settings.notifyUnauthorizedLogin,
-          notifyExcessiveViews: settings.notifyExcessiveViews,
-          excessiveViewsThreshold: settings.excessiveViewsThreshold,
-          excessiveViewsInterval: settings.excessiveViewsInterval,
-          notifySuspiciousActivity: settings.notifySuspiciousActivity,
-          notifyVpnProxy: settings.notifyVpnProxy,
-          notifyMultipleDevices: settings.notifyMultipleDevices,
-          notifyOddHours: settings.notifyOddHours,
-          oddHoursStart: settings.oddHoursStart,
-          oddHoursEnd: settings.oddHoursEnd,
-          notifyNewUpload: settings.notifyNewUpload,
-          notifyNewPublish: settings.notifyNewPublish,
-          notifyNewSession: settings.notifyNewSession,
-          allowedRoles: settings.allowedRoles,
-          webhookUrl: settings.webhookUrl,
-        })
+        // Use Supabase directly to bypass Netlify issues
+        console.log('Saving settings directly to Supabase...')
+        
+        const { data, error } = await supabase
+          .from('settings')
+          .upsert({
+            id: 1,
+            site_name: settings.siteName,
+            site_description: settings.siteDescription,
+            discord_guild_ids: serverIds.join(','),
+            require_role: settings.requireRole,
+            allow_new_members: settings.allowNewMembers,
+            max_sessions_per_user: settings.maxSessionsPerUser,
+            session_timeout: settings.sessionTimeout,
+            notify_country_change: settings.notifyCountryChange,
+            notify_ip_change: settings.notifyIpChange,
+            notify_unauthorized_login: settings.notifyUnauthorizedLogin,
+            notify_excessive_views: settings.notifyExcessiveViews,
+            excessive_views_threshold: settings.excessiveViewsThreshold,
+            excessive_views_interval: settings.excessiveViewsInterval,
+            notify_suspicious_activity: settings.notifySuspiciousActivity,
+            notify_vpn_proxy: settings.notifyVpnProxy,
+            notify_multiple_devices: settings.notifyMultipleDevices,
+            notify_odd_hours: settings.notifyOddHours,
+            odd_hours_start: settings.oddHoursStart,
+            odd_hours_end: settings.oddHoursEnd,
+            notify_new_upload: settings.notifyNewUpload,
+            notify_new_publish: settings.notifyNewPublish,
+            notify_new_session: settings.notifyNewSession,
+            allowed_roles: settings.allowedRoles,
+            webhook_url: settings.webhookUrl,
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .single()
+        
+        if (error) throw error
+        
+        console.log('Settings saved directly to Supabase:', data)
         await refreshSettings()
         console.log('Settings saved successfully')
         
