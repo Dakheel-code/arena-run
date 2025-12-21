@@ -367,20 +367,18 @@ export function SettingsPage() {
             {/* Theme Color Selection */}
             <div>
               <h3 className="text-sm font-semibold text-gray-300 mb-3">Theme Color</h3>
-              <div className="grid grid-cols-7 gap-3">
+              <div className="flex items-center justify-center gap-3 flex-wrap">
                 {THEME_COLORS.map((theme) => (
                   <button
                     key={theme.value}
                     onClick={() => setThemeColor(theme.value)}
-                    className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                    className={`w-12 h-12 rounded-full ${theme.color} transition-all ${
                       themeColor === theme.value
-                        ? 'border-white bg-gray-700 shadow-lg'
-                        : 'border-gray-600 hover:bg-gray-700/50 hover:border-gray-500'
+                        ? 'ring-4 ring-white ring-offset-2 ring-offset-discord-dark scale-110'
+                        : 'hover:scale-105'
                     }`}
-                  >
-                    <div className={`w-8 h-8 rounded-full ${theme.color}`} />
-                    <span className="text-xs">{theme.label}</span>
-                  </button>
+                    title={theme.label}
+                  />
                 ))}
               </div>
             </div>
