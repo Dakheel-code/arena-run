@@ -102,10 +102,22 @@ body {
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1) !important;
 }
 
-/* Light mode - New Run button icon color */
+/* Light mode - New Run button icon and text color */
+.light-mode .btn-discord,
+.light-mode .btn-discord span,
+.light-mode .btn-discord svg {
+  color: white !important;
+}
+
 .light-mode .bg-theme\/20 svg,
 .light-mode .text-theme-light svg {
   color: inherit !important;
+}
+
+/* Light mode - Eye icon color in buttons */
+.light-mode .bg-gray-700\/50 svg,
+.light-mode .hover\:bg-gray-700 svg {
+  color: #9ca3af !important;
 }
 
 /* Light mode theme colors - much darker shades */

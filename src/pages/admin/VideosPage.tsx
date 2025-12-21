@@ -247,7 +247,7 @@ export function VideosPage() {
       ) : (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {videos.map((video) => (
-            <div key={video.id} className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl overflow-hidden border border-gray-700/50">
+            <div key={video.id} className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl overflow-hidden border border-gray-700/50 transition-all duration-300 hover:scale-105 hover:-translate-y-1 hover:shadow-lg animate-fade-in-up">
               {/* Thumbnail */}
               <div className="relative aspect-video bg-gray-800">
                 {video.stream_uid ? (
