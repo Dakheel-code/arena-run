@@ -374,8 +374,8 @@ export function SettingsPage() {
                     onClick={() => setThemeColor(theme.value)}
                     className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
                       themeColor === theme.value
-                        ? 'border-white bg-gray-700'
-                        : 'border-transparent hover:bg-gray-700/50'
+                        ? 'border-white bg-gray-700 shadow-lg'
+                        : 'border-gray-600 hover:bg-gray-700/50 hover:border-gray-500'
                     }`}
                   >
                     <div className={`w-8 h-8 rounded-full ${theme.color}`} />

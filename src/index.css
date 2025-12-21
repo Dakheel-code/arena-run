@@ -117,7 +117,12 @@ body {
 /* Light mode - Eye icon color in buttons */
 .light-mode .bg-gray-700\/50 svg,
 .light-mode .hover\:bg-gray-700 svg {
-  color: #9ca3af !important;
+  color: #4b5563 !important;
+}
+
+.light-mode .bg-gray-700\/50 span,
+.light-mode .hover\:bg-gray-700 span {
+  color: #374151 !important;
 }
 
 /* Light mode theme colors - much darker shades */
