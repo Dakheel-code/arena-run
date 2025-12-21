@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
 import { useLanguage } from '../../context/LanguageContext'
@@ -479,78 +479,6 @@ export function MembersPage() {
               </div>
             )}
           </div>
-
-          {/* Pagination */}
-          {filteredMembers.length > 0 && (
-            <div className="flex flex-col items-center gap-4 mt-6 pt-4 border-t border-gray-700">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-400">{t('show')}:</span>
-                <select
-                  value={membersPerPage}
-                  onChange={(e) => {
-                    setMembersPerPage(Number(e.target.value))
-                    setCurrentPage(1)
-                  }}
-                  className="input-field px-3 py-1 text-sm bg-gray-800 border border-gray-600 rounded"
-                >
-                  {PAGE_SIZE_OPTIONS.map(size => (
-                    <option key={size} value={size}>{size}</option>
-                  ))}
-                </select>
-                <span className="text-sm text-gray-400">{t('perPage')}</span>
-              </div>
-
-              {totalPages > 1 && (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="p-2 rounded-lg bg-gray-700/50 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronLeft size={18} />
-                  </button>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      let pageNum: number
-                      if (totalPages <= 5) {
-                        pageNum = i + 1
-                      } else if (currentPage <= 3) {
-                        pageNum = i + 1
-                      } else if (currentPage >= totalPages - 2) {
-                        pageNum = totalPages - 4 + i
-                      } else {
-                        pageNum = currentPage - 2 + i
-                      }
-                      return (
-                        <button
-                          key={pageNum}
-                          onClick={() => setCurrentPage(pageNum)}
-                          className={`w-8 h-8 rounded-lg text-sm transition-colors ${
-                            currentPage === pageNum
-                              ? 'bg-theme text-white'
-                              : 'bg-gray-700/50 hover:bg-gray-700'
-                          }`}
-                        >
-                          {pageNum}
-                        </button>
-                      )
-                    })}
-                  </div>
-                  <button
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg bg-gray-700/50 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronRight size={18} />
-                  </button>
-                </div>
-              )}
-
-              <div className="text-sm text-gray-400">
-                {t('showingMembers')} {startIndex + 1}-{Math.min(endIndex, filteredMembers.length)} {t('ofMembers')} {filteredMembers.length} {t('membersText')}
-              </div>
-            </div>
-          )}
         </>
       )}
 
