@@ -256,59 +256,77 @@ export const handler: Handler = async (event) => {
       }
     }
 
-    // Check for required role
+    // Check for required role (skip for admins)
     console.log('=== ROLE CHECK DEBUG ===')
     console.log('User Discord ID:', discordUser.id)
+    console.log('Is Admin:', isAdmin)
     console.log('Member role IDs:', member?.roles)
     
-    // Get allowed roles from settings
-    const allowedRoleNames = await getAllowedRoles()
-    console.log('Allowed role names from settings:', allowedRoleNames)
+    // Check if user is admin or super_admin in database first
+    const { data: memberRoleData } = await supabase
+      .from('members')
+      .select('role')
+      .eq('discord_id', discordUser.id)
+      .single()
     
-    let hasRole = false
+    const isAdminOrSuperAdmin = memberRoleData?.role === 'admin' || memberRoleData?.role === 'super_admin'
+    console.log('Member role in DB:', memberRoleData?.role)
+    console.log('Is Admin or Super Admin:', isAdminOrSuperAdmin)
     
-    // If no allowed roles specified, use the Role ID from env
-    if (!allowedRoleNames || allowedRoleNames.length === 0) {
-      console.log('No allowed roles in settings, using Role ID:', DISCORD_REQUIRED_ROLE_ID)
-      hasRole = member?.roles?.includes(DISCORD_REQUIRED_ROLE_ID)
+    // Admins and Super Admins bypass role check
+    if (isAdmin || isAdminOrSuperAdmin) {
+      console.log('User is admin/super_admin - bypassing role check')
+      console.log('=======================')
     } else {
-      // Get guild roles to map IDs to names
-      const guildRoles = await getGuildRoles(DISCORD_GUILD_IDS[0])
-      console.log('Guild roles fetched:', guildRoles.length)
+      // Get allowed roles from settings
+      const allowedRoleNames = await getAllowedRoles()
+      console.log('Allowed role names from settings:', allowedRoleNames)
       
-      // Check if user has any of the allowed roles
-      for (const roleId of member?.roles || []) {
-        const role = guildRoles.find((r: any) => r.id === roleId)
-        if (role && allowedRoleNames.includes(role.name)) {
-          console.log('User has allowed role:', role.name)
-          hasRole = true
-          break
+      let hasRole = false
+      
+      // If no allowed roles specified, use the Role ID from env
+      if (!allowedRoleNames || allowedRoleNames.length === 0) {
+        console.log('No allowed roles in settings, using Role ID:', DISCORD_REQUIRED_ROLE_ID)
+        hasRole = member?.roles?.includes(DISCORD_REQUIRED_ROLE_ID)
+      } else {
+        // Get guild roles to map IDs to names
+        const guildRoles = await getGuildRoles(DISCORD_GUILD_IDS[0])
+        console.log('Guild roles fetched:', guildRoles.length)
+        
+        // Check if user has any of the allowed roles
+        for (const roleId of member?.roles || []) {
+          const role = guildRoles.find((r: any) => r.id === roleId)
+          if (role && allowedRoleNames.includes(role.name)) {
+            console.log('User has allowed role:', role.name)
+            hasRole = true
+            break
+          }
         }
       }
-    }
-    
-    console.log('Has required role:', hasRole)
-    console.log('=======================')
-    if (!hasRole) {
-      await logLoginAttempt({
-        discord_id: discordUser.id,
-        discord_username: discordUser.username,
-        discord_discriminator: discordUser.discriminator,
-        discord_avatar: avatarUrl || undefined,
-        email: discordUser.email,
-        status: 'failed',
-        failure_reason: 'Missing required role',
-        ip_address,
-        country: location.country,
-        city: location.city,
-        user_agent,
-        is_admin: false,
-        is_member: true,
-        has_required_role: false,
-      })
-      return {
-        statusCode: 302,
-        headers: { Location: `${APP_URL}/login?error=missing_role` },
+      
+      console.log('Has required role:', hasRole)
+      console.log('=======================')
+      if (!hasRole) {
+        await logLoginAttempt({
+          discord_id: discordUser.id,
+          discord_username: discordUser.username,
+          discord_discriminator: discordUser.discriminator,
+          discord_avatar: avatarUrl || undefined,
+          email: discordUser.email,
+          status: 'failed',
+          failure_reason: 'Missing required role',
+          ip_address,
+          country: location.country,
+          city: location.city,
+          user_agent,
+          is_admin: false,
+          is_member: true,
+          has_required_role: false,
+        })
+        return {
+          statusCode: 302,
+          headers: { Location: `${APP_URL}/login?error=missing_role` },
+        }
       }
     }
 
