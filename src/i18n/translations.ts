@@ -257,6 +257,15 @@ export const translations = {
     discordWebhookUrl: 'Discord Webhook URL',
     webhookConfigured: 'Webhook URL configured and connected',
     allNotificationsSent: 'All notifications will be sent to this webhook URL',
+    roleAssignedAs: 'Role assigned as',
+    newVideoUpload: 'New Video Upload',
+    getNotifiedNewVideo: 'Get notified when a new video is uploaded',
+    newVideoPublished: 'New Video Published',
+    getNotifiedVideoPublished: 'Get notified when a video is published',
+    newWatchSession: 'New Watch Session',
+    getNotifiedNewSession: 'Get notified when a new watch session starts',
+    unauthorizedLoginAttempt: 'Unauthorized Login Attempt',
+    getNotifiedUnauthorizedLogin: 'Get notified when someone tries to login without permission',
     
     // Manage Members Page
     manageMembersTitle: 'Manage Members',
@@ -586,6 +595,15 @@ export const translations = {
     discordWebhookUrl: 'رابط Discord Webhook',
     webhookConfigured: 'تم تكوين رابط Webhook والاتصال',
     allNotificationsSent: 'سيتم إرسال جميع الإشعارات إلى رابط webhook هذا',
+    roleAssignedAs: 'الدور المخصص',
+    newVideoUpload: 'رفع فيديو جديد',
+    getNotifiedNewVideo: 'احصل على إشعار عند رفع فيديو جديد',
+    newVideoPublished: 'نشر فيديو جديد',
+    getNotifiedVideoPublished: 'احصل على إشعار عند نشر فيديو',
+    newWatchSession: 'جلسة مشاهدة جديدة',
+    getNotifiedNewSession: 'احصل على إشعار عند بدء جلسة مشاهدة جديدة',
+    unauthorizedLoginAttempt: 'محاولة دخول غير مصرحة',
+    getNotifiedUnauthorizedLogin: 'احصل على إشعار عندما يحاول شخص تسجيل الدخول بدون إذن',
     
     // Manage Members Page
     manageMembersTitle: 'إدارة الأعضاء',
@@ -918,6 +936,15 @@ export const translations = {
     discordWebhookUrl: 'Discord Webhook URL',
     webhookConfigured: 'Webhook URLが設定され接続されました',
     allNotificationsSent: 'すべての通知はこのwebhook URLに送信されます',
+    roleAssignedAs: '割り当てられたロール',
+    newVideoUpload: '新しい動画アップロード',
+    getNotifiedNewVideo: '新しい動画がアップロードされたときに通知を受け取る',
+    newVideoPublished: '新しい動画公開',
+    getNotifiedVideoPublished: '動画が公開されたときに通知を受け取る',
+    newWatchSession: '新しい視聴セッション',
+    getNotifiedNewSession: '新しい視聴セッションが開始されたときに通知を受け取る',
+    unauthorizedLoginAttempt: '不正ログイン試行',
+    getNotifiedUnauthorizedLogin: '許可なしでログインしようとしたときに通知を受け取る',
     
     // Manage Members Page
     manageMembersTitle: 'メンバー管理',
@@ -1250,6 +1277,15 @@ export const translations = {
     discordWebhookUrl: 'Discord Webhook URL',
     webhookConfigured: 'Webhook URL이 구성되고 연결되었습니다',
     allNotificationsSent: '모든 알림이 이 webhook URL로 전송됩니다',
+    roleAssignedAs: '할당된 역할',
+    newVideoUpload: '새 동영상 업로드',
+    getNotifiedNewVideo: '새 동영상이 업로드될 때 알림 받기',
+    newVideoPublished: '새 동영상 게시',
+    getNotifiedVideoPublished: '동영상이 게시될 때 알림 받기',
+    newWatchSession: '새 시청 세션',
+    getNotifiedNewSession: '새 시청 세션이 시작될 때 알림 받기',
+    unauthorizedLoginAttempt: '무단 로그인 시도',
+    getNotifiedUnauthorizedLogin: '권한 없이 로그인을 시도할 때 알림 받기',
     
     // Manage Members Page
     manageMembersTitle: '회원 관리',

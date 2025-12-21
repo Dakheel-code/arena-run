@@ -366,7 +366,7 @@ export function SettingsPage() {
           <div className="space-y-6">
             {/* Theme Color Selection */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">Theme Color</h3>
+              <h3 className="text-sm font-semibold text-gray-300 mb-3">{t('themeColor')}</h3>
               <div className="flex items-center justify-center gap-3 flex-wrap">
                 {THEME_COLORS.map((theme) => (
                   <button
@@ -385,7 +385,7 @@ export function SettingsPage() {
 
             {/* Dark/Light Mode Toggle */}
             <div className="pt-4 border-t border-gray-700">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">Appearance Mode</h3>
+              <h3 className="text-sm font-semibold text-gray-300 mb-3">{t('appearanceMode')}</h3>
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => setThemeMode('dark')}
@@ -399,8 +399,8 @@ export function SettingsPage() {
                     <div className="w-4 h-4 rounded-full bg-gray-600"></div>
                   </div>
                   <div className="text-left">
-                    <p className="font-medium text-sm">Dark Mode</p>
-                    <p className="text-xs text-gray-400">{themeMode === 'dark' ? 'Currently Active' : 'Click to activate'}</p>
+                    <p className="font-medium text-sm">{t('darkMode')}</p>
+                    <p className="text-xs text-gray-400">{themeMode === 'dark' ? t('currentlyActive') : t('clickToActivate')}</p>
                   </div>
                 </button>
                 
@@ -416,8 +416,8 @@ export function SettingsPage() {
                     <div className="w-5 h-5 rounded-full bg-yellow-400"></div>
                   </div>
                   <div className="text-left">
-                    <p className="font-medium text-sm">Light Mode</p>
-                    <p className="text-xs text-gray-400">{themeMode === 'light' ? 'Currently Active' : 'Click to activate'}</p>
+                    <p className="font-medium text-sm">{t('lightMode')}</p>
+                    <p className="text-xs text-gray-400">{themeMode === 'light' ? t('currentlyActive') : t('clickToActivate')}</p>
                   </div>
                 </button>
               </div>
@@ -435,14 +435,14 @@ export function SettingsPage() {
           <div className="space-y-4">
             {/* Discord Server IDs */}
             <div>
-              <label className="block font-medium mb-2">Discord Server IDs</label>
+              <label className="block font-medium mb-2">{t('discordServerIds')}</label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={newServerId}
                   onChange={(e) => setNewServerId(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && addServerId()}
-                  placeholder="Enter Discord Server (Guild) ID"
+                  placeholder={t('enterDiscordServerId')}
                   className="input-field flex-1 font-mono"
                 />
                 <button
@@ -471,7 +471,7 @@ export function SettingsPage() {
                 </div>
               )}
               <p className="text-sm text-gray-400 mt-2">
-                Add Discord server IDs one by one. Members must be present in at least one of these servers to access the site.
+                {t('addDiscordServerIds')}
               </p>
             </div>
 
@@ -494,14 +494,14 @@ export function SettingsPage() {
 
             {settings.requireRole && (
               <div>
-                <label className="block font-medium mb-2">Allowed Discord Roles</label>
+                <label className="block font-medium mb-2">{t('allowedDiscordRoles')}</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && addRole()}
-                    placeholder="Enter role name"
+                    placeholder={t('enterRoleName')}
                     className="input-field flex-1"
                   />
                   <button
@@ -529,7 +529,7 @@ export function SettingsPage() {
                     ))}
                   </div>
                 )}
-                <p className="text-sm text-gray-400 mt-2">Add role names one by one. Leave empty to allow all roles.</p>
+                <p className="text-sm text-gray-400 mt-2">{t('addRoleNames')}</p>
               </div>
             )}
             
@@ -911,7 +911,7 @@ export function SettingsPage() {
         <div className="card">
           <div className="flex items-center gap-3 mb-6">
             <Shield className="text-theme-light" size={24} />
-            <h2 className="text-xl font-bold text-theme-light">Permissions Management</h2>
+            <h2 className="text-xl font-bold text-theme-light">{t('permissionsManagement')}</h2>
           </div>
 
           {/* Search Bar with Autocomplete */}
@@ -919,7 +919,7 @@ export function SettingsPage() {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search by name, game ID, or Discord ID..."
+                placeholder={t('searchByName')}
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 onFocus={() => searchResults.length > 0 && setShowSuggestions(true)}
@@ -978,7 +978,7 @@ export function SettingsPage() {
                   <p className="text-xs text-gray-500 truncate">{selectedMember.game_id}</p>
                   {selectedMember.role_assigned_by_name && (
                     <p className="text-xs text-theme/70 truncate mt-0.5">
-                      Role assigned as: {selectedMember.role_assigned_by_name}
+                      {t('roleAssignedAs')}: {selectedMember.role_assigned_by_name}
                       {selectedMember.role_assigned_at && (
                         <span className="text-gray-600 ml-1">
                           ({new Date(selectedMember.role_assigned_at).toLocaleDateString()})
@@ -1162,7 +1162,7 @@ export function SettingsPage() {
         <div className="card">
           <div className="flex items-center gap-3 mb-6">
             <Zap className="text-theme-light" size={24} />
-            <h2 className="text-xl font-bold text-theme-light">Performance Settings</h2>
+            <h2 className="text-xl font-bold text-theme-light">{t('performanceSettings')}</h2>
           </div>
           
           <div className="space-y-4">
@@ -1171,8 +1171,8 @@ export function SettingsPage() {
               <div className="flex items-center gap-3">
                 <Database className="text-blue-400" size={18} />
                 <div>
-                  <p className="font-medium">Enable Caching</p>
-                  <p className="text-sm text-gray-400">Cache API responses for faster loading</p>
+                  <p className="font-medium">{t('enableCaching')}</p>
+                  <p className="text-sm text-gray-400">{t('cacheApiResponses')}</p>
                 </div>
               </div>
               <button
@@ -1189,7 +1189,7 @@ export function SettingsPage() {
 
             {settings.enableCaching && (
               <div className="ml-9 pl-3 border-l-2 border-gray-700">
-                <label className="block text-sm text-gray-400 mb-2">Cache Duration (seconds)</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('cacheDuration')}</label>
                 <input
                   type="number"
                   value={settings.cacheDuration}
@@ -1198,7 +1198,7 @@ export function SettingsPage() {
                   min="60"
                   max="86400"
                 />
-                <p className="text-xs text-gray-500 mt-1">3600s = 1 hour, 86400s = 24 hours</p>
+                <p className="text-xs text-gray-500 mt-1">{t('cacheDurationHint')}</p>
               </div>
             )}
 
@@ -1207,8 +1207,8 @@ export function SettingsPage() {
               <div className="flex items-center gap-3">
                 <Image className="text-green-400" size={18} />
                 <div>
-                  <p className="font-medium">Image Optimization</p>
-                  <p className="text-sm text-gray-400">Optimize images for faster loading</p>
+                  <p className="font-medium">{t('imageOptimization')}</p>
+                  <p className="text-sm text-gray-400">{t('optimizeImages')}</p>
                 </div>
               </div>
               <button
@@ -1228,8 +1228,8 @@ export function SettingsPage() {
               <div className="flex items-center gap-3">
                 <Eye className="text-purple-400" size={18} />
                 <div>
-                  <p className="font-medium">Lazy Loading</p>
-                  <p className="text-sm text-gray-400">Load images only when visible</p>
+                  <p className="font-medium">{t('lazyLoading')}</p>
+                  <p className="text-sm text-gray-400">{t('loadImagesWhenVisible')}</p>
                 </div>
               </div>
               <button
@@ -1249,8 +1249,8 @@ export function SettingsPage() {
               <div className="flex items-center gap-3">
                 <Code className="text-cyan-400" size={18} />
                 <div>
-                  <p className="font-medium">Code Minification</p>
-                  <p className="text-sm text-gray-400">Minify CSS and JavaScript files</p>
+                  <p className="font-medium">{t('codeMinification')}</p>
+                  <p className="text-sm text-gray-400">{t('minifyCssJs')}</p>
                 </div>
               </div>
               <button
@@ -1267,18 +1267,18 @@ export function SettingsPage() {
 
             {/* Compression Level */}
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Compression Level</label>
+              <label className="block text-sm text-gray-400 mb-2">{t('compressionLevel')}</label>
               <select
                 value={settings.compressionLevel}
                 onChange={(e) => setSettings({ ...settings, compressionLevel: e.target.value })}
                 className="input-field w-48"
               >
-                <option value="none">None</option>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
+                <option value="none">{t('compressionNone')}</option>
+                <option value="low">{t('compressionLow')}</option>
+                <option value="medium">{t('compressionMedium')}</option>
+                <option value="high">{t('compressionHigh')}</option>
               </select>
-              <p className="text-xs text-gray-500 mt-1">Higher compression = smaller files but more CPU usage</p>
+              <p className="text-xs text-gray-500 mt-1">{t('compressionHint')}</p>
             </div>
           </div>
         </div>
