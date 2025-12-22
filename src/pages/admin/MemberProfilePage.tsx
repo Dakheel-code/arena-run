@@ -26,7 +26,8 @@ interface LoginLog {
   country?: string
   city?: string
   user_agent?: string
-  logged_in_at: string
+  logged_in_at?: string
+  logged_at?: string
 }
 
 interface MemberProfile extends Member {
@@ -47,6 +48,7 @@ export function MemberProfilePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedSession, setSelectedSession] = useState<ViewSession | null>(null)
+  const [selectedLoginLog, setSelectedLoginLog] = useState<LoginLog | null>(null)
   const [showAllVideos, setShowAllVideos] = useState(false)
 
   // Only admins can view member profiles
@@ -512,6 +514,7 @@ export function MemberProfilePage() {
                       <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">{t('location')}</th>
                       <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">IP Address</th>
                       <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Device</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -520,7 +523,7 @@ export function MemberProfilePage() {
                       .map((log) => (
                         <tr key={log.id} className="border-b border-gray-700/50 hover:bg-gray-800/30 transition-colors">
                           <td className="py-3 px-4 text-gray-400 whitespace-nowrap text-sm">
-                            {log.logged_in_at ? new Date(log.logged_in_at).toLocaleString('en-US', {
+                            {log.logged_at ? new Date(log.logged_at).toLocaleString('en-US', {
                               month: 'short',
                               day: 'numeric',
                               year: 'numeric',
@@ -549,6 +552,15 @@ export function MemberProfilePage() {
                               {log.user_agent?.toLowerCase().includes('mobile') ? 'Mobile' : 'Desktop'}
                             </div>
                           </td>
+                          <td className="py-3 px-4">
+                            <button
+                              onClick={() => setSelectedLoginLog(log)}
+                              className="p-2 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 transition-colors"
+                              title="View Details"
+                            >
+                              <MoreHorizontal size={16} className="text-blue-400" />
+                            </button>
+                          </td>
                         </tr>
                       ))}
                   </tbody>
@@ -564,13 +576,20 @@ export function MemberProfilePage() {
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2 text-sm text-gray-400">
                           <Calendar size={14} />
-                          {log.logged_in_at ? new Date(log.logged_in_at).toLocaleString('en-US', {
+                          {log.logged_at ? new Date(log.logged_at).toLocaleString('en-US', {
                             month: 'short',
                             day: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit'
                           }) : 'Invalid Date'}
                         </div>
+                        <button
+                          onClick={() => setSelectedLoginLog(log)}
+                          className="p-2 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 transition-colors"
+                          title="View Details"
+                        >
+                          <MoreHorizontal size={12} className="text-blue-400" />
+                        </button>
                         <div className="flex items-center gap-1 text-xs text-gray-500">
                           {log.user_agent?.toLowerCase().includes('mobile') ? (
                             <><Monitor size={12} /> Mobile</>
@@ -608,6 +627,109 @@ export function MemberProfilePage() {
             <p className="text-gray-400 text-center py-8">No login logs recorded yet</p>
           )}
         </div>
+
+        {/* Login Log Details Modal */}
+        {selectedLoginLog && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={() => setSelectedLoginLog(null)}>
+            <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-500 p-6 border-b border-gray-700 flex items-center justify-between">
+                <h3 className="text-xl font-bold flex items-center gap-2">
+                  <LogIn size={24} />
+                  Login Details
+                </h3>
+                <button
+                  onClick={() => setSelectedLoginLog(null)}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Date & Time */}
+                <div className="bg-gray-800/50 rounded-xl p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+                    <Calendar size={16} />
+                    Date & Time
+                  </h4>
+                  <p className="text-lg font-semibold text-white">
+                    {selectedLoginLog.logged_at ? new Date(selectedLoginLog.logged_at).toLocaleString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit'
+                    }) : 'Invalid Date'}
+                  </p>
+                </div>
+
+                {/* Location */}
+                <div className="bg-gray-800/50 rounded-xl p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+                    <MapPin size={16} />
+                    Location
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Country:</span>
+                      <span className="text-white font-medium">{selectedLoginLog.country || '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">City:</span>
+                      <span className="text-white font-medium">{selectedLoginLog.city || '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">IP Address:</span>
+                      <span className="text-white font-mono text-sm">{selectedLoginLog.ip_address}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Device Info */}
+                <div className="bg-gray-800/50 rounded-xl p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+                    <Monitor size={16} />
+                    Device Information
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Device Type:</span>
+                      <span className="text-white font-medium flex items-center gap-2">
+                        {selectedLoginLog.user_agent?.toLowerCase().includes('mobile') ? (
+                          <><Monitor size={14} /> Mobile</>
+                        ) : (
+                          <><Chrome size={14} /> Desktop</>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-gray-400 text-sm">User Agent:</span>
+                      <span className="text-white text-xs font-mono bg-gray-900/50 p-2 rounded break-all">
+                        {selectedLoginLog.user_agent || '-'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Info */}
+                {(selectedLoginLog as any).status && (
+                  <div className="bg-gray-800/50 rounded-xl p-4">
+                    <h4 className="text-sm font-medium text-gray-400 mb-3">Status</h4>
+                    <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+                      (selectedLoginLog as any).status === 'success' 
+                        ? 'bg-green-500/20 text-green-400' 
+                        : 'bg-red-500/20 text-red-400'
+                    }`}>
+                      {(selectedLoginLog as any).status === 'success' ? 'Successful' : 'Failed'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </Layout>
