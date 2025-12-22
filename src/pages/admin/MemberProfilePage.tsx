@@ -96,6 +96,34 @@ export function MemberProfilePage() {
     }
   }, [discordId, profile?.discord_id])
 
+  // Separate effect for fetching login logs
+  useEffect(() => {
+    const fetchLoginLogs = async () => {
+      if (!discordId || !profile) return
+      
+      try {
+        const response = await fetch(`/.netlify/functions/admin-login-logs?discord_id=${discordId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          }
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setProfile(prev => prev ? {
+            ...prev,
+            login_logs: data.logs || []
+          } : null)
+        }
+      } catch (error) {
+        console.error('Failed to fetch login logs:', error)
+      }
+    }
+
+    if (profile && (!profile.login_logs || profile.login_logs.length === 0)) {
+      fetchLoginLogs()
+    }
+  }, [discordId, profile?.discord_id])
+
   // Redirect if user doesn't have permission to view this profile
   if (!canViewProfile) {
     return <Navigate to="/" replace />
