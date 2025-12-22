@@ -79,7 +79,8 @@ export const handler: Handler = async (event) => {
       const totalViews = sessions?.length || 0
       const avgWatchTime = totalViews > 0 ? Math.floor(totalWatchTime / totalViews) : 0
       const firstWatch = sessions && sessions.length > 0 ? sessions[sessions.length - 1].started_at : null
-      const loginCount = loginLogs?.length || 0
+      // Use login_logs length if available, otherwise fallback to member.login_count
+      const loginCount = loginLogs?.length || member.login_count || 0
 
       return {
         statusCode: 200,
