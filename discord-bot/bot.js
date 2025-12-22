@@ -606,11 +606,14 @@ client.on('interactionCreate', async interaction => {
     if (focusedOption.name === 'video_id') {
       try {
         const videos = await getRecentVideos();
+        console.log(`📹 Fetched ${videos.length} videos from database`);
         
         // Filter published videos only for 'post' command
         const filteredVideos = interaction.commandName === 'post' 
           ? videos.filter(video => video.is_published) 
           : videos;
+        
+        console.log(`🔍 Command: ${interaction.commandName}, Filtered to ${filteredVideos.length} videos`);
         
         const choices = filteredVideos.map(video => {
           const status = video.is_published ? '✅' : '📦';
@@ -623,6 +626,7 @@ client.on('interactionCreate', async interaction => {
           };
         });
         
+        console.log(`✅ Sending ${choices.length} choices to Discord`);
         await interaction.respond(choices);
       } catch (error) {
         console.error('Error in autocomplete:', error);
