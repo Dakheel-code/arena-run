@@ -48,8 +48,40 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const lastTapRef = useRef(0)
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 })
+  const sessionLoggedRef = useRef(false)
   
   const playbackSpeeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4]
+
+  // Simple session logging
+  useEffect(() => {
+    const logSession = () => {
+      if (sessionLoggedRef.current) return
+      if (currentTime < 10) return
+      
+      sessionLoggedRef.current = true
+      const userStr = localStorage.getItem('user')
+      if (!userStr) return
+      
+      try {
+        const user = JSON.parse(userStr)
+        fetch('/.netlify/functions/simple-log-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            video_id: videoId,
+            discord_id: user.discord_id,
+            watch_seconds: Math.floor(currentTime)
+          })
+        }).catch(e => console.log('Log failed:', e))
+      } catch (e) {
+        console.log('Parse error:', e)
+      }
+    }
+
+    if (currentTime > 10 && !sessionLoggedRef.current) {
+      logSession()
+    }
+  }, [currentTime, videoId])
 
   // Check PiP support
   useEffect(() => {
