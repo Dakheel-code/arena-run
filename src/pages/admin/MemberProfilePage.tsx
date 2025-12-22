@@ -628,6 +628,139 @@ export function MemberProfilePage() {
           )}
         </div>
 
+        {/* Session Details Modal */}
+        {selectedSession && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={() => setSelectedSession(null)}>
+            <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="sticky top-0 bg-gradient-to-r from-theme to-theme-light p-6 border-b border-gray-700 flex items-center justify-between">
+                <h3 className="text-xl font-bold flex items-center gap-2">
+                  <Eye size={24} />
+                  Session Details
+                </h3>
+                <button
+                  onClick={() => setSelectedSession(null)}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Video Information */}
+                <div className="bg-gray-800/50 rounded-xl p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+                    <Video size={16} />
+                    Video Information
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Video:</span>
+                      <Link 
+                        to={`/watch/${selectedSession.video_id}`}
+                        className="text-theme-light hover:underline font-medium"
+                      >
+                        {(selectedSession as any).videos?.title || 'Unknown Video'}
+                      </Link>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Watermark Code:</span>
+                      <span className="text-white font-mono text-sm">{selectedSession.watermark_code}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Date & Time */}
+                <div className="bg-gray-800/50 rounded-xl p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+                    <Calendar size={16} />
+                    Date & Time
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Started:</span>
+                      <span className="text-white font-medium">
+                        {new Date(selectedSession.started_at).toLocaleString('en-US', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit'
+                        })}
+                      </span>
+                    </div>
+                    {selectedSession.ended_at && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Ended:</span>
+                        <span className="text-white font-medium">
+                          {new Date(selectedSession.ended_at).toLocaleString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Watch Duration:</span>
+                      <span className="text-white font-medium">{formatDuration(selectedSession.watch_seconds)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Location */}
+                <div className="bg-gray-800/50 rounded-xl p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+                    <MapPin size={16} />
+                    Location
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Country:</span>
+                      <span className="text-white font-medium">{selectedSession.country || '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">City:</span>
+                      <span className="text-white font-medium">{selectedSession.city || '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">IP Address:</span>
+                      <span className="text-white font-mono text-sm">{selectedSession.ip_address}</span>
+                    </div>
+                    {selectedSession.isp && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">ISP:</span>
+                        <span className="text-white font-medium">{selectedSession.isp}</span>
+                      </div>
+                    )}
+                    {selectedSession.is_vpn && (
+                      <div className="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2">
+                        <Shield size={14} className="text-yellow-400" />
+                        <span className="text-sm text-yellow-400">VPN Detected</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Device Info */}
+                <div className="bg-gray-800/50 rounded-xl p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+                    <Monitor size={16} />
+                    Device Information
+                  </h4>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-gray-400 text-sm">User Agent:</span>
+                    <span className="text-white text-xs font-mono bg-gray-900/50 p-2 rounded break-all">
+                      {selectedSession.user_agent || '-'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Login Log Details Modal */}
         {selectedLoginLog && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={() => setSelectedLoginLog(null)}>
