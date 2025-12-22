@@ -46,11 +46,7 @@ export function MemberProfilePage() {
   const [profile, setProfile] = useState<MemberProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [currentSessionPage, setCurrentSessionPage] = useState(1)
-  const [sessionsPerPage, setSessionsPerPage] = useState(10)
   const [selectedSession, setSelectedSession] = useState<ViewSession | null>(null)
-  const [currentLoginPage, setCurrentLoginPage] = useState(1)
-  const [loginsPerPage, setLoginsPerPage] = useState(10)
   const [showAllVideos, setShowAllVideos] = useState(false)
 
   // Only admins can view member profiles
@@ -349,16 +345,19 @@ export function MemberProfilePage() {
                   </div>
                 </Link>
               ))}
-            </div>
-          </div>
-        )}
 
         {/* Session History */}
-        <div className="card">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <Eye size={20} className="text-theme-light" />
-            {t('sessionHistory')}
-          </h2>
+        <div className="card mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Eye size={20} className="text-theme-light" />
+              Session History
+              <span className="bg-theme/20 text-theme-light text-xs px-2 py-0.5 rounded-full ml-2">
+                {Math.min(10, profile.sessions?.length || 0)}
+              </span>
+            </h2>
+            <span className="text-xs text-gray-400">Last 10 sessions</span>
+          </div>
           
           {profile.sessions && profile.sessions.length > 0 ? (
             <>
@@ -367,17 +366,17 @@ export function MemberProfilePage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-700">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">{t('member')}</th>
                       <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">{t('video')}</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">{t('country')}</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">{t('date')}</th>
                       <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">{t('duration')}</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">{t('started')}</th>
-                      <th className="text-center py-3 px-4 text-sm font-medium text-gray-400">{t('more')}</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">{t('location')}</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Device</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {profile.sessions
-                      .slice((currentSessionPage - 1) * sessionsPerPage, currentSessionPage * sessionsPerPage)
+                      .slice(0, 10)
                       .map((session) => (
                         <tr key={session.id} className="border-b border-gray-700/50 hover:bg-gray-800/30 transition-colors">
                           <td className="py-3 px-4">
@@ -386,19 +385,11 @@ export function MemberProfilePage() {
                               className="flex items-center gap-2 hover:text-theme-light transition-colors"
                             >
                               {profile.discord_avatar ? (
-                                <img 
-                                  src={profile.discord_avatar} 
-                                  alt="Avatar"
-                                  className="w-6 h-6 rounded-full object-cover"
-                                />
+                                <img src={profile.discord_avatar} alt="" className="w-6 h-6 rounded-full" />
                               ) : (
-                                <div className="w-6 h-6 rounded-full bg-theme/20 flex items-center justify-center">
-                                  <User size={12} className="text-theme-light" />
-                                </div>
+                                <User size={20} />
                               )}
-                              <span className="text-theme-light text-sm">
-                                {profile.discord_username || profile.game_id}
-                              </span>
+                              {profile.discord_username || profile.game_id}
                             </Link>
                           </td>
                           <td className="py-3 px-4">
@@ -409,14 +400,6 @@ export function MemberProfilePage() {
                               {(session as any).videos?.title || 'Unknown'}
                             </Link>
                           </td>
-                          <td className="py-3 px-4 text-gray-400 text-sm">
-                            {session.ip_address === '::1' || session.ip_address === '127.0.0.1' || session.ip_address?.startsWith('1::')
-                              ? 'Local'
-                              : session.country || '-'}
-                          </td>
-                          <td className="py-3 px-4 text-gray-400 text-sm">
-                            {formatDuration(session.watch_seconds)}
-                          </td>
                           <td className="py-3 px-4 text-gray-400 whitespace-nowrap text-sm">
                             {new Date(session.started_at).toLocaleString('en-US', {
                               month: 'short',
@@ -424,6 +407,14 @@ export function MemberProfilePage() {
                               hour: '2-digit',
                               minute: '2-digit'
                             })}
+                          </td>
+                          <td className="py-3 px-4 text-gray-400 text-sm">
+                            {formatDuration(session.watch_seconds)}
+                          </td>
+                          <td className="py-3 px-4 text-gray-400 text-sm">
+                            {session.ip_address === '::1' || session.ip_address === '127.0.0.1' || session.ip_address?.startsWith('1::')
+                              ? 'Local'
+                              : session.country || '-'}
                           </td>
                           <td className="py-3 px-4">
                             <button
@@ -443,249 +434,50 @@ export function MemberProfilePage() {
               {/* Mobile Card View */}
               <div className="md:hidden space-y-4">
                 {profile.sessions
-                  .slice((currentSessionPage - 1) * sessionsPerPage, currentSessionPage * sessionsPerPage)
+                  .slice(0, 10)
                   .map((session) => (
                     <div key={session.id} className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl p-4 border border-gray-700/50">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-400 mb-1">
-                            {new Date(session.started_at).toLocaleString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                          <Calendar size={14} />
+                          {new Date(session.started_at).toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
                         </div>
-                        <button
-                          onClick={() => setSelectedSession(session)}
-                          className="p-2 rounded-lg bg-theme/10 hover:bg-theme/20 text-theme-light transition-colors"
-                        >
-                          <MoreHorizontal size={18} />
-                        </button>
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          {session.user_agent?.toLowerCase().includes('mobile') ? (
+                            <><Monitor size={12} /> Mobile</>
+                          ) : (
+                            <><Chrome size={12} /> Desktop</>
+                          )}
+                        </div>
                       </div>
 
-                      <Link 
-                        to={`/watch/${session.video_id}`}
-                        className="block mb-4 pb-4 border-b border-gray-700/50"
-                      >
-                        <div className="text-sm font-medium text-gray-200 hover:text-theme-light transition-colors">
-                          {(session as any).videos?.title || 'Unknown'}
-                        </div>
-                      </Link>
-
-                      <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="grid grid-cols-2 gap-3 text-sm">
                         <div className="bg-gray-800/50 rounded-lg p-3">
-                          <span className="text-gray-400 text-xs block mb-1">{t('country')}:</span>
+                          <span className="text-gray-400 text-xs block mb-1 flex items-center gap-1">
+                            <MapPin size={12} />
+                            {t('location')}:
+                          </span>
                           <span className="text-gray-100 font-medium">
                             {session.ip_address === '::1' || session.ip_address === '127.0.0.1' || session.ip_address?.startsWith('1::')
                               ? 'Local'
-                              : (
-                                <>
-                                  {session.country || '-'}
-                                  {(session as any).city && `, ${(session as any).city}`}
-                                </>
-                              )}
+                              : `${session.country || '-'}${session.city ? `, ${session.city}` : ''}`}
                           </span>
                         </div>
                         <div className="bg-gray-800/50 rounded-lg p-3">
-                          <span className="text-gray-400 text-xs block mb-1">{t('duration')}:</span>
-                          <span className="text-gray-100 font-medium">{formatDuration(session.watch_seconds)}</span>
+                          <span className="text-gray-400 text-xs block mb-1 flex items-center gap-1">
+                            <Globe size={12} />
+                            IP:
+                          </span>
+                          <span className="text-gray-100 font-mono text-xs">{session.ip_address}</span>
                         </div>
                       </div>
                     </div>
                   ))}
-              </div>
-
-              {/* Session Details Modal */}
-              {selectedSession && (
-                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={() => setSelectedSession(null)}>
-                  <div className="bg-gray-900 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                    <div className="sticky top-0 bg-gray-900 border-b border-gray-700 p-4 flex items-center justify-between">
-                      <h3 className="text-xl font-bold flex items-center gap-2">
-                        <Eye className="text-theme-light" size={24} />
-                        Session Details
-                      </h3>
-                      <button
-                        onClick={() => setSelectedSession(null)}
-                        className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-                      >
-                        <X size={20} />
-                      </button>
-                    </div>
-                    
-                    <div className="p-6 space-y-6">
-                      {/* Video & Member */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-400 mb-2">video</p>
-                          <Link 
-                            to={`/watch/${selectedSession.video_id}`}
-                            className="text-theme-light hover:underline font-medium"
-                          >
-                            {(selectedSession as any).videos?.title || 'Unknown'}
-                          </Link>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-400 mb-2">Member</p>
-                          <Link 
-                            to={`/admin/members/${profile.discord_id}`}
-                            className="flex items-center gap-2 text-theme-light hover:underline"
-                          >
-                            {profile.discord_avatar ? (
-                              <img src={profile.discord_avatar} alt="" className="w-8 h-8 rounded-full" />
-                            ) : (
-                              <User size={20} />
-                            )}
-                            {profile.discord_username || profile.game_id}
-                          </Link>
-                        </div>
-                      </div>
-
-                      {/* Started & Duration */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-gray-800/50 rounded-lg p-4">
-                          <p className="text-sm text-gray-400 mb-2">Started At</p>
-                          <p className="text-white font-medium">
-                            {new Date(selectedSession.started_at).toLocaleString('en-US', {
-                              weekday: 'short',
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
-                        </div>
-                        <div className="bg-gray-800/50 rounded-lg p-4">
-                          <p className="text-sm text-gray-400 mb-2">Watch Duration</p>
-                          <p className="text-green-400 font-medium text-lg">{formatDuration(selectedSession.watch_seconds)}</p>
-                        </div>
-                      </div>
-
-                      {/* IP & Location */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-gray-800/50 rounded-lg p-4">
-                          <p className="text-sm text-gray-400 mb-2">IP Address</p>
-                          <p className="text-white font-mono text-sm">
-                            {selectedSession.ip_address === '::1' || selectedSession.ip_address === '127.0.0.1'
-                              ? 'Local'
-                              : selectedSession.ip_address || '-'}
-                          </p>
-                        </div>
-                        <div className="bg-gray-800/50 rounded-lg p-4">
-                          <p className="text-sm text-gray-400 mb-2">Location</p>
-                          <p className="text-white">
-                            {selectedSession.country || '-'}
-                            {(selectedSession as any).city && ` - ${(selectedSession as any).city}`}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Device Information */}
-                      <div className="bg-gray-800/30 rounded-lg p-4">
-                        <p className="text-sm text-gray-400 mb-3 flex items-center gap-2">
-                          <Monitor size={16} />
-                          Device Information
-                        </p>
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <p className="text-gray-500 text-xs mb-1">Browser</p>
-                            <p className="text-white flex items-center gap-1">
-                              <Chrome size={14} />
-                              {selectedSession.user_agent?.includes('Chrome') ? 'Chrome' :
-                               selectedSession.user_agent?.includes('Firefox') ? 'Firefox' :
-                               selectedSession.user_agent?.includes('Safari') ? 'Safari' : 'Unknown'}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 text-xs mb-1">Operating System</p>
-                            <p className="text-white">
-                              {selectedSession.user_agent?.includes('Windows') ? 'Windows 10/11' :
-                               selectedSession.user_agent?.includes('Mac') ? 'macOS' :
-                               selectedSession.user_agent?.includes('Linux') ? 'Linux' : 'Unknown'}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 text-xs mb-1">Device Type</p>
-                            <p className="text-white">Desktop</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* ISP & VPN */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-gray-800/50 rounded-lg p-4">
-                          <p className="text-sm text-gray-400 mb-2">ISP</p>
-                          <p className="text-white">{(selectedSession as any).isp || '-'}</p>
-                        </div>
-                        <div className="bg-gray-800/50 rounded-lg p-4">
-                          <p className="text-sm text-gray-400 mb-2 flex items-center gap-2">
-                            <Shield size={14} />
-                            VPN / Proxy
-                          </p>
-                          <p className={`font-medium ${(selectedSession as any).is_vpn ? 'text-red-400' : 'text-green-400'}`}>
-                            {(selectedSession as any).is_vpn ? '⚠️ Detected' : 'Not Detected ✓'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Watermark */}
-                      <div className="bg-gray-800/50 rounded-lg p-4">
-                        <p className="text-sm text-gray-400 mb-2">Watermark Code</p>
-                        <p className="text-theme-light font-mono text-lg">{selectedSession.watermark_code || '-'}</p>
-                      </div>
-
-                      {/* Raw User Agent */}
-                      <div className="bg-gray-800/30 rounded-lg p-4">
-                        <p className="text-sm text-gray-400 mb-2">Raw User Agent</p>
-                        <p className="text-gray-300 text-xs break-all font-mono">
-                          {selectedSession.user_agent || '-'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Pagination Controls */}
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-700">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-400">{t('show')}:</span>
-                  <select
-                    value={sessionsPerPage}
-                    onChange={(e) => {
-                      setSessionsPerPage(Number(e.target.value))
-                      setCurrentSessionPage(1)
-                    }}
-                    className="input-field px-2 py-1 text-sm bg-gray-800 border border-gray-600 rounded"
-                  >
-                    {PAGE_SIZE_OPTIONS.map(size => (
-                      <option key={size} value={size}>{size}</option>
-                    ))}
-                  </select>
-                  <span className="text-sm text-gray-400">{t('perPage')}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-400">
-                    {(currentSessionPage - 1) * sessionsPerPage + 1}-{Math.min(currentSessionPage * sessionsPerPage, profile.sessions.length)} of {profile.sessions.length}
-                  </span>
-                  <button
-                    onClick={() => setCurrentSessionPage(p => Math.max(1, p - 1))}
-                    disabled={currentSessionPage === 1}
-                    className="p-1.5 rounded bg-gray-700/50 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <button
-                    onClick={() => setCurrentSessionPage(p => Math.min(Math.ceil(profile.sessions.length / sessionsPerPage), p + 1))}
-                    disabled={currentSessionPage >= Math.ceil(profile.sessions.length / sessionsPerPage)}
-                    className="p-1.5 rounded bg-gray-700/50 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
               </div>
             </>
           ) : (
@@ -694,11 +486,17 @@ export function MemberProfilePage() {
         </div>
 
         {/* Login Logs */}
-        <div className="card">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <LogIn className="text-blue-400" size={20} />
-            {t('loginLogs')}
-          </h2>
+        <div className="card mb-6 mt-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <LogIn className="text-blue-400" size={20} />
+              Login Logs
+              <span className="bg-blue-500/20 text-blue-400 text-xs px-2 py-0.5 rounded-full ml-2">
+                {Math.min(10, profile.login_logs?.length || 0)}
+              </span>
+            </h2>
+            <span className="text-xs text-gray-400">Last 10 logins</span>
+          </div>
           
           {profile.login_logs && profile.login_logs.length > 0 ? (
             <>
@@ -715,17 +513,17 @@ export function MemberProfilePage() {
                   </thead>
                   <tbody>
                     {profile.login_logs
-                      .slice((currentLoginPage - 1) * loginsPerPage, currentLoginPage * loginsPerPage)
+                      .slice(0, 10)
                       .map((log) => (
                         <tr key={log.id} className="border-b border-gray-700/50 hover:bg-gray-800/30 transition-colors">
                           <td className="py-3 px-4 text-gray-400 whitespace-nowrap text-sm">
-                            {new Date(log.logged_in_at).toLocaleString('en-US', {
+                            {log.logged_in_at ? new Date(log.logged_in_at).toLocaleString('en-US', {
                               month: 'short',
                               day: 'numeric',
                               year: 'numeric',
                               hour: '2-digit',
                               minute: '2-digit'
-                            })}
+                            }) : 'Invalid Date'}
                           </td>
                           <td className="py-3 px-4 text-gray-400 text-sm">
                             <div className="flex items-center gap-2">
@@ -757,18 +555,18 @@ export function MemberProfilePage() {
               {/* Mobile Card View */}
               <div className="md:hidden space-y-4">
                 {profile.login_logs
-                  .slice((currentLoginPage - 1) * loginsPerPage, currentLoginPage * loginsPerPage)
+                  .slice(0, 10)
                   .map((log) => (
                     <div key={log.id} className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl p-4 border border-gray-700/50">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2 text-sm text-gray-400">
                           <Calendar size={14} />
-                          {new Date(log.logged_in_at).toLocaleString('en-US', {
+                          {log.logged_in_at ? new Date(log.logged_in_at).toLocaleString('en-US', {
                             month: 'short',
                             day: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit'
-                          })}
+                          }) : 'Invalid Date'}
                         </div>
                         <div className="flex items-center gap-1 text-xs text-gray-500">
                           {log.user_agent?.toLowerCase().includes('mobile') ? (
@@ -802,48 +600,6 @@ export function MemberProfilePage() {
                     </div>
                   ))}
               </div>
-
-              {/* Pagination Controls */}
-              {profile.login_logs.length > loginsPerPage && (
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-700">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-400">{t('show')}:</span>
-                    <select
-                      value={loginsPerPage}
-                      onChange={(e) => {
-                        setLoginsPerPage(Number(e.target.value))
-                        setCurrentLoginPage(1)
-                      }}
-                      className="input-field px-2 py-1 text-sm bg-gray-800 border border-gray-600 rounded"
-                    >
-                      {PAGE_SIZE_OPTIONS.map(size => (
-                        <option key={size} value={size}>{size}</option>
-                      ))}
-                    </select>
-                    <span className="text-sm text-gray-400">{t('perPage')}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-400">
-                      {(currentLoginPage - 1) * loginsPerPage + 1}-{Math.min(currentLoginPage * loginsPerPage, profile.login_logs.length)} of {profile.login_logs.length}
-                    </span>
-                    <button
-                      onClick={() => setCurrentLoginPage(p => Math.max(1, p - 1))}
-                      disabled={currentLoginPage === 1}
-                      className="p-1.5 rounded bg-gray-700/50 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                    <button
-                      onClick={() => setCurrentLoginPage(p => Math.min(Math.ceil((profile.login_logs?.length || 0) / loginsPerPage), p + 1))}
-                      disabled={currentLoginPage >= Math.ceil((profile.login_logs?.length || 0) / loginsPerPage)}
-                      className="p-1.5 rounded bg-gray-700/50 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-                </div>
-              )}
             </>
           ) : (
             <p className="text-gray-400 text-center py-8">No login logs recorded yet</p>
