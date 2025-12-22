@@ -17,17 +17,20 @@ export function useWatchHistory(videoId: string) {
     // Start tracking session when component mounts
     const startSession = async () => {
       try {
-        const token = localStorage.getItem('auth_token')
-        if (!token) return
+        const userStr = localStorage.getItem('user')
+        if (!userStr) return
+        
+        const user = JSON.parse(userStr)
+        if (!user?.discord_id) return
 
         const response = await fetch('/.netlify/functions/track-session', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             video_id: videoId,
+            discord_id: user.discord_id,
             action: 'start'
           })
         })
@@ -60,17 +63,20 @@ export function useWatchHistory(videoId: string) {
 
   const updateSession = async () => {
     try {
-      const token = localStorage.getItem('auth_token')
-      if (!token || !sessionIdRef.current) return
+      const userStr = localStorage.getItem('user')
+      if (!userStr || !sessionIdRef.current) return
+      
+      const user = JSON.parse(userStr)
+      if (!user?.discord_id) return
 
       await fetch('/.netlify/functions/track-session', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           video_id: videoId,
+          discord_id: user.discord_id,
           session_id: sessionIdRef.current,
           action: 'update',
           watch_seconds: Math.floor(watchTimeRef.current)

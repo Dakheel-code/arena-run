@@ -24,31 +24,13 @@ export const handler: Handler = async (event) => {
   }
 
   try {
-    const authHeader = event.headers.authorization
-    if (!authHeader?.startsWith('Bearer ')) {
-      return {
-        statusCode: 401,
-        body: JSON.stringify({ error: 'Unauthorized' })
-      }
-    }
-
-    const token = authHeader.substring(7)
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-    
-    if (authError || !user) {
-      return {
-        statusCode: 401,
-        body: JSON.stringify({ error: 'Invalid token' })
-      }
-    }
-
     const body = JSON.parse(event.body || '{}')
-    const { video_id, action, watch_seconds } = body
+    const { video_id, discord_id, action, watch_seconds } = body
 
-    if (!video_id) {
+    if (!video_id || !discord_id) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'video_id is required' })
+        body: JSON.stringify({ error: 'video_id and discord_id are required' })
       }
     }
 
@@ -64,7 +46,7 @@ export const handler: Handler = async (event) => {
         .from('watch_sessions')
         .insert({
           video_id,
-          discord_id: user.id,
+          discord_id,
           watermark_code: watermarkCode,
           ip_address: ip,
           user_agent: userAgent,
@@ -107,7 +89,7 @@ export const handler: Handler = async (event) => {
           ended_at: new Date().toISOString()
         })
         .eq('id', session_id)
-        .eq('discord_id', user.id)
+        .eq('discord_id', discord_id)
 
       if (error) {
         console.error('Error updating session:', error)
