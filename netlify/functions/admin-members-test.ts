@@ -101,7 +101,7 @@ export const handler: Handler = async (event) => {
     // List all members
     const { data: members, error } = await supabase
       .from('members')
-      .select('discord_id, discord_username, game_id, is_active, created_at')
+      .select('id, discord_id, discord_username, discord_avatar, game_id, is_active, role, last_login, login_count, created_at')
       .order('created_at', { ascending: false })
 
     if (error) {
