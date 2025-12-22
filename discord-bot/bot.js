@@ -1,6 +1,10 @@
 require('dotenv').config();
+const dns = require('dns');
 const { Client, GatewayIntentBits, EmbedBuilder, SlashCommandBuilder, REST, Routes } = require('discord.js');
 const { createClient } = require('@supabase/supabase-js');
+
+// Set DNS to use Google's DNS servers to avoid Railway DNS issues
+dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
 
 // Validate required environment variables
 const requiredEnvVars = [
