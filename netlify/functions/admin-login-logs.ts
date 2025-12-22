@@ -67,7 +67,7 @@ export const handler: Handler = async (event) => {
       let query = supabase
         .from('login_logs')
         .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
+        .order('logged_at', { ascending: false })
 
       if (status) {
         query = query.eq('status', status)

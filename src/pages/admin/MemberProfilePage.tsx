@@ -5,7 +5,7 @@ import { api } from '../../lib/api'
 import { useAuth } from '../../context/AuthContext'
 import { useLanguage } from '../../context/LanguageContext'
 import { Member, ViewSession } from '../../types'
-import { ArrowLeft, Loader, User, Calendar, LogIn, Video, Clock, Eye, Play, TrendingUp, ChevronLeft, ChevronRight, Upload, ThumbsUp, CheckCircle, MoreHorizontal, X, Chrome, Monitor, Shield } from 'lucide-react'
+import { ArrowLeft, Loader, User, Calendar, LogIn, Video, Clock, Eye, Play, TrendingUp, ChevronLeft, ChevronRight, Upload, ThumbsUp, CheckCircle, MoreHorizontal, X, Chrome, Monitor, Shield, MapPin, Globe } from 'lucide-react'
 
 interface UploadedVideo {
   id: string
@@ -19,11 +19,22 @@ interface UploadedVideo {
   created_at: string
 }
 
+interface LoginLog {
+  id: string
+  discord_id: string
+  ip_address: string
+  country?: string
+  city?: string
+  user_agent?: string
+  logged_in_at: string
+}
+
 interface MemberProfile extends Member {
   sessions: ViewSession[]
   total_watch_time: number
   videos_watched: number
   uploaded_videos?: UploadedVideo[]
+  login_logs?: LoginLog[]
 }
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
@@ -38,6 +49,9 @@ export function MemberProfilePage() {
   const [currentSessionPage, setCurrentSessionPage] = useState(1)
   const [sessionsPerPage, setSessionsPerPage] = useState(10)
   const [selectedSession, setSelectedSession] = useState<ViewSession | null>(null)
+  const [currentLoginPage, setCurrentLoginPage] = useState(1)
+  const [loginsPerPage, setLoginsPerPage] = useState(10)
+  const [showAllVideos, setShowAllVideos] = useState(false)
 
   // Only admins can view member profiles
   const canViewProfile = user?.is_admin
@@ -122,9 +136,8 @@ export function MemberProfilePage() {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-1">
                 <User className="w-6 h-6 text-theme" />
-                <h1 className="text-2xl font-bold text-theme">{profile.discord_username || profile.game_id}</h1>
+                <h1 className="text-2xl font-bold text-theme">{profile.discord_username || profile.discord_id}</h1>
               </div>
-              <p className="text-gray-400">{t('gameId')}: {profile.game_id}</p>
               <p className="text-sm text-gray-500 font-mono">{profile.discord_id}</p>
               {profile.last_login && (
                 <p className="text-xs text-gray-500 mt-1">
@@ -208,25 +221,34 @@ export function MemberProfilePage() {
           </div>
         </div>
 
-        {/* Uploaded Videos */}
+        {/* Uploaded Videos Section */}
         {profile.uploaded_videos && profile.uploaded_videos.length > 0 && (
           <div className="card mb-6">
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <Upload size={20} className="text-green-400" />
-              {t('uploadedVideos')}
-              <span className="bg-green-500/20 text-green-400 text-xs px-2 py-0.5 rounded-full ml-2">
-                {profile.uploaded_videos.length}
-              </span>
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <Upload size={20} className="text-green-400" />
+                {t('uploadedVideos')}
+                <span className="bg-green-500/20 text-green-400 text-xs px-2 py-0.5 rounded-full ml-2">
+                  {profile.uploaded_videos.length}
+                </span>
+              </h2>
+              {profile.uploaded_videos.length > 5 && (
+                <button
+                  onClick={() => setShowAllVideos(!showAllVideos)}
+                  className="text-sm text-theme-light hover:text-theme transition-colors"
+                >
+                  {showAllVideos ? 'Show Less' : 'Show More'}
+                </button>
+              )}
+            </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {profile.uploaded_videos.map((video) => (
+              {(showAllVideos ? profile.uploaded_videos : profile.uploaded_videos.slice(0, 5)).map((video) => (
                 <Link
                   key={video.id}
                   to={`/watch/${video.id}`}
                   className="group block bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-xl overflow-hidden border border-gray-700/50 hover:border-green-500/50 hover:shadow-lg hover:shadow-green-500/10 transition-all duration-300"
                 >
-                  {/* Thumbnail */}
                   <div className="relative aspect-video bg-gray-800 overflow-hidden">
                     {video.thumbnail_url || video.stream_uid ? (
                       <img
@@ -243,49 +265,33 @@ export function MemberProfilePage() {
                       </div>
                     )}
                     
-                    {/* Status Badge */}
                     <div className={`absolute top-2 right-2 px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1 ${
                       video.is_published 
                         ? 'bg-green-500/90 text-white' 
                         : 'bg-yellow-500/90 text-black'
                     }`}>
-                      {video.is_published ? (
-                        <>
-                          <CheckCircle size={12} />
-                          {t('published')}
-                        </>
-                      ) : (
-                        <>
-                          <Clock size={12} />
-                          {t('unpublished')}
-                        </>
-                      )}
-                    </div>
-
-                    {/* Play overlay */}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-green-500/90 backdrop-blur-sm flex items-center justify-center transform scale-75 group-hover:scale-100 transition-transform duration-300">
-                        <Play size={24} className="text-white ml-1" fill="white" />
-                      </div>
+                      <CheckCircle size={12} />
+                      {video.is_published ? 'Published' : 'Draft'}
                     </div>
                   </div>
-                  
-                  {/* Info */}
-                  <div className="p-3">
-                    <h3 className="font-semibold text-sm truncate mb-2 group-hover:text-green-400 transition-colors">
+
+                  <div className="p-4">
+                    <h3 className="font-semibold text-white mb-2 line-clamp-2 group-hover:text-green-400 transition-colors">
                       {video.title}
                     </h3>
+                    
                     <div className="flex items-center justify-between text-xs text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <ThumbsUp size={12} className="text-blue-400" />
-                        {video.likes_count || 0} likes
-                      </span>
-                      <span>
-                        {new Date(video.created_at).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center gap-1">
+                          <Eye size={12} />
+                          {video.views_count || 0}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <ThumbsUp size={12} />
+                          {video.likes_count || 0}
+                        </span>
+                      </div>
+                      <span>{new Date(video.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                     </div>
                   </div>
                 </Link>
@@ -631,6 +637,163 @@ export function MemberProfilePage() {
             </>
           ) : (
             <p className="text-gray-400 text-center py-8">No sessions recorded yet</p>
+          )}
+        </div>
+
+        {/* Login Logs */}
+        <div className="card">
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <LogIn className="text-blue-400" size={20} />
+            {t('loginLogs')}
+          </h2>
+          
+          {profile.login_logs && profile.login_logs.length > 0 ? (
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-700">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Date</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">{t('location')}</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">IP Address</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Device</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {profile.login_logs
+                      .slice((currentLoginPage - 1) * loginsPerPage, currentLoginPage * loginsPerPage)
+                      .map((log) => (
+                        <tr key={log.id} className="border-b border-gray-700/50 hover:bg-gray-800/30 transition-colors">
+                          <td className="py-3 px-4 text-gray-400 whitespace-nowrap text-sm">
+                            {new Date(log.logged_in_at).toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </td>
+                          <td className="py-3 px-4 text-gray-400 text-sm">
+                            <div className="flex items-center gap-2">
+                              <MapPin size={14} className="text-blue-400" />
+                              {log.ip_address === '::1' || log.ip_address === '127.0.0.1' || log.ip_address?.startsWith('1::')
+                                ? 'Local'
+                                : `${log.country || '-'}${log.city ? `, ${log.city}` : ''}`}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-gray-400 font-mono text-sm">
+                            {log.ip_address}
+                          </td>
+                          <td className="py-3 px-4 text-gray-400 text-sm">
+                            <div className="flex items-center gap-2">
+                              {log.user_agent?.toLowerCase().includes('mobile') ? (
+                                <Monitor size={14} className="text-purple-400" />
+                              ) : (
+                                <Chrome size={14} className="text-cyan-400" />
+                              )}
+                              {log.user_agent?.toLowerCase().includes('mobile') ? 'Mobile' : 'Desktop'}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4">
+                {profile.login_logs
+                  .slice((currentLoginPage - 1) * loginsPerPage, currentLoginPage * loginsPerPage)
+                  .map((log) => (
+                    <div key={log.id} className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl p-4 border border-gray-700/50">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                          <Calendar size={14} />
+                          {new Date(log.logged_in_at).toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          {log.user_agent?.toLowerCase().includes('mobile') ? (
+                            <><Monitor size={12} /> Mobile</>
+                          ) : (
+                            <><Chrome size={12} /> Desktop</>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="bg-gray-800/50 rounded-lg p-3">
+                          <span className="text-gray-400 text-xs block mb-1 flex items-center gap-1">
+                            <MapPin size={12} />
+                            {t('location')}:
+                          </span>
+                          <span className="text-gray-100 font-medium">
+                            {log.ip_address === '::1' || log.ip_address === '127.0.0.1' || log.ip_address?.startsWith('1::')
+                              ? 'Local'
+                              : `${log.country || '-'}${log.city ? `, ${log.city}` : ''}`}
+                          </span>
+                        </div>
+                        <div className="bg-gray-800/50 rounded-lg p-3">
+                          <span className="text-gray-400 text-xs block mb-1 flex items-center gap-1">
+                            <Globe size={12} />
+                            IP:
+                          </span>
+                          <span className="text-gray-100 font-mono text-xs">{log.ip_address}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+
+              {/* Pagination Controls */}
+              {profile.login_logs.length > loginsPerPage && (
+                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-700">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-400">{t('show')}:</span>
+                    <select
+                      value={loginsPerPage}
+                      onChange={(e) => {
+                        setLoginsPerPage(Number(e.target.value))
+                        setCurrentLoginPage(1)
+                      }}
+                      className="input-field px-2 py-1 text-sm bg-gray-800 border border-gray-600 rounded"
+                    >
+                      {PAGE_SIZE_OPTIONS.map(size => (
+                        <option key={size} value={size}>{size}</option>
+                      ))}
+                    </select>
+                    <span className="text-sm text-gray-400">{t('perPage')}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-400">
+                      {(currentLoginPage - 1) * loginsPerPage + 1}-{Math.min(currentLoginPage * loginsPerPage, profile.login_logs.length)} of {profile.login_logs.length}
+                    </span>
+                    <button
+                      onClick={() => setCurrentLoginPage(p => Math.max(1, p - 1))}
+                      disabled={currentLoginPage === 1}
+                      className="p-1.5 rounded bg-gray-700/50 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <button
+                      onClick={() => setCurrentLoginPage(p => Math.min(Math.ceil((profile.login_logs?.length || 0) / loginsPerPage), p + 1))}
+                      disabled={currentLoginPage >= Math.ceil((profile.login_logs?.length || 0) / loginsPerPage)}
+                      className="p-1.5 rounded bg-gray-700/50 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-gray-400 text-center py-8">No login logs recorded yet</p>
           )}
         </div>
 

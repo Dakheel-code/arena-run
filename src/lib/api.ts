@@ -99,24 +99,24 @@ export const api = {
     }),
 
   // Admin
-  getMembers: () => fetchAPI<{ members: import('../types').Member[] }>('/admin-members'),
+  getMembers: () => fetchAPI<{ members: import('../types').Member[] }>('/admin-members-test'),
   uploadMembers: (members: { discord_id: string; game_id: string }[]) =>
-    fetchAPI<{ success: boolean; count: number }>('/admin-members', {
+    fetchAPI<{ success: boolean; count: number }>('/admin-members-test', {
       method: 'POST',
       body: JSON.stringify({ members }),
     }),
   addMember: (member: { discord_id: string; game_id: string; discord_username?: string }) =>
-    fetchAPI<{ success: boolean; member: import('../types').Member }>('/admin-members', {
+    fetchAPI<{ success: boolean; member: import('../types').Member }>('/admin-members-test', {
       method: 'POST',
       body: JSON.stringify(member),
     }),
   toggleMember: (discordId: string, isActive: boolean) =>
-    fetchAPI<{ success: boolean }>('/admin-members', {
+    fetchAPI<{ success: boolean }>('/admin-members-test', {
       method: 'PATCH',
       body: JSON.stringify({ discord_id: discordId, is_active: isActive }),
     }),
   updateMemberRole: (discordId: string, role: 'super_admin' | 'admin' | 'editor' | 'member') =>
-    fetchAPI<{ success: boolean }>('/admin-members', {
+    fetchAPI<{ success: boolean }>('/admin-members-test', {
       method: 'PATCH',
       body: JSON.stringify({ discord_id: discordId, role }),
     }),
@@ -125,7 +125,7 @@ export const api = {
       sessions: import('../types').ViewSession[]; 
       total_watch_time: number; 
       videos_watched: number; 
-    } }>(`/admin-members?discord_id=${discordId}`),
+    } }>(`/admin-members-test?discord_id=${discordId}`),
 
   // Sessions
   getSessions: () => fetchAPI<{ 

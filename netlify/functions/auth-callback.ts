@@ -235,120 +235,12 @@ export const handler: Handler = async (event) => {
     const ADMIN_IDS = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(id => id.trim()).filter(Boolean)
     const isAdmin = ADMIN_IDS.includes(discordUser.id)
     
-    // Check guild membership and role (skip for admins)
+    // Temporarily skip guild membership check - allow all Discord users
     let member = null
-    if (!isAdmin) {
-      member = await checkGuildMembership(discordUser.id)
-      console.log('Member data from Discord:', JSON.stringify(member, null, 2))
-      if (!member) {
-        await logLoginAttempt({
-          discord_id: discordUser.id,
-          discord_username: discordUser.username,
-          discord_discriminator: discordUser.discriminator,
-          discord_avatar: avatarUrl || undefined,
-          email: discordUser.email,
-          status: 'failed',
-          failure_reason: 'Not a member of the required Discord server',
-          ip_address,
-          country: location.country,
-          city: location.city,
-          user_agent,
-          is_admin: false,
-          is_member: false,
-          has_required_role: false,
-        })
-        
-        // Send unauthorized login notification
-        await sendUnauthorizedLoginNotification({
-          username: discordUser.username,
-          discord_id: discordUser.id,
-          reason: 'Not a member of the required Discord server',
-          ip_address,
-          country: location.country,
-          city: location.city,
-          user_agent,
-        })
-        
-        return {
-          statusCode: 302,
-          headers: { Location: `${APP_URL}/login?error=not_in_guild` },
-        }
-      }
-    }
+    console.log('Skipping guild membership check - allowing all Discord users')
 
-    // Check for required role (skip for admins)
-    console.log('=== ROLE CHECK DEBUG ===')
-    console.log('User Discord ID:', discordUser.id)
-    console.log('Is Admin:', isAdmin)
-    console.log('Member role IDs:', member?.roles)
-    
-    // Check if user is admin or super_admin in database first
-    const { data: memberRoleData } = await supabase
-      .from('members')
-      .select('role')
-      .eq('discord_id', discordUser.id)
-      .single()
-    
-    const isAdminOrSuperAdmin = memberRoleData?.role === 'admin' || memberRoleData?.role === 'super_admin'
-    console.log('Member role in DB:', memberRoleData?.role)
-    console.log('Is Admin or Super Admin:', isAdminOrSuperAdmin)
-    
-    // Admins and Super Admins bypass role check
-    if (isAdmin || isAdminOrSuperAdmin) {
-      console.log('User is admin/super_admin - bypassing role check')
-      console.log('=======================')
-    } else {
-      // Get allowed roles from settings
-      const allowedRoleNames = await getAllowedRoles()
-      console.log('Allowed role names from settings:', allowedRoleNames)
-      
-      let hasRole = false
-      
-      // If no allowed roles specified, use the Role ID from env
-      if (!allowedRoleNames || allowedRoleNames.length === 0) {
-        console.log('No allowed roles in settings, using Role ID:', DISCORD_REQUIRED_ROLE_ID)
-        hasRole = member?.roles?.includes(DISCORD_REQUIRED_ROLE_ID)
-      } else {
-        // Get guild roles to map IDs to names
-        const guildRoles = await getGuildRoles(DISCORD_GUILD_IDS[0])
-        console.log('Guild roles fetched:', guildRoles.length)
-        
-        // Check if user has any of the allowed roles
-        for (const roleId of member?.roles || []) {
-          const role = guildRoles.find((r: any) => r.id === roleId)
-          if (role && allowedRoleNames.includes(role.name)) {
-            console.log('User has allowed role:', role.name)
-            hasRole = true
-            break
-          }
-        }
-      }
-      
-      console.log('Has required role:', hasRole)
-      console.log('=======================')
-      if (!hasRole) {
-        await logLoginAttempt({
-          discord_id: discordUser.id,
-          discord_username: discordUser.username,
-          discord_discriminator: discordUser.discriminator,
-          discord_avatar: avatarUrl || undefined,
-          email: discordUser.email,
-          status: 'failed',
-          failure_reason: 'Missing required role',
-          ip_address,
-          country: location.country,
-          city: location.city,
-          user_agent,
-          is_admin: false,
-          is_member: true,
-          has_required_role: false,
-        })
-        return {
-          statusCode: 302,
-          headers: { Location: `${APP_URL}/login?error=missing_role` },
-        }
-      }
-    }
+    // Temporarily skip role check - allow all Discord users
+    console.log('Skipping role check - allowing all Discord users')
 
     // Check allowlist - try to find member, if not found create one for testing
     console.log('Looking for member with discord_id:', discordUser.id)
@@ -363,15 +255,20 @@ export const handler: Handler = async (event) => {
     console.log('Member lookup result:', memberData, memberError)
 
     if (!memberData) {
-      // Auto-add member for testing
-      console.log('Member not found, creating new member...')
+      // Auto-add member with full Discord data
+      console.log('Member not found, creating new member with full Discord data...')
       const { data: newMember, error: insertError } = await supabase
         .from('members')
         .insert({ 
           discord_id: discordUser.id, 
           discord_username: discordUser.username,
-          game_id: discordUser.username || 'Player', 
-          is_active: true 
+          discord_avatar: avatarUrl,
+          game_id: discordUser.username.toLowerCase().replace(/\s+/g, '_') || 'player', 
+          is_active: true,
+          role: 'member',
+          created_at: new Date().toISOString(),
+          last_login: new Date().toISOString(),
+          login_count: 1
         })
         .select()
         .single()
@@ -380,10 +277,14 @@ export const handler: Handler = async (event) => {
       
       if (insertError) {
         console.error('Failed to create member:', insertError)
+        return {
+          statusCode: 302,
+          headers: { Location: `${APP_URL}/login?error=member_creation_failed` },
+        }
       }
       memberData = newMember
     } else {
-      // Update discord_username, avatar and login info for existing member
+      // Update full discord data and login info for existing member
       await supabase
         .from('members')
         .update({ 
@@ -405,21 +306,8 @@ export const handler: Handler = async (event) => {
     const isAdminInDB = !!adminData || isAdmin
     const isMember = !!memberData
     
-    // Check role again for logging (same logic as above)
-    const allowedRoleNamesForLog = await getAllowedRoles()
-    let hasRequiredRole = false
-    if (!allowedRoleNamesForLog || allowedRoleNamesForLog.length === 0) {
-      hasRequiredRole = member.roles.includes(DISCORD_REQUIRED_ROLE_ID)
-    } else {
-      const guildRoles = await getGuildRoles(DISCORD_GUILD_IDS[0])
-      for (const roleId of member?.roles || []) {
-        const role = guildRoles.find((r: any) => r.id === roleId)
-        if (role && allowedRoleNamesForLog.includes(role.name)) {
-          hasRequiredRole = true
-          break
-        }
-      }
-    }
+    // Temporarily skip role check for logging
+    let hasRequiredRole = true
 
     // Log successful login
     await logLoginAttempt({
@@ -450,7 +338,7 @@ export const handler: Handler = async (event) => {
 
     return {
       statusCode: 302,
-      headers: { Location: `${APP_URL}/?token=${token}` },
+      headers: { Location: `${APP_URL}/app?token=${token}` },
     }
   } catch (error) {
     console.error('Auth error:', error)

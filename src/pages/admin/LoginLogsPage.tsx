@@ -21,7 +21,7 @@ interface LoginLog {
   is_admin: boolean
   is_member: boolean
   has_required_role: boolean
-  created_at: string
+  logged_at: string
 }
 
 interface LoginLogsResponse {
@@ -333,7 +333,7 @@ export default function LoginLogsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2 text-sm text-gray-300">
                           <Clock className="w-4 h-4 text-gray-400" />
-                          <span>{formatDate(log.created_at)}</span>
+                          <span>{formatDate(log.logged_at)}</span>
                         </div>
                       </td>
                     </tr>
@@ -376,7 +376,7 @@ export default function LoginLogsPage() {
                     {/* Time */}
                     <div className="flex items-center gap-2 text-gray-300">
                       <Clock className="w-4 h-4 text-gray-400" />
-                      <span className="text-xs">{formatDate(log.created_at)}</span>
+                      <span className="text-xs">{formatDate(log.logged_at)}</span>
                     </div>
 
                     {/* Location */}

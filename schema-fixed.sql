@@ -1,4 +1,4 @@
-﻿-- Arena Run Database Schema
+-- Arena Run Database Schema - FIXED VERSION
 -- Complete database structure for the Arena Run video platform
 
 -- Enable necessary extensions
@@ -189,40 +189,32 @@ CREATE POLICY "Users can view their own member data" ON members
         discord_id = auth.jwt() ->> 'discord_id'
     );
 
--- RLS Policies for admins table
+-- RLS Policies for admins table - FIXED
 CREATE POLICY "Super admins can view all admins" ON admins
     FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM admins 
-            WHERE admins.discord_id = auth.jwt() ->> 'discord_id'
-            AND admins.role = 'super_admin'
+        auth.jwt() ->> 'discord_id' IN (
+            SELECT discord_id FROM admins WHERE role = 'super_admin'
         )
     );
 
 CREATE POLICY "Super admins can insert admins" ON admins
     FOR INSERT WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM admins 
-            WHERE admins.discord_id = auth.jwt() ->> 'discord_id'
-            AND admins.role = 'super_admin'
+        auth.jwt() ->> 'discord_id' IN (
+            SELECT discord_id FROM admins WHERE role = 'super_admin'
         )
     );
 
 CREATE POLICY "Super admins can update admins" ON admins
     FOR UPDATE USING (
-        EXISTS (
-            SELECT 1 FROM admins 
-            WHERE admins.discord_id = auth.jwt() ->> 'discord_id'
-            AND admins.role = 'super_admin'
+        auth.jwt() ->> 'discord_id' IN (
+            SELECT discord_id FROM admins WHERE role = 'super_admin'
         )
     );
 
 CREATE POLICY "Super admins can delete admins" ON admins
     FOR DELETE USING (
-        EXISTS (
-            SELECT 1 FROM admins 
-            WHERE admins.discord_id = auth.jwt() ->> 'discord_id'
-            AND admins.role = 'super_admin'
+        auth.jwt() ->> 'discord_id' IN (
+            SELECT discord_id FROM admins WHERE role = 'super_admin'
         )
     );
 
@@ -380,12 +372,12 @@ ON CONFLICT DO NOTHING;
 
 -- Create function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS schema-to-copy.sql
+RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
-schema-to-copy.sql language 'plpgsql';
+$$ language 'plpgsql';
 
 -- Create trigger for settings table
 CREATE TRIGGER update_settings_updated_at 

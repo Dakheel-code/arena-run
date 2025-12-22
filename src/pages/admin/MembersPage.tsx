@@ -20,7 +20,7 @@ export function MembersPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [membersPerPage, setMembersPerPage] = useState(20)
   const [showAddModal, setShowAddModal] = useState(false)
-  const [newMember, setNewMember] = useState({ discord_id: '', game_id: '', discord_username: '' })
+  const [newMember, setNewMember] = useState({ discord_id: '', discord_username: '' })
   const [isAdding, setIsAdding] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -128,8 +128,8 @@ export function MembersPage() {
   }
 
   const handleAddMember = async () => {
-    if (!newMember.discord_id || !newMember.game_id) {
-      alert('Discord ID and Game ID are required')
+    if (!newMember.discord_id) {
+      alert('Discord ID is required')
       return
     }
 
@@ -137,12 +137,12 @@ export function MembersPage() {
     try {
       await api.addMember({
         discord_id: newMember.discord_id,
-        game_id: newMember.game_id,
+        game_id: newMember.discord_id,
         discord_username: newMember.discord_username
       })
       await fetchMembers()
       setShowAddModal(false)
-      setNewMember({ discord_id: '', game_id: '', discord_username: '' })
+      setNewMember({ discord_id: '', discord_username: '' })
       alert('Member added successfully!')
     } catch (error) {
       console.error('Failed to add member:', error)
@@ -225,7 +225,6 @@ export function MembersPage() {
               <thead>
                 <tr className="border-b border-gray-700">
                   <th className="text-right py-3 px-4">{t('member')}</th>
-                  <th className="text-right py-3 px-4">{t('gameId')}</th>
                   <th className="text-right py-3 px-4">{t('discordId')}</th>
                   <th className="text-right py-3 px-4">{t('status')}</th>
                   <th className="text-right py-3 px-4">{t('lastLogin')}</th>
@@ -245,16 +244,16 @@ export function MembersPage() {
                         <img 
                           src={member.discord_avatar} 
                           alt={member.discord_username || 'Avatar'}
-                          className="w-8 h-8 rounded-full object-cover"
+                          className="w-10 h-10 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-theme/20 flex items-center justify-center">
-                          <User size={16} className="text-theme-light" />
+                        <div className="w-10 h-10 rounded-full bg-theme/20 flex items-center justify-center">
+                          <User size={20} className="text-theme-light" />
                         </div>
                       )}
                       <div className="flex items-center gap-2">
                         <span className="text-theme-light font-medium">
-                          {member.discord_username || member.game_id}
+                          {member.discord_username || member.discord_id}
                         </span>
                         {member.role === 'super_admin' && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-purple-500/20 text-purple-400 border border-purple-500/30">
@@ -277,8 +276,6 @@ export function MembersPage() {
                       </div>
                     </Link>
                   </td>
-                  {/* Game ID */}
-                  <td className="py-3 px-4">{member.game_id}</td>
                   {/* Discord ID */}
                   <td className="py-3 px-4 font-mono text-sm text-gray-400">{member.discord_id}</td>
                   {/* Status */}
@@ -436,9 +433,9 @@ export function MembersPage() {
                     </div>
                   )}
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex-1">
                       <h3 className="text-theme-light font-medium">
-                        {member.discord_username || member.game_id}
+                        {member.discord_username || member.discord_id}
                       </h3>
                       {member.role === 'super_admin' && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-purple-500/20 text-purple-400 border border-purple-500/30">
@@ -459,7 +456,6 @@ export function MembersPage() {
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-400">{member.game_id}</p>
                   </div>
                   <span
                     className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs ${
@@ -535,7 +531,7 @@ export function MembersPage() {
               <button
                 onClick={() => {
                   setShowAddModal(false)
-                  setNewMember({ discord_id: '', game_id: '', discord_username: '' })
+                  setNewMember({ discord_id: '', discord_username: '' })
                 }}
                 className="p-2 hover:bg-gray-700 rounded"
               >
@@ -556,17 +552,6 @@ export function MembersPage() {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-2">{t('gameId')} *</label>
-                <input
-                  type="text"
-                  value={newMember.game_id}
-                  onChange={(e) => setNewMember(prev => ({ ...prev, game_id: e.target.value }))}
-                  className="input-field w-full"
-                  placeholder="e.g. Player123"
-                />
-              </div>
-
-              <div>
                 <label className="block text-sm text-gray-400 mb-2">{t('discordUsername')} ({t('optional')})</label>
                 <input
                   type="text"
@@ -579,7 +564,7 @@ export function MembersPage() {
 
               <button
                 onClick={handleAddMember}
-                disabled={isAdding || !newMember.discord_id || !newMember.game_id}
+                disabled={isAdding || !newMember.discord_id}
                 className="btn-discord w-full justify-center"
               >
                 {isAdding ? (

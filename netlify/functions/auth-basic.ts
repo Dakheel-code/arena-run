@@ -8,17 +8,14 @@ export const handler: Handler = async () => {
     client_id: DISCORD_CLIENT_ID,
     redirect_uri: DISCORD_REDIRECT_URI,
     response_type: 'code',
-    scope: 'identify guilds guilds.members.read',
+    scope: 'identify',
   })
 
   const url = `https://discord.com/api/oauth2/authorize?${params.toString()}`
 
   return {
-    statusCode: 302,
-    headers: { 
-      'Location': url,
-      'Cache-Control': 'no-cache'
-    },
-    body: '',
+    statusCode: 200,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url }),
   }
 }

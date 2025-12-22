@@ -13,27 +13,42 @@ const AuthContext = createContext<AuthContextType | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
     user: null,
-    isLoading: false, // No loading for public access
-    isAuthenticated: true, // Always authenticated for public access
+    isLoading: true,
+    isAuthenticated: false,
   })
+  const [token, setToken] = useState<string | null>(null)
 
   const refreshUser = async () => {
-    // For public access, set a mock user with admin privileges for full access
-    setState({ 
-      user: { 
-        id: 'public-admin', 
-        discord_id: 'public', 
-        username: 'Admin User',
-        avatar: 'default-avatar', // Required field
-        is_admin: true 
-      }, 
-      isLoading: false, 
-      isAuthenticated: true 
-    })
+    const authToken = localStorage.getItem('auth_token')
+    if (!authToken) {
+      setState({ user: null, isLoading: false, isAuthenticated: false })
+      return
+    }
+
+    setToken(authToken)
+
+    try {
+      // Decode JWT token to get user data
+      const payload = JSON.parse(atob(authToken.split('.')[1]))
+      
+      setState({ 
+        user: { 
+          id: payload.discord_id,
+          discord_id: payload.discord_id, 
+          username: payload.username,
+          avatar: payload.avatar || null,
+          is_admin: payload.is_admin || false
+        }, 
+        isLoading: false, 
+        isAuthenticated: true 
+      })
+    } catch (error) {
+      console.error('Failed to decode token:', error)
+      setState({ user: null, isLoading: false, isAuthenticated: false })
+    }
   }
 
   useEffect(() => {
-    // Skip OAuth checks for public access
     refreshUser()
   }, [])
 
@@ -43,8 +58,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = () => {
-    // For public access, keep user authenticated
-    refreshUser()
+    localStorage.removeItem('auth_token')
+    setToken(null)
+    setState({ user: null, isLoading: false, isAuthenticated: false })
+    window.location.href = '/'
   }
 
   return (

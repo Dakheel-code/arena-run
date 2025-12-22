@@ -5,7 +5,7 @@ import { api } from '../../lib/api'
 import { useLanguage } from '../../context/LanguageContext'
 import { useAuth } from '../../context/AuthContext'
 import { Video, Member } from '../../types'
-import { Plus, Trash2, Eye, EyeOff, Loader, Upload, X, Edit, Video as VideoIcon } from 'lucide-react'
+import { Plus, Trash2, Eye, EyeOff, Loader, Upload, X, Edit, Video as VideoIcon, User } from 'lucide-react'
 import * as tus from 'tus-js-client'
 
 function getThumbnailUrl(streamUid: string): string {
@@ -280,6 +280,27 @@ export function VideosPage() {
                 <h3 className="font-semibold text-sm mb-1 line-clamp-2">{video.title}</h3>
                 <p className="text-xs text-gray-400 mb-1.5 line-clamp-1">{video.description || t('noDescription')}</p>
                 
+                {/* Uploader */}
+                {video.uploader_name && (
+                  <div className="flex items-center gap-1.5 mb-2">
+                    {video.uploader_avatar ? (
+                      <img 
+                        src={video.uploader_avatar.startsWith('http') 
+                          ? video.uploader_avatar 
+                          : `https://cdn.discordapp.com/avatars/${video.uploaded_by}/${video.uploader_avatar}.png`
+                        }
+                        alt={video.uploader_name}
+                        className="w-4 h-4 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full bg-theme/20 flex items-center justify-center">
+                        <User size={10} className="text-theme-light" />
+                      </div>
+                    )}
+                    <span className="text-[10px] text-gray-400 truncate">{video.uploader_name}</span>
+                  </div>
+                )}
+                
                 <div className="flex items-center justify-between text-xs text-gray-500 mb-2 pb-2 border-b border-gray-700/50">
                   <span className="text-[10px]">{new Date(video.created_at).toLocaleDateString('en-US')}</span>
                   {video.season && video.day && (
@@ -373,17 +394,6 @@ export function VideosPage() {
             </div>
 
             <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">{t('videoTitle')} *</label>
-                <input
-                  type="text"
-                  value={uploadData.title}
-                  onChange={(e) => setUploadData((d) => ({ ...d, title: e.target.value }))}
-                  className="input-field w-full"
-                  placeholder={t('enterVideoTitle')}
-                />
-              </div>
-
               <div>
                 <label className="block text-sm text-gray-400 mb-2">{t('uploader')}</label>
                 <input
@@ -540,7 +550,6 @@ export function VideosPage() {
 
               <button
                 onClick={handleEditSave}
-                disabled={!uploadData.title}
                 className="btn-discord w-full"
               >
                 {t('saveChanges')}

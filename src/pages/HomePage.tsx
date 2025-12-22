@@ -110,7 +110,7 @@ export function HomePage() {
       )}
 
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
+        <div className="flex items-center gap-3 mb-4">
           <Home className="w-8 h-8 text-theme" />
           <h1 className="text-3xl font-bold text-theme">{t('welcomeTitle')}</h1>
         </div>

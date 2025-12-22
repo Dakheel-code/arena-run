@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext'
 import { SettingsProvider } from './context/SettingsContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { LanguageProvider } from './context/LanguageContext'
+import { AuthGuard } from './components/AuthGuard'
 import { HomePage } from './pages/HomePage'
 import { WatchPage } from './pages/WatchPage'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
@@ -16,7 +17,6 @@ import { NewRunPage } from './pages/NewRunPage'
 import { EditVideoPage } from './pages/EditVideoPage'
 
 function AppRoutes() {
-  // Public access - no authentication checks needed
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
@@ -25,7 +25,7 @@ function AppRoutes() {
       <Route path="/new-run" element={<NewRunPage />} />
       <Route path="/edit-video/:id" element={<EditVideoPage />} />
       
-      {/* Admin routes - also publicly accessible */}
+      {/* Admin routes */}
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="/admin/members" element={<MembersPage />} />
       <Route path="/admin/members/:discordId" element={<MemberProfilePage />} />
@@ -41,12 +41,14 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/app">
       <AuthProvider>
         <SettingsProvider>
           <LanguageProvider>
             <ThemeProvider>
-              <AppRoutes />
+              <AuthGuard>
+                <AppRoutes />
+              </AuthGuard>
             </ThemeProvider>
           </LanguageProvider>
         </SettingsProvider>

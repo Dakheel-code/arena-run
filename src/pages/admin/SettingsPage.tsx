@@ -62,6 +62,8 @@ export function SettingsPage() {
   const [searchResults, setSearchResults] = useState<Member[]>([])
   const [selectedMember, setSelectedMember] = useState<Member | null>(null)
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [isBackingUp, setIsBackingUp] = useState(false)
+  const [includeSchema, setIncludeSchema] = useState(false)
   const [settings, setSettings] = useState({
     siteName: 'The Regulators RGR',
     siteDescription: 'Arena Run',
@@ -338,6 +340,51 @@ export function SettingsPage() {
     const updatedServerIds = serverIds.filter(id => id !== idToRemove)
     setServerIds(updatedServerIds)
     setSettings({ ...settings, discordGuildIds: updatedServerIds.join(',') })
+  }
+
+  const handleBackupDatabase = async () => {
+    try {
+      setIsBackingUp(true)
+      const token = localStorage.getItem('auth_token')
+      
+      const response = await fetch('/.netlify/functions/backup-database', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ includeSchema })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create backup')
+      }
+
+      const backup = await response.json()
+      
+      // Download the backup file
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const filename = includeSchema 
+        ? `arena-run-full-backup-${new Date().toISOString().split('T')[0]}.json`
+        : `arena-run-backup-${new Date().toISOString().split('T')[0]}.json`
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+
+      // Show success notification
+      setShowSaveNotification(true)
+      setTimeout(() => setShowSaveNotification(false), 3000)
+    } catch (error) {
+      console.error('Backup failed:', error)
+      alert('Failed to create backup. Please try again.')
+    } finally {
+      setIsBackingUp(false)
+    }
   }
 
   if (isLoading) {
@@ -1095,14 +1142,70 @@ export function SettingsPage() {
           </div>
         </div>
 
-        {/* Backup & Restore - Hidden (not functional) */}
-        <div className="card" style={{ display: 'none' }}>
+        {/* Backup & Restore */}
+        <div className="card">
           <div className="flex items-center gap-3 mb-6">
             <HardDrive className="text-theme-light" size={24} />
             <h2 className="text-xl font-bold text-theme-light">Backup & Restore</h2>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Manual Backup */}
+            <div className="bg-gray-800/30 rounded-lg p-6 border border-gray-700">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-theme/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Download className="text-theme-light" size={24} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-white mb-2">Manual Database Backup</h3>
+                  <p className="text-sm text-gray-400 mb-4">
+                    Download a complete backup of all database tables including members, videos, sessions, and settings.
+                  </p>
+                  
+                  <div className="mb-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={includeSchema}
+                        onChange={(e) => setIncludeSchema(e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-theme focus:ring-theme focus:ring-offset-gray-900"
+                      />
+                      <span className="text-sm text-gray-300">
+                        Include database schema (table structure)
+                      </span>
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1 ml-6">
+                      Includes column names and basic structure. For complete schema with types and constraints, use pg_dump.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleBackupDatabase}
+                    disabled={isBackingUp}
+                    className="btn-discord flex items-center gap-2"
+                  >
+                    {isBackingUp ? (
+                      <>
+                        <Loader className="animate-spin" size={18} />
+                        <span>Creating Backup...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download size={18} />
+                        <span>{includeSchema ? 'Download Full Backup' : 'Download Backup'}</span>
+                      </>
+                    )}
+                  </button>
+                  <p className="text-xs text-gray-500 mt-3">
+                    Backup includes: Members, Videos, Sessions, Login Logs, Settings, Likes, and Comments
+                    {includeSchema && ' + Database Schema'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Auto Backup Info */}
+            <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">Auto Backup</p>
@@ -1122,12 +1225,18 @@ export function SettingsPage() {
 
             {settings.autoBackup && (
               <div className="ml-9 pl-3 border-l-2 border-gray-700 space-y-3">
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mb-3">
+                  <p className="text-xs text-yellow-400">
+                    ⚠️ Auto backup requires Pro plan. Currently using manual backup only.
+                  </p>
+                </div>
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">Backup Frequency</label>
                   <select
                     value={settings.backupFrequency}
                     onChange={(e) => setSettings({ ...settings, backupFrequency: e.target.value })}
                     className="input-field w-48"
+                    disabled
                   >
                     <option value="hourly">Hourly</option>
                     <option value="daily">Daily</option>
@@ -1144,11 +1253,14 @@ export function SettingsPage() {
                     className="input-field w-32"
                     min="1"
                     max="365"
+                    disabled
                   />
                   <p className="text-xs text-gray-500 mt-1">Backups older than this will be deleted</p>
                 </div>
               </div>
             )}
+            </div>
+          </div>
 
             <div className="pt-4 border-t border-gray-700">
               <div className="flex gap-3">
