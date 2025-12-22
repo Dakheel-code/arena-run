@@ -345,6 +345,9 @@ export function MemberProfilePage() {
                   </div>
                 </Link>
               ))}
+            </div>
+          </div>
+        )}
 
         {/* Session History */}
         <div className="card mb-8">
