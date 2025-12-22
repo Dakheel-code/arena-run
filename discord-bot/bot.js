@@ -56,20 +56,32 @@ function formatDate(dateString) {
   });
 }
 
-// Helper function to get last 10 videos
+// Helper function to get last 25 videos
 async function getRecentVideos() {
-  const { data: videos, error } = await supabase
-    .from('videos')
-    .select('id, title, is_published, created_at, season, day')
-    .order('created_at', { ascending: false })
-    .limit(10);
-  
-  if (error) {
-    console.error('Error fetching videos:', error);
+  try {
+    console.log('🔄 Attempting to fetch videos from Supabase...');
+    const { data: videos, error } = await supabase
+      .from('videos')
+      .select('id, title, is_published, created_at, season, day')
+      .order('created_at', { ascending: false })
+      .limit(25);
+    
+    if (error) {
+      console.error('❌ Supabase error fetching videos:', error);
+      return [];
+    }
+    
+    if (!videos || videos.length === 0) {
+      console.warn('⚠️ No videos found in database');
+      return [];
+    }
+    
+    console.log(`✅ Successfully fetched ${videos.length} videos from Supabase`);
+    return videos;
+  } catch (error) {
+    console.error('❌ Exception in getRecentVideos:', error);
     return [];
   }
-  
-  return videos || [];
 }
 
 // Helper function to convert overtime_type code to full text
