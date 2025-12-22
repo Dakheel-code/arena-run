@@ -70,30 +70,31 @@ export function MemberProfilePage() {
       }
     }
 
+    fetchProfile()
+  }, [discordId])
+
+  // Separate effect for fetching sessions
+  useEffect(() => {
     const fetchSessions = async () => {
-      if (!discordId) return
+      if (!discordId || !profile) return
       
       try {
         const data = await api.getSessions()
         // Filter sessions for this member
         const memberSessions = data.sessions.filter(s => s.discord_id === discordId)
-        if (profile) {
-          setProfile({
-            ...profile,
-            sessions: memberSessions
-          })
-        }
+        setProfile(prev => prev ? {
+          ...prev,
+          sessions: memberSessions
+        } : null)
       } catch (error) {
         console.error('Failed to fetch sessions:', error)
       }
     }
 
-    fetchProfile()
-    // Fetch sessions after profile is loaded
-    if (profile) {
+    if (profile && profile.sessions.length === 0) {
       fetchSessions()
     }
-  }, [discordId, profile?.discord_id, canViewProfile])
+  }, [discordId, profile?.discord_id])
 
   // Redirect if user doesn't have permission to view this profile
   if (!canViewProfile) {
