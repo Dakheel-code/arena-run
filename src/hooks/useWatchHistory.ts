@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 
 interface WatchHistoryItem {
   videoId: string
@@ -10,9 +10,82 @@ interface WatchHistoryItem {
 const WATCH_HISTORY_KEY = 'video_watch_history'
 
 export function useWatchHistory(videoId: string) {
+  const sessionIdRef = useRef<string | null>(null)
+  const watchTimeRef = useRef<number>(0)
+
+  useEffect(() => {
+    // Start tracking session when component mounts
+    const startSession = async () => {
+      try {
+        const token = localStorage.getItem('auth_token')
+        if (!token) return
+
+        const response = await fetch('/.netlify/functions/track-session', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            video_id: videoId,
+            action: 'start'
+          })
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          sessionIdRef.current = data.session_id
+        }
+      } catch (error) {
+        console.error('Failed to start session:', error)
+      }
+    }
+
+    startSession()
+
+    // Update session every 30 seconds
+    const interval = setInterval(() => {
+      if (sessionIdRef.current) {
+        updateSession()
+      }
+    }, 30000)
+
+    return () => {
+      clearInterval(interval)
+      if (sessionIdRef.current) {
+        updateSession()
+      }
+    }
+  }, [videoId])
+
+  const updateSession = async () => {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token || !sessionIdRef.current) return
+
+      await fetch('/.netlify/functions/track-session', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          video_id: videoId,
+          session_id: sessionIdRef.current,
+          action: 'update',
+          watch_seconds: Math.floor(watchTimeRef.current)
+        })
+      })
+    } catch (error) {
+      console.error('Failed to update session:', error)
+    }
+  }
+
   const saveProgress = useCallback((currentTime: number, duration: number) => {
     if (!videoId || !currentTime || !duration) return
     
+    watchTimeRef.current = currentTime
+
     try {
       const history = getWatchHistory()
       const item: WatchHistoryItem = {
