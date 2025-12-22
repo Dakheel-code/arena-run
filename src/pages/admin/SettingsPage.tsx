@@ -1260,7 +1260,6 @@ export function SettingsPage() {
               </div>
             )}
             </div>
-          </div>
 
             <div className="pt-4 border-t border-gray-700">
               <div className="flex gap-3">
