@@ -54,7 +54,7 @@ export const handler: Handler = async (event) => {
       const { data: uploadedVideos, error: videosError } = await supabase
         .from('videos')
         .select('*')
-        .eq('owner_id', discordId)
+        .eq('uploaded_by', discordId)
         .order('created_at', { ascending: false })
 
       if (videosError) {
