@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Layout } from '../../components/Layout'
 import { useAuth } from '../../context/AuthContext'
 import { useLanguage } from '../../context/LanguageContext'
-import { Shield, Search, Filter, CheckCircle, XCircle, User, Clock, MapPin, Monitor, AlertTriangle, Loader, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Shield, Search, Filter, CheckCircle, XCircle, User, Clock, MapPin, Monitor, AlertTriangle, Loader, ChevronLeft, ChevronRight, MoreHorizontal, X, Globe, Chrome } from 'lucide-react'
 
 interface LoginLog {
   id: string
@@ -45,6 +45,7 @@ export default function LoginLogsPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'success' | 'failed'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchInput, setSearchInput] = useState('')
+  const [selectedLog, setSelectedLog] = useState<LoginLog | null>(null)
 
   const PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
 
@@ -234,6 +235,9 @@ export default function LoginLogsPage() {
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
                       {t('time')}
                     </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-discord-dark divide-y divide-gray-700">
@@ -335,6 +339,16 @@ export default function LoginLogsPage() {
                           <Clock className="w-4 h-4 text-gray-400" />
                           <span>{formatDate(log.logged_at)}</span>
                         </div>
+                      </td>
+                      {/* Actions */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => setSelectedLog(log)}
+                          className="p-2 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 transition-colors"
+                          title="View Details"
+                        >
+                          <MoreHorizontal className="w-4 h-4 text-blue-400" />
+                        </button>
                       </td>
                     </tr>
                   ))}
