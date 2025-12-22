@@ -524,6 +524,177 @@ export default function LoginLogsPage() {
             )}
           </div>
         )}
+
+        {/* Login Log Details Modal */}
+        {selectedLog && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={() => setSelectedLog(null)}>
+            <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-gray-700 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-500 p-6 border-b border-gray-700 flex items-center justify-between">
+                <h3 className="text-xl font-bold flex items-center gap-2">
+                  <Shield size={24} />
+                  Login Details
+                </h3>
+                <button
+                  onClick={() => setSelectedLog(null)}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* User Information */}
+                <div className="bg-gray-800/50 rounded-xl p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+                    <User size={16} />
+                    User Information
+                  </h4>
+                  <div className="flex items-center gap-4 mb-4">
+                    {selectedLog.discord_avatar ? (
+                      <img src={selectedLog.discord_avatar} alt="" className="w-16 h-16 rounded-full" />
+                    ) : (
+                      <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center">
+                        <User size={24} />
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-lg font-semibold text-white">{selectedLog.discord_username || 'Unknown'}</p>
+                      <p className="text-sm text-gray-400 font-mono">{selectedLog.discord_id}</p>
+                      {selectedLog.email && (
+                        <p className="text-sm text-gray-400">{selectedLog.email}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status & Reason */}
+                <div className="bg-gray-800/50 rounded-xl p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-3">Status & Result</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Status:</span>
+                      {selectedLog.status === 'success' ? (
+                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-green-500/20 text-green-400 border border-green-500/30">
+                          <CheckCircle size={14} />
+                          Success
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-red-500/20 text-red-400 border border-red-500/30">
+                          <XCircle size={14} />
+                          Failed
+                        </span>
+                      )}
+                    </div>
+                    {selectedLog.failure_reason && (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-gray-400 text-sm">Failure Reason:</span>
+                        <div className="flex items-start gap-2 bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                          <AlertTriangle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-red-400">{selectedLog.failure_reason}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Date & Time */}
+                <div className="bg-gray-800/50 rounded-xl p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+                    <Clock size={16} />
+                    Date & Time
+                  </h4>
+                  <p className="text-lg font-semibold text-white">
+                    {new Date(selectedLog.logged_at).toLocaleString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit'
+                    })}
+                  </p>
+                </div>
+
+                {/* Location */}
+                <div className="bg-gray-800/50 rounded-xl p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+                    <MapPin size={16} />
+                    Location
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Country:</span>
+                      <span className="text-white font-medium">{selectedLog.country || '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">City:</span>
+                      <span className="text-white font-medium">{selectedLog.city || '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">IP Address:</span>
+                      <span className="text-white font-mono text-sm">{selectedLog.ip_address || 'Unknown'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Device Info */}
+                <div className="bg-gray-800/50 rounded-xl p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+                    <Monitor size={16} />
+                    Device Information
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Device Type:</span>
+                      <span className="text-white font-medium flex items-center gap-2">
+                        <Chrome size={14} />
+                        {getUserAgent(selectedLog.user_agent)}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-gray-400 text-sm">User Agent:</span>
+                      <span className="text-white text-xs font-mono bg-gray-900/50 p-2 rounded break-all">
+                        {selectedLog.user_agent || '-'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Permissions */}
+                <div className="bg-gray-800/50 rounded-xl p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+                    <Shield size={16} />
+                    Permissions & Roles
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedLog.is_admin && (
+                      <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                        <CheckCircle size={14} />
+                        Admin
+                      </span>
+                    )}
+                    {selectedLog.is_member && (
+                      <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                        <CheckCircle size={14} />
+                        Member
+                      </span>
+                    )}
+                    {selectedLog.has_required_role && (
+                      <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-green-500/20 text-green-300 border border-green-500/30">
+                        <CheckCircle size={14} />
+                        Required Role
+                      </span>
+                    )}
+                    {!selectedLog.is_admin && !selectedLog.is_member && !selectedLog.has_required_role && (
+                      <span className="text-gray-400 text-sm">No special permissions</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   )
