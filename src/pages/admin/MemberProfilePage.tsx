@@ -58,18 +58,42 @@ export function MemberProfilePage() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!discordId || !canViewProfile) return
+      if (!discordId) return
+      
       try {
         const data = await api.getMemberProfile(discordId)
         setProfile(data.profile)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load profile')
+      } catch (error) {
+        console.error('Failed to fetch member profile:', error)
       } finally {
         setIsLoading(false)
       }
     }
+
+    const fetchSessions = async () => {
+      if (!discordId) return
+      
+      try {
+        const data = await api.getSessions()
+        // Filter sessions for this member
+        const memberSessions = data.sessions.filter(s => s.discord_id === discordId)
+        if (profile) {
+          setProfile({
+            ...profile,
+            sessions: memberSessions
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch sessions:', error)
+      }
+    }
+
     fetchProfile()
-  }, [discordId, canViewProfile])
+    // Fetch sessions after profile is loaded
+    if (profile) {
+      fetchSessions()
+    }
+  }, [discordId, profile?.discord_id, canViewProfile])
 
   // Redirect if user doesn't have permission to view this profile
   if (!canViewProfile) {
