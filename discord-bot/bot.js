@@ -2,6 +2,22 @@ require('dotenv').config();
 const { Client, GatewayIntentBits, EmbedBuilder, SlashCommandBuilder, REST, Routes } = require('discord.js');
 const { createClient } = require('@supabase/supabase-js');
 
+// Validate required environment variables
+const requiredEnvVars = [
+  'DISCORD_BOT_TOKEN',
+  'DISCORD_CLIENT_ID',
+  'DISCORD_GUILD_ID',
+  'SUPABASE_URL',
+  'SUPABASE_SERVICE_ROLE_KEY'
+];
+
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    console.error(`❌ Missing required environment variable: ${envVar}`);
+    process.exit(1);
+  }
+}
+
 // Initialize Supabase client
 const supabase = createClient(
   process.env.SUPABASE_URL,
