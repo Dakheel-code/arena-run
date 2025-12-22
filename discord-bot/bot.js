@@ -16,10 +16,6 @@ const client = new Client({
   ]
 });
 
-// Cloudflare Stream API credentials
-const CF_ACCOUNT_ID = process.env.CF_ACCOUNT_ID;
-const CF_STREAM_API_TOKEN = process.env.CF_STREAM_API_TOKEN;
-
 // Helper function to format duration
 function formatDuration(seconds) {
   const hours = Math.floor(seconds / 3600);
@@ -218,18 +214,8 @@ async function deleteVideo(interaction) {
 
     await interaction.reply({ embeds: [embed] });
 
-    // Delete from Cloudflare Stream in background
-    if (video.stream_uid) {
-      await fetch(
-        `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/stream/${video.stream_uid}`,
-        {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${CF_STREAM_API_TOKEN}` }
-        }
-      );
-    }
-
-    // Delete from database
+    // Delete from database only
+    // Note: Cloudflare Stream deletion is handled by the website
     const { error: deleteError } = await supabase
       .from('videos')
       .delete()
