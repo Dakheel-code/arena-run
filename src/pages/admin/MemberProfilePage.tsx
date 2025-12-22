@@ -84,6 +84,7 @@ export function MemberProfilePage() {
         // Calculate statistics from sessions
         const totalWatchTime = memberSessions.reduce((sum, s) => sum + (s.watch_seconds || 0), 0)
         const uniqueVideos = new Set(memberSessions.map(s => s.video_id)).size
+        const totalViews = memberSessions.length // عدد الجلسات = عدد المشاهدات
         const avgWatchTime = memberSessions.length > 0 ? totalWatchTime / memberSessions.length : 0
         const firstWatch = memberSessions.length > 0 
           ? memberSessions.sort((a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime())[0].started_at
@@ -94,6 +95,7 @@ export function MemberProfilePage() {
           sessions: memberSessions,
           total_watch_time: totalWatchTime,
           videos_watched: uniqueVideos,
+          ...(prev as any).total_views !== undefined && { total_views: totalViews },
           ...(prev as any).avg_watch_time !== undefined && { avg_watch_time: avgWatchTime },
           ...(prev as any).first_watch !== undefined && { first_watch: firstWatch }
         } : null)
