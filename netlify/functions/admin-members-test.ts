@@ -79,6 +79,7 @@ export const handler: Handler = async (event) => {
       const totalViews = sessions?.length || 0
       const avgWatchTime = totalViews > 0 ? Math.floor(totalWatchTime / totalViews) : 0
       const firstWatch = sessions && sessions.length > 0 ? sessions[sessions.length - 1].started_at : null
+      const loginCount = loginLogs?.length || 0
 
       return {
         statusCode: 200,
@@ -92,7 +93,8 @@ export const handler: Handler = async (event) => {
             videos_watched: videosWatched,
             total_views: totalViews,
             avg_watch_time: avgWatchTime,
-            first_watch: firstWatch
+            first_watch: firstWatch,
+            login_count: loginCount
           }
         })
       }
