@@ -10,12 +10,15 @@ interface WatchHistoryItem {
 const WATCH_HISTORY_KEY = 'video_watch_history'
 
 export function useWatchHistory(videoId: string) {
-  const sessionIdRef = useRef<string | null>(null)
   const watchTimeRef = useRef<number>(0)
+  const sessionLoggedRef = useRef<boolean>(false)
 
   useEffect(() => {
-    // Start tracking session when component mounts
-    const startSession = async () => {
+    // Log session when user leaves or after significant watch time
+    const logSession = async () => {
+      if (sessionLoggedRef.current) return
+      if (watchTimeRef.current < 5) return // Only log if watched at least 5 seconds
+      
       try {
         const userStr = localStorage.getItem('user')
         if (!userStr) return
@@ -23,7 +26,9 @@ export function useWatchHistory(videoId: string) {
         const user = JSON.parse(userStr)
         if (!user?.discord_id) return
 
-        const response = await fetch('/.netlify/functions/track-session', {
+        sessionLoggedRef.current = true
+
+        await fetch('/.netlify/functions/log-watch-session', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -31,61 +36,29 @@ export function useWatchHistory(videoId: string) {
           body: JSON.stringify({
             video_id: videoId,
             discord_id: user.discord_id,
-            action: 'start'
+            watch_seconds: Math.floor(watchTimeRef.current)
           })
         })
 
-        if (response.ok) {
-          const data = await response.json()
-          sessionIdRef.current = data.session_id
-        }
+        console.log('Watch session logged:', Math.floor(watchTimeRef.current), 'seconds')
       } catch (error) {
-        console.error('Failed to start session:', error)
+        console.error('Failed to log watch session:', error)
       }
     }
 
-    startSession()
-
-    // Update session every 30 seconds
+    // Log session every 30 seconds if still watching
     const interval = setInterval(() => {
-      if (sessionIdRef.current) {
-        updateSession()
+      if (watchTimeRef.current >= 30) {
+        logSession()
       }
     }, 30000)
 
+    // Log session when component unmounts (user leaves)
     return () => {
       clearInterval(interval)
-      if (sessionIdRef.current) {
-        updateSession()
-      }
+      logSession()
     }
   }, [videoId])
-
-  const updateSession = async () => {
-    try {
-      const userStr = localStorage.getItem('user')
-      if (!userStr || !sessionIdRef.current) return
-      
-      const user = JSON.parse(userStr)
-      if (!user?.discord_id) return
-
-      await fetch('/.netlify/functions/track-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          video_id: videoId,
-          discord_id: user.discord_id,
-          session_id: sessionIdRef.current,
-          action: 'update',
-          watch_seconds: Math.floor(watchTimeRef.current)
-        })
-      })
-    } catch (error) {
-      console.error('Failed to update session:', error)
-    }
-  }
 
   const saveProgress = useCallback((currentTime: number, duration: number) => {
     if (!videoId || !currentTime || !duration) return
