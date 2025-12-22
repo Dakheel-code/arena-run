@@ -71,7 +71,7 @@ export function MemberProfilePage() {
     fetchProfile()
   }, [discordId])
 
-  // Separate effect for fetching sessions
+  // Separate effect for fetching sessions and calculating stats
   useEffect(() => {
     const fetchSessions = async () => {
       if (!discordId || !profile) return
@@ -80,9 +80,22 @@ export function MemberProfilePage() {
         const data = await api.getSessions()
         // Filter sessions for this member
         const memberSessions = data.sessions.filter(s => s.discord_id === discordId)
+        
+        // Calculate statistics from sessions
+        const totalWatchTime = memberSessions.reduce((sum, s) => sum + (s.watch_seconds || 0), 0)
+        const uniqueVideos = new Set(memberSessions.map(s => s.video_id)).size
+        const avgWatchTime = memberSessions.length > 0 ? totalWatchTime / memberSessions.length : 0
+        const firstWatch = memberSessions.length > 0 
+          ? memberSessions.sort((a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime())[0].started_at
+          : null
+        
         setProfile(prev => prev ? {
           ...prev,
-          sessions: memberSessions
+          sessions: memberSessions,
+          total_watch_time: totalWatchTime,
+          videos_watched: uniqueVideos,
+          ...(prev as any).avg_watch_time !== undefined && { avg_watch_time: avgWatchTime },
+          ...(prev as any).first_watch !== undefined && { first_watch: firstWatch }
         } : null)
       } catch (error) {
         console.error('Failed to fetch sessions:', error)
