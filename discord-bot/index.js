@@ -117,6 +117,17 @@ async function sendNotification(channelType, embed) {
   }
 }
 
+async function safeAutocompleteRespond(interaction, choices) {
+  if (interaction.responded) return;
+  try {
+    await interaction.respond(choices);
+  } catch (error) {
+    const isAlreadyAck = error?.code === 40060 || /already been acknowledged/i.test(String(error?.message || ''));
+    if (isAlreadyAck) return;
+    console.error('Autocomplete respond error:', error);
+  }
+}
+
 async function handleNewUpload(payload) {
   if (!notificationSettings.notify_new_upload) return;
 
@@ -842,11 +853,11 @@ client.on('interactionCreate', async interaction => {
             value: video.id
           };
         });
-        
-        await interaction.respond(choices);
+
+        await safeAutocompleteRespond(interaction, choices);
       } catch (error) {
         console.error('Autocomplete error:', error);
-        await interaction.respond([]);
+        await safeAutocompleteRespond(interaction, []);
       }
     }
     return;
