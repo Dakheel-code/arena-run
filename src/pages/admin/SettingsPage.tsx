@@ -52,6 +52,8 @@ export function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [showSaveNotification, setShowSaveNotification] = useState(false)
+  const [isTestingNotifications, setIsTestingNotifications] = useState(false)
+  const [testNotificationsResult, setTestNotificationsResult] = useState<string | null>(null)
   const [newRole, setNewRole] = useState('')
   const [roles, setRoles] = useState<string[]>([])
   const [newServerId, setNewServerId] = useState('')
@@ -107,6 +109,25 @@ export function SettingsPage() {
     fetchSettings()
     fetchMembers()
   }, [])
+
+  const handleTestNotifications = async () => {
+    try {
+      setIsTestingNotifications(true)
+      setTestNotificationsResult(null)
+      const result = await api.testNotifications()
+      setTestNotificationsResult(JSON.stringify(result, null, 2))
+    } catch (error) {
+      setTestNotificationsResult(
+        JSON.stringify(
+          { ok: false, error: error instanceof Error ? error.message : String(error) },
+          null,
+          2
+        )
+      )
+    } finally {
+      setIsTestingNotifications(false)
+    }
+  }
 
   const fetchMembers = async () => {
     try {
@@ -1443,6 +1464,33 @@ export function SettingsPage() {
               <p className="text-xs text-gray-500 mt-2">
                 {t('allNotificationsSent')}
               </p>
+            )}
+          </div>
+
+          <div className="mt-6">
+            <button
+              onClick={handleTestNotifications}
+              disabled={isTestingNotifications}
+              className="btn-primary flex items-center gap-2"
+              type="button"
+            >
+              {isTestingNotifications ? (
+                <>
+                  <Loader className="animate-spin" size={16} />
+                  Testing...
+                </>
+              ) : (
+                <>
+                  <Bell size={16} />
+                  Test Notifications
+                </>
+              )}
+            </button>
+
+            {testNotificationsResult && (
+              <pre className="mt-3 p-3 rounded-lg bg-gray-900/60 border border-gray-700 text-xs text-gray-200 overflow-auto max-h-64">
+                {testNotificationsResult}
+              </pre>
             )}
           </div>
         </div>

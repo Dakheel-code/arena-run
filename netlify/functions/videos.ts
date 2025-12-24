@@ -148,7 +148,7 @@ async function sendDiscordNotification(
     console.log('⏭️ Bot token/channel missing, falling back to webhook (if configured)')
   }
 
-  const webhookUrl = (settings as any)?.webhook_url
+  const webhookUrl = (settings as any)?.webhook_url || process.env.DISCORD_WEBHOOK_URL
   if (!webhookUrl) {
     console.error('❌ No webhook_url configured in settings; notification could not be sent')
     return

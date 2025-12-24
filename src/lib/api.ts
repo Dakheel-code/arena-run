@@ -219,4 +219,8 @@ export const api = {
     body: JSON.stringify(settings),
   }),
 
+  testNotifications: () => fetchAPI<{ ok: boolean; diagnostics: any }>('/test-notifications', {
+    method: 'POST',
+  }),
+
 }
