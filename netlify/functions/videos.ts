@@ -31,7 +31,17 @@ function getUser(event: any) {
   return valid ? payload : null
 }
 
-async function sendDiscordNotification(title: string, description: string, fields?: Array<{name: string, value: string, inline?: boolean}>) {
+async function sendDiscordNotification(
+  title: string, 
+  description: string, 
+  fields?: Array<{name: string, value: string, inline?: boolean}>,
+  options?: {
+    discordId?: string,
+    avatarUrl?: string,
+    videoUrl?: string,
+    authorName?: string
+  }
+) {
   // Get webhook URL from settings
   const { data: settings } = await supabase
     .from('settings')
@@ -47,21 +57,54 @@ async function sendDiscordNotification(title: string, description: string, field
   if (isUploadNotification && !settings.notify_new_upload) return
   if (isPublishNotification && !settings.notify_new_publish) return
   
+  const embed: any = {
+    title,
+    description,
+    color: 0xF59E0B, // Gold/Amber color
+    fields: fields || [],
+    timestamp: new Date().toISOString(),
+    footer: {
+      text: 'RGR - Arena Run'
+    }
+  }
+  
+  // Add author info with avatar if provided
+  if (options?.authorName) {
+    embed.author = {
+      name: options.authorName,
+      icon_url: options.avatarUrl || undefined
+    }
+  }
+  
+  const payload: any = {
+    embeds: [embed]
+  }
+  
+  // Add mention if discord ID provided
+  if (options?.discordId) {
+    payload.content = `<@${options.discordId}>`
+  }
+  
+  // Add button if video URL provided
+  if (options?.videoUrl) {
+    payload.components = [{
+      type: 1, // Action Row
+      components: [{
+        type: 2, // Button
+        style: 5, // Link button
+        label: 'Click Here',
+        url: options.videoUrl,
+        emoji: {
+          name: '▶️'
+        }
+      }]
+    }]
+  }
+  
   await fetch(settings.webhook_url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      embeds: [{
-        title,
-        description,
-        color: 0xF59E0B, // Gold/Amber color
-        fields: fields || [],
-        timestamp: new Date().toISOString(),
-        footer: {
-          text: 'RGR - Arena Run'
-        }
-      }],
-    }),
+    body: JSON.stringify(payload),
   })
 }
 
@@ -230,6 +273,13 @@ export const handler: Handler = async (event) => {
       return { statusCode: 500, body: JSON.stringify({ message: error.message }) }
     }
 
+    // Get user avatar from members table
+    const { data: memberData } = await supabase
+      .from('members')
+      .select('avatar')
+      .eq('discord_id', user.discord_id)
+      .single()
+    
     // Send notification to admin about new upload pending review
     const uploadFields = []
     if (season) uploadFields.push({ name: 'Season', value: season, inline: true })
@@ -239,7 +289,12 @@ export const handler: Handler = async (event) => {
     await sendDiscordNotification(
       '📤 New Video Upload - Pending Review',
       `**${title}**\n\nA new video has been uploaded and is waiting for admin approval.`,
-      uploadFields
+      uploadFields,
+      {
+        discordId: user.discord_id,
+        avatarUrl: memberData?.avatar || undefined,
+        authorName: user.username
+      }
     )
 
     return {
@@ -309,6 +364,13 @@ export const handler: Handler = async (event) => {
 
     // Send notification if published
     if (is_published) {
+      // Get uploader info from members table
+      const { data: uploaderData } = await supabase
+        .from('members')
+        .select('avatar')
+        .eq('discord_id', data.uploaded_by)
+        .single()
+      
       const fields = []
       if (data.season) fields.push({ name: 'Season', value: data.season, inline: true })
       if (data.day) fields.push({ name: 'Day', value: data.day, inline: true })
@@ -316,10 +378,18 @@ export const handler: Handler = async (event) => {
       if (data.wins_attacks) fields.push({ name: 'Wins/Attacks', value: data.wins_attacks, inline: true })
       if (data.arena_time) fields.push({ name: 'Arena Time', value: data.arena_time, inline: true })
       
+      const videoUrl = `${process.env.URL || 'https://arena.regulators.us'}/watch/${data.id}`
+      
       await sendDiscordNotification(
         '🎬 New Video Published!',
         `**${data.title}**`,
-        fields
+        fields,
+        {
+          discordId: data.uploaded_by,
+          avatarUrl: uploaderData?.avatar || undefined,
+          videoUrl: videoUrl,
+          authorName: data.uploader_name
+        }
       )
     }
 
