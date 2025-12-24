@@ -284,14 +284,12 @@ export const handler: Handler = async (event) => {
     const uploadFields = []
     if (season) uploadFields.push({ name: 'Season', value: season, inline: true })
     if (day) uploadFields.push({ name: 'Day', value: day, inline: true })
-    uploadFields.push({ name: 'Uploaded by', value: user.username, inline: true })
     
     await sendDiscordNotification(
       '📤 New Video Upload - Pending Review',
-      `**${title}**\n\nA new video has been uploaded and is waiting for admin approval.`,
+      `**${title}**\n\nA new video has been uploaded by <@${user.discord_id}> and is waiting for admin approval.`,
       uploadFields,
       {
-        discordId: user.discord_id,
         avatarUrl: memberData?.avatar || undefined,
         authorName: user.username
       }
@@ -374,7 +372,6 @@ export const handler: Handler = async (event) => {
       const fields = []
       if (data.season) fields.push({ name: 'Season', value: data.season, inline: true })
       if (data.day) fields.push({ name: 'Day', value: data.day, inline: true })
-      if (data.uploader_name) fields.push({ name: 'Uploaded by', value: data.uploader_name, inline: true })
       if (data.wins_attacks) fields.push({ name: 'Wins/Attacks', value: data.wins_attacks, inline: true })
       if (data.arena_time) fields.push({ name: 'Arena Time', value: data.arena_time, inline: true })
       
@@ -382,10 +379,9 @@ export const handler: Handler = async (event) => {
       
       await sendDiscordNotification(
         '🎬 New Video Published!',
-        `**${data.title}**`,
+        `**${data.title}**\n\nUploaded by <@${data.uploaded_by}>`,
         fields,
         {
-          discordId: data.uploaded_by,
           avatarUrl: uploaderData?.avatar || undefined,
           videoUrl: videoUrl,
           authorName: data.uploader_name
