@@ -74,9 +74,9 @@ async function sendDiscordNotification(
     }
   }
   
-  // Add thumbnail with avatar if provided
+  // Add image with avatar if provided
   if (options?.avatarUrl) {
-    embed.thumbnail = {
+    embed.image = {
       url: options.avatarUrl
     }
   }
@@ -284,10 +284,12 @@ export const handler: Handler = async (event) => {
     const uploadFields = []
     if (season) uploadFields.push({ name: 'Season', value: season, inline: true })
     if (day) uploadFields.push({ name: 'Day', value: day, inline: true })
+    if (wins_attacks) uploadFields.push({ name: 'Wins/Attacks', value: wins_attacks, inline: true })
+    if (arena_time) uploadFields.push({ name: 'Arena Time', value: arena_time, inline: true })
     
     await sendDiscordNotification(
       '📤 New Video Upload - Pending Review',
-      `**${title}**\n\nA new video has been uploaded by <@${user.discord_id}> and is waiting for admin approval.`,
+      `**${title}**\n\nUploaded by <@${user.discord_id}>`,
       uploadFields,
       {
         avatarUrl: memberData?.avatar || undefined,
