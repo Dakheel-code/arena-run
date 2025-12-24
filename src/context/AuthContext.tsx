@@ -1,12 +1,10 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { AuthState } from '../types'
-import { api } from '../lib/api'
 
 interface AuthContextType extends AuthState {
   login: () => Promise<void>
   logout: () => void
   refreshUser: () => Promise<void>
-  refreshToken: () => Promise<void>
   token: string | null
 }
 
@@ -18,6 +16,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading: true,
     isAuthenticated: false,
   })
+  const [token, setToken] = useState<string | null>(null)
 
   const refreshUser = async () => {
     const authToken = localStorage.getItem('auth_token')
@@ -26,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
+    setToken(authToken)
 
     try {
       // Decode JWT token to get user data
@@ -37,8 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           discord_id: payload.discord_id, 
           username: payload.username,
           avatar: payload.avatar || null,
-          is_admin: payload.is_admin || false,
-          role: payload.role || 'member'
+          is_admin: payload.is_admin || false
         }, 
         isLoading: false, 
         isAuthenticated: true 
@@ -60,23 +59,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem('auth_token')
+    setToken(null)
     setState({ user: null, isLoading: false, isAuthenticated: false })
     window.location.href = '/'
   }
 
-  const refreshToken = async () => {
-    try {
-      const { token: newToken } = await api.refreshToken()
-      localStorage.setItem('auth_token', newToken)
-      await refreshUser()
-    } catch (error) {
-      console.error('Failed to refresh token:', error)
-      logout()
-    }
-  }
-
   return (
-    <AuthContext.Provider value={{ ...state, login, logout, refreshUser, refreshToken, token: localStorage.getItem('auth_token') }}>
+    <AuthContext.Provider value={{ ...state, login, logout, refreshUser, token: localStorage.getItem('auth_token') }}>
       {children}
     </AuthContext.Provider>
   )

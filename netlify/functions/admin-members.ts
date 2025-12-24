@@ -86,7 +86,7 @@ export const handler: Handler = async (event) => {
       // Get videos uploaded by this member
       const { data: uploadedVideos } = await supabase
         .from('videos')
-        .select('id, title, thumbnail_url, stream_uid, duration, views_count, is_published, created_at')
+        .select('id, title, thumbnail_url, stream_uid, duration, views_count, likes_count, is_published, created_at')
         .eq('uploaded_by', discordId)
         .order('created_at', { ascending: false })
 

@@ -4,7 +4,7 @@ import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
 import { useLanguage } from '../../context/LanguageContext'
 import { Video as VideoType } from '../../types'
-import { Users, Video, Eye, Clock, Calendar, TrendingUp, Play, UserPlus, Loader, Upload, User, LayoutDashboard } from 'lucide-react'
+import { Users, Video, Eye, ThumbsUp, Clock, Calendar, TrendingUp, Play, UserPlus, Loader, Upload, User, LayoutDashboard } from 'lucide-react'
 
 interface TopUploader {
   id: string
@@ -281,6 +281,15 @@ export function AdminDashboard() {
                 <Eye size={36} className="text-blue-400" />
               </div>
             </div>
+            <div className="card bg-gradient-to-br from-pink-500/10 to-pink-600/5 border border-pink-500/20">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm">{t('totalLikes')}</p>
+                  <p className="text-3xl font-bold mt-1 text-pink-400">{stats?.totalLikes?.toLocaleString() || 0}</p>
+                </div>
+                <ThumbsUp size={36} className="text-pink-400" />
+              </div>
+            </div>
             <div className="card bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/20">
               <div className="flex items-center justify-between">
                 <div>
@@ -480,6 +489,9 @@ export function AdminDashboard() {
                         <div className="flex items-center gap-3 text-xs text-gray-400">
                           <span className="flex items-center gap-1">
                             <Eye size={12} /> {video.views}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <ThumbsUp size={12} /> {video.likes}
                           </span>
                         </div>
                       </div>

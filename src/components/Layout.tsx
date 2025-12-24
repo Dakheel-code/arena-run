@@ -1,8 +1,7 @@
 import { ReactNode, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Upload, Settings, LogOut, Menu, X, Users, BarChart3, Shield, FileText } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { hasPermission, isAdmin } from '../lib/permissions'
+import { useSettings } from '../context/SettingsContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useTheme, ThemeColor } from '../context/ThemeContext'
 import { Language } from '../i18n/translations'
@@ -159,7 +158,7 @@ export function Layout({ children }: LayoutProps) {
             </Link>
           ))}
 
-          {hasPermission(user, 'ACCESS_ADMIN_PANEL') && (
+          {user?.is_admin && (
             <>
               <div className="border-t border-gray-700 my-4" />
               <p className="text-xs text-gray-500 px-4 mb-2">{t('admin')}</p>

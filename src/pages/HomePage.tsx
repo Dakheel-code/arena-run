@@ -49,7 +49,7 @@ export function HomePage() {
       case 'new':
         return videos.filter(v => new Date(v.created_at).getTime() > weekAgo)
       case 'popular':
-        return [...videos].sort((a, b) => (b.views_count || 0) - (a.views_count || 0))
+        return [...videos].sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0))
       default:
         return videos
     }

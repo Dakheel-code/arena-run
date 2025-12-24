@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { api } from '../lib/api'
-import { Video } from '../types'
-import { useAuth } from '../context/AuthContext'
-import { canEditVideo } from '../lib/permissions'
 import { Layout } from '../components/Layout'
+import { api } from '../lib/api'
+import { useAuth } from '../context/AuthContext'
+import { Video } from '../types'
 import { ArrowLeft, Loader, Save } from 'lucide-react'
 
 export function EditVideoPage() {
@@ -36,8 +35,8 @@ export function EditVideoPage() {
         const { video } = await api.getVideo(id)
         setVideo(video)
         
-        // Check if user has permission to edit this video
-        if (!canEditVideo(user, video.uploaded_by || '')) {
+        // Check if user is the owner
+        if (video.uploaded_by !== user?.discord_id && !user?.is_admin) {
           setError('You do not have permission to edit this video')
           return
         }
