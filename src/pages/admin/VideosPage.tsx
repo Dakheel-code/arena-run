@@ -6,6 +6,7 @@ import { useLanguage } from '../../context/LanguageContext'
 import { useAuth } from '../../context/AuthContext'
 import { Video, Member } from '../../types'
 import { Plus, Trash2, Eye, EyeOff, Loader, Upload, X, Edit, Video as VideoIcon, User } from 'lucide-react'
+import { VideoPlayer } from '../../components/VideoPlayer'
 import * as tus from 'tus-js-client'
 
 function getThumbnailUrl(streamUid: string): string {
@@ -36,6 +37,7 @@ export function VideosPage() {
   })
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [watchingVideo, setWatchingVideo] = useState<Video | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -249,7 +251,10 @@ export function VideosPage() {
           {videos.map((video) => (
             <div key={video.id} className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl overflow-hidden border border-gray-700/50 transition-all duration-300 hover:scale-105 hover:-translate-y-1 hover:shadow-lg animate-fade-in-up">
               {/* Thumbnail */}
-              <div className="relative aspect-video bg-gray-800">
+              <div 
+                className="relative aspect-video bg-gray-800 cursor-pointer group"
+                onClick={() => setWatchingVideo(video)}
+              >
                 {video.stream_uid ? (
                   <img
                     src={getThumbnailUrl(video.stream_uid)}
@@ -264,6 +269,13 @@ export function VideosPage() {
                     <Upload size={48} />
                   </div>
                 )}
+                
+                {/* Play Overlay */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="bg-theme/90 rounded-full p-4">
+                    <VideoIcon size={32} className="text-white" />
+                  </div>
+                </div>
                 
                 {/* Status Badge */}
                 <div className={`absolute top-2 right-2 px-3 py-1.5 rounded-lg text-xs font-medium ${
