@@ -57,9 +57,15 @@ async function sendDiscordNotification(
   if (isUploadNotification && !settings.notify_new_upload) return
   if (isPublishNotification && !settings.notify_new_publish) return
   
+  // Add mention to description if discord ID provided
+  let finalDescription = description
+  if (options?.discordId) {
+    finalDescription = `<@${options.discordId}>\n\n${description}`
+  }
+  
   const embed: any = {
     title,
-    description,
+    description: finalDescription,
     color: 0xF59E0B, // Gold/Amber color
     fields: fields || [],
     timestamp: new Date().toISOString(),
@@ -68,21 +74,15 @@ async function sendDiscordNotification(
     }
   }
   
-  // Add author info with avatar if provided
-  if (options?.authorName) {
-    embed.author = {
-      name: options.authorName,
-      icon_url: options.avatarUrl || undefined
+  // Add thumbnail with avatar if provided
+  if (options?.avatarUrl) {
+    embed.thumbnail = {
+      url: options.avatarUrl
     }
   }
   
   const payload: any = {
     embeds: [embed]
-  }
-  
-  // Add mention if discord ID provided
-  if (options?.discordId) {
-    payload.content = `<@${options.discordId}>`
   }
   
   // Add button if video URL provided
