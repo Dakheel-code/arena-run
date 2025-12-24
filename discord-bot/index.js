@@ -1,6 +1,3 @@
-const path = require('path');
-const dotenv = require('dotenv');
-dotenv.config({ path: path.resolve(__dirname, '.env') });
 const dns = require('dns');
 const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, REST, Routes } = require('discord.js');
 const { createClient } = require('@supabase/supabase-js');
