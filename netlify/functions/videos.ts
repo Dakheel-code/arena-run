@@ -48,17 +48,11 @@ async function sendDiscordNotification(
   console.log('📋 Bot Token:', DISCORD_BOT_TOKEN ? 'SET' : 'MISSING')
   console.log('📋 Channel:', CHANNEL_UPLOADS || 'MISSING')
   
-  // Check if bot token and channel are configured
-  if (!DISCORD_BOT_TOKEN || !CHANNEL_UPLOADS) {
-    console.error('❌ Discord bot or channel not configured')
-    return
-  }
-  
   // Get notification settings
   const { data: settings, error: settingsError } = await supabase
     .from('settings')
-    .select('notify_new_upload, notify_new_publish')
-    .single()
+    .select('notify_new_upload, notify_new_publish, webhook_url')
+    .maybeSingle()
   
   console.log('⚙️ Settings:', settings)
   console.log('⚙️ Settings Error:', settingsError)
@@ -121,29 +115,91 @@ async function sendDiscordNotification(
       users: [options.discordId]
     }
   }
-  
-  // Send via Discord Bot API
-  try {
-    const response = await fetch(
-      `https://discord.com/api/v10/channels/${CHANNEL_UPLOADS}/messages`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bot ${DISCORD_BOT_TOKEN}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
+
+  // Send via Discord Bot API (if configured)
+  const canUseBot = !!(DISCORD_BOT_TOKEN && CHANNEL_UPLOADS)
+  if (canUseBot) {
+    try {
+      const response = await fetch(
+        `https://discord.com/api/v10/channels/${CHANNEL_UPLOADS}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bot ${DISCORD_BOT_TOKEN}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        }
+      )
+      
+      if (response.ok) {
+        console.log('✅ Notification sent via Discord Bot')
+        return
       }
-    )
-    
-    if (!response.ok) {
-      const error = await response.text()
-      console.error('❌ Discord API error:', error)
-    } else {
-      console.log('✅ Notification sent via Discord Bot')
+
+      const errorText = await response.text()
+      console.error('❌ Discord API error:', errorText)
+      console.log('↩️ Falling back to webhook (if configured)')
+    } catch (error) {
+      console.error('❌ Failed to send via Discord Bot API:', error)
+      console.log('↩️ Falling back to webhook (if configured)')
     }
+  } else {
+    console.log('⏭️ Bot token/channel missing, falling back to webhook (if configured)')
+  }
+
+  const webhookUrl = (settings as any)?.webhook_url
+  if (!webhookUrl) {
+    console.error('❌ No webhook_url configured in settings; notification could not be sent')
+    return
+  }
+
+  try {
+    const webhookResp = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+
+    if (!webhookResp.ok) {
+      const errorText = await webhookResp.text()
+      console.error('❌ Webhook error:', errorText)
+
+      if (payload.components) {
+        console.log('↩️ Retrying webhook without components')
+        const embedWithLink = {
+          ...embed,
+          description: options?.videoUrl
+            ? `${embed.description}\n\n${options.videoUrl}`
+            : embed.description,
+        }
+        const retryPayload: any = {
+          ...payload,
+          embeds: [embedWithLink],
+        }
+        delete retryPayload.components
+
+        const retryResp = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(retryPayload),
+        })
+
+        if (!retryResp.ok) {
+          const retryErrorText = await retryResp.text()
+          console.error('❌ Webhook retry error:', retryErrorText)
+          return
+        }
+
+        console.log('✅ Notification sent via webhook (without components)')
+        return
+      }
+      return
+    }
+
+    console.log('✅ Notification sent via webhook')
   } catch (error) {
-    console.error('❌ Failed to send Discord notification:', error)
+    console.error('❌ Failed to send via webhook:', error)
   }
 }
 
@@ -417,7 +473,7 @@ export const handler: Handler = async (event) => {
       if (data.wins_attacks) fields.push({ name: 'Wins/Attacks', value: data.wins_attacks, inline: true })
       if (data.arena_time) fields.push({ name: 'Arena Time', value: data.arena_time, inline: true })
       
-      const videoUrl = `${process.env.URL || 'https://arena.regulators.us'}/watch/${data.id}`
+      const videoUrl = `${process.env.URL || 'https://arena.regulators.us'}/app/watch/${data.id}`
       
       await sendDiscordNotification(
         '🎬 New Video Published!',
