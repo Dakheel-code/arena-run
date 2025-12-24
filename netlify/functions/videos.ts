@@ -92,11 +92,8 @@ async function sendDiscordNotification(
       components: [{
         type: 2, // Button
         style: 5, // Link button
-        label: 'Watch Video',
-        url: options.videoUrl,
-        emoji: {
-          name: '▶️'
-        }
+        label: '▶️ Watch Video',
+        url: options.videoUrl
       }]
     }]
   }
