@@ -315,6 +315,7 @@ export const handler: Handler = async (event) => {
       `**${title}**\n\nUploaded by <@${user.discord_id}>`,
       uploadFields,
       {
+        discordId: user.discord_id,
         avatarUrl: memberData?.avatar || undefined,
         authorName: user.username
       }
@@ -407,6 +408,7 @@ export const handler: Handler = async (event) => {
         `**${data.title}**\n\nUploaded by <@${data.uploaded_by}>`,
         fields,
         {
+          discordId: data.uploaded_by,
           avatarUrl: uploaderData?.avatar || undefined,
           videoUrl: videoUrl,
           authorName: data.uploader_name
