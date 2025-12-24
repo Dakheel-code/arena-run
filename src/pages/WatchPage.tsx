@@ -4,7 +4,6 @@ import { Video } from '../types'
 import { api } from '../lib/api'
 import { VideoPlayer } from '../components/VideoPlayer'
 import { Layout } from '../components/Layout'
-import { Comments } from '../components/Comments'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { ArrowLeft, Loader, Trophy, Clock, Shield, TrendingUp, Calendar, Mic, User, ThumbsUp, Edit2 } from 'lucide-react'
@@ -259,12 +258,6 @@ export function WatchPage() {
           </div>
         )}
 
-        {/* Comments Section */}
-        <div className="mt-6">
-          <div className="card">
-            <Comments videoId={video.id} />
-          </div>
-        </div>
       </div>
     </Layout>
   )
