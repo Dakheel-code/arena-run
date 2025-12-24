@@ -375,6 +375,38 @@ export function VideosPage() {
         </div>
       )}
 
+      {/* Watch Video Modal */}
+      {watchingVideo && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="relative w-full max-w-5xl">
+            <button
+              onClick={() => setWatchingVideo(null)}
+              className="absolute -top-12 right-0 p-2 text-white hover:text-gray-300 transition-colors"
+            >
+              <X size={32} />
+            </button>
+            
+            <div className="bg-gray-900 rounded-xl overflow-hidden">
+              <div className="aspect-video">
+                {watchingVideo.stream_uid && (
+                  <VideoPlayer 
+                    videoId={watchingVideo.id} 
+                    streamUid={watchingVideo.stream_uid} 
+                  />
+                )}
+              </div>
+              
+              <div className="p-4">
+                <h2 className="text-xl font-bold mb-2">{watchingVideo.title}</h2>
+                {watchingVideo.description && (
+                  <p className="text-gray-400 text-sm">{watchingVideo.description}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Upload Modal */}
       {/* Edit Modal */}
       {editingVideo && (
