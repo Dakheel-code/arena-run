@@ -1,13 +1,14 @@
 import { useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { hasPermission } from '../lib/permissions'
 
 export function FloatingNewRunButton() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  // Only show for admin users
-  if (!user?.is_admin) return null
+  // Only show for users with upload permission (admin, editor)
+  if (!hasPermission(user, 'UPLOAD_VIDEOS')) return null
 
   return (
     <button

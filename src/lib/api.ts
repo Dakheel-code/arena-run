@@ -24,6 +24,7 @@ export const api = {
   // Auth
   getAuthUrl: () => fetchAPI<{ url: string }>('/auth'),
   getUser: () => fetchAPI<{ user: import('../types').User }>('/auth-user'),
+  refreshToken: () => fetchAPI<{ token: string }>('/refresh-token'),
   logout: () => {
     localStorage.removeItem('auth_token')
     window.location.href = '/'
@@ -75,12 +76,6 @@ export const api = {
   deleteVideo: (id: string) =>
     fetchAPI<{ success: boolean }>(`/videos?id=${id}`, { method: 'DELETE' }),
 
-  // Likes
-  likeVideo: (videoId: string) =>
-    fetchAPI<{ liked: boolean; likes_count: number }>('/likes', {
-      method: 'POST',
-      body: JSON.stringify({ video_id: videoId }),
-    }),
 
   // Playback
   getPlaybackToken: (videoId: string) =>
@@ -225,52 +220,4 @@ export const api = {
     body: JSON.stringify(settings),
   }),
 
-  // Comments
-  getComments: (videoId: string) => fetchAPI<Comment[]>(`/comments?videoId=${videoId}`),
-  
-  addComment: (videoId: string, content: string, parentId?: string) => 
-    fetchAPI<Comment>('/comments', {
-      method: 'POST',
-      body: JSON.stringify({ videoId, content, parentId }),
-    }),
-  
-  editComment: (commentId: string, content: string) =>
-    fetchAPI<Comment>('/comments', {
-      method: 'PUT',
-      body: JSON.stringify({ commentId, content }),
-    }),
-  
-  deleteComment: (commentId: string) =>
-    fetchAPI<{ success: boolean }>(`/comments?commentId=${commentId}`, {
-      method: 'DELETE',
-    }),
-  
-  likeComment: (commentId: string) =>
-    fetchAPI<{ likes_count: number; user_liked: boolean }>('/comments', {
-      method: 'PATCH',
-      body: JSON.stringify({ commentId, action: 'like' }),
-    }),
-  
-  unlikeComment: (commentId: string) =>
-    fetchAPI<{ likes_count: number; user_liked: boolean }>('/comments', {
-      method: 'PATCH',
-      body: JSON.stringify({ commentId, action: 'unlike' }),
-    }),
-}
-
-// Comment type
-export interface Comment {
-  id: string
-  video_id: string
-  discord_id: string
-  parent_id: string | null
-  content: string
-  is_edited: boolean
-  created_at: string
-  updated_at: string
-  author_name: string
-  author_avatar: string | null
-  likes_count: number
-  user_liked: boolean
-  replies?: Comment[]
 }

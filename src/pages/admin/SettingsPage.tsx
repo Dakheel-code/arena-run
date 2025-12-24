@@ -5,6 +5,7 @@ import { Layout } from '../../components/Layout'
 import { useSettings } from '../../context/SettingsContext'
 import { useTheme, ThemeColor } from '../../context/ThemeContext'
 import { useLanguage } from '../../context/LanguageContext'
+import { useAuth } from '../../context/AuthContext'
 import { Member, UserRole } from '../../types'
 import { Bell, Shield, Database, Globe, Loader, CheckCircle, AlertTriangle, MapPin, Wifi, Eye, Smartphone, Clock, ShieldAlert, Palette, Upload, Plus, X, Download, HardDrive, Zap, Image, Code, Crown, Edit3, Users, User, Settings } from 'lucide-react'
 
@@ -49,6 +50,7 @@ export function SettingsPage() {
   const { t } = useLanguage()
   const { refreshSettings } = useSettings()
   const { themeColor, setThemeColor, themeMode, setThemeMode } = useTheme()
+  const { user, refreshToken } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [showSaveNotification, setShowSaveNotification] = useState(false)
@@ -130,6 +132,16 @@ export function SettingsPage() {
       )
       if (selectedMember && selectedMember.discord_id === member.discord_id) {
         setSelectedMember({ ...selectedMember, role: newRole })
+      }
+      
+      // If updating current user's role, refresh their token
+      if (user?.discord_id === member.discord_id) {
+        try {
+          await refreshToken()
+          console.log('Token refreshed for current user')
+        } catch (error) {
+          console.error('Failed to refresh token:', error)
+        }
       }
       
       // Show success notification

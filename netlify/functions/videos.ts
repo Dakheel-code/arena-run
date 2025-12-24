@@ -1,5 +1,6 @@
 import type { Handler } from '@netlify/functions'
 import { createClient } from '@supabase/supabase-js'
+import { hasPermission, canEditVideo, canDeleteVideo, isEditor } from './utils/permissions'
 
 const CF_ACCOUNT_ID = process.env.CF_ACCOUNT_ID!
 const CF_STREAM_API_TOKEN = process.env.CF_STREAM_API_TOKEN!
@@ -88,13 +89,6 @@ export const handler: Handler = async (event) => {
         return { statusCode: 404, body: JSON.stringify({ message: 'Video not found' }) }
       }
 
-      // Check if user liked this video
-      const { data: likeData } = await supabase
-        .from('video_likes')
-        .select('id')
-        .eq('video_id', videoId)
-        .eq('discord_id', user.discord_id)
-        .single()
 
       // Get uploader avatar from members table
       let uploader_avatar = null
@@ -115,16 +109,15 @@ export const handler: Handler = async (event) => {
         body: JSON.stringify({ 
           video: { 
             ...data, 
-            user_liked: !!likeData,
             uploader_avatar
           } 
         }),
       }
     }
 
-    // List all videos (admin sees all, users see published only)
+    // List all videos (admin/editor sees all, users see published only)
     const query = supabase.from('videos').select('*').order('created_at', { ascending: false })
-    if (!user.is_admin) {
+    if (!hasPermission(user, 'VIEW_UNPUBLISHED_VIDEOS')) {
       query.eq('is_published', true)
     }
 
@@ -154,9 +147,12 @@ export const handler: Handler = async (event) => {
     }
   }
 
-  // POST - Create video (any authenticated user can upload)
+  // POST - Create video (editors and admins can upload)
   if (method === 'POST') {
-    // Any authenticated member can upload videos
+    // Check if user has permission to upload videos
+    if (!hasPermission(user, 'UPLOAD_VIDEOS')) {
+      return { statusCode: 403, body: JSON.stringify({ message: 'You do not have permission to upload videos' }) }
+    }
 
     const body = JSON.parse(event.body || '{}')
     const { 
@@ -265,19 +261,16 @@ export const handler: Handler = async (event) => {
       return { statusCode: 404, body: JSON.stringify({ message: 'Video not found' }) }
     }
 
-    const isOwner = existingVideo.uploaded_by === user.discord_id
-    const isAdmin = user.is_admin
-
-    // Only admin or owner can edit
-    if (!isAdmin && !isOwner) {
-      return { statusCode: 403, body: JSON.stringify({ message: 'Forbidden' }) }
+    // Check if user can edit this video
+    if (!canEditVideo(user, existingVideo.uploaded_by)) {
+      return { statusCode: 403, body: JSON.stringify({ message: 'You do not have permission to edit this video' }) }
     }
 
     // Build update object with only provided fields
     const updateData: Record<string, any> = {}
     
-    // Admin-only fields: is_published, title, uploaded_by, uploader_name
-    if (isAdmin) {
+    // Fields that require publish permission
+    if (hasPermission(user, 'PUBLISH_VIDEOS')) {
       if (is_published !== undefined) updateData.is_published = is_published
       if (title !== undefined) updateData.title = title
       if (uploaded_by !== undefined) updateData.uploaded_by = uploaded_by
@@ -332,8 +325,8 @@ export const handler: Handler = async (event) => {
 
   // DELETE - Delete video
   if (method === 'DELETE') {
-    if (!user.is_admin) {
-      return { statusCode: 403, body: JSON.stringify({ message: 'Forbidden' }) }
+    if (!canDeleteVideo(user)) {
+      return { statusCode: 403, body: JSON.stringify({ message: 'You do not have permission to delete videos' }) }
     }
 
     const videoId = event.queryStringParameters?.id

@@ -42,10 +42,9 @@ export const handler: Handler = async (event) => {
   // Get total views from videos
   const { data: videos } = await supabase
     .from('videos')
-    .select('views_count, likes_count, created_at, title, is_published')
+    .select('views_count, created_at, title, is_published')
 
   const totalViews = videos?.reduce((sum, v) => sum + (v.views_count || 0), 0) || 0
-  const totalLikes = videos?.reduce((sum, v) => sum + (v.likes_count || 0), 0) || 0
   const publishedVideos = videos?.filter(v => v.is_published).length || 0
 
   // Get active members (logged in within last 6 months)
@@ -92,7 +91,7 @@ export const handler: Handler = async (event) => {
   // Get top videos (most viewed) - need to fetch with id
   const { data: allVideos } = await supabase
     .from('videos')
-    .select('id, title, views_count, likes_count')
+    .select('id, title, views_count')
     .order('views_count', { ascending: false })
     .limit(5)
 
@@ -100,7 +99,7 @@ export const handler: Handler = async (event) => {
     id: v.id,
     title: v.title, 
     views: v.views_count || 0, 
-    likes: v.likes_count || 0 
+    likes: 0 
   })) || []
 
   // Get recent sessions with video titles
@@ -225,7 +224,7 @@ export const handler: Handler = async (event) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       totalViews,
-      totalLikes,
+      totalLikes: 0,
       totalMembers: totalMembers || 0,
       activeMembers: activeMembers || 0,
       totalVideos: totalVideos || 0,

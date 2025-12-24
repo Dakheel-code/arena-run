@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Video } from '../types'
 import { api } from '../lib/api'
-import { VideoPlayer } from '../components/VideoPlayer'
-import { Layout } from '../components/Layout'
-import { Comments } from '../components/Comments'
+import { Video } from '../types'
 import { useAuth } from '../context/AuthContext'
+import { canEditVideo } from '../lib/permissions'
+import { Layout } from '../components/Layout'
+import { VideoPlayer } from '../components/VideoPlayer'
 import { useLanguage } from '../context/LanguageContext'
-import { ArrowLeft, Loader, Trophy, Clock, Shield, TrendingUp, Calendar, Mic, User, ThumbsUp, Edit2 } from 'lucide-react'
+import { ArrowLeft, Loader, Trophy, Clock, Shield, TrendingUp, Calendar, Mic, User, Edit2 } from 'lucide-react'
 
 export function WatchPage() {
   const { id } = useParams<{ id: string }>()
@@ -16,7 +16,6 @@ export function WatchPage() {
   const [video, setVideo] = useState<Video | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isLiking, setIsLiking] = useState(false)
 
   useEffect(() => {
     const fetchVideo = async () => {
@@ -64,28 +63,7 @@ export function WatchPage() {
     }
   }
 
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
-    return num.toString()
-  }
 
-  const handleLike = async () => {
-    if (!video || isLiking) return
-    setIsLiking(true)
-    try {
-      const result = await api.likeVideo(video.id)
-      setVideo(prev => prev ? {
-        ...prev,
-        user_liked: result.liked,
-        likes_count: result.likes_count
-      } : null)
-    } catch (error) {
-      console.error('Failed to like video:', error)
-    } finally {
-      setIsLiking(false)
-    }
-  }
 
 
   return (
@@ -122,27 +100,8 @@ export function WatchPage() {
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2">
-              {/* Like Button */}
-              <button
-                onClick={handleLike}
-                disabled={isLiking}
-                className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full transition-all active:scale-95 ${
-                  video.user_liked 
-                    ? 'bg-theme text-white shadow-lg shadow-theme/30' 
-                    : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                }`}
-              >
-                <ThumbsUp 
-                  size={16} 
-                  className={video.user_liked ? 'fill-current' : ''} 
-                />
-                <span className="text-sm font-medium hidden sm:inline">{formatNumber(video.likes_count || 0)}</span>
-                <span className="text-sm font-medium sm:hidden">{(video.likes_count || 0) > 999 ? formatNumber(video.likes_count || 0) : video.likes_count || 0}</span>
-              </button>
-
-              
-              {/* Edit Button - Only for owner or admin */}
-              {(video.uploaded_by === user?.discord_id || user?.is_admin) && (
+              {/* Edit Button - Only for owner or editor/admin */}
+              {canEditVideo(user, video.uploaded_by || '') && (
                 <Link
                   to={`/edit-video/${video.id}`}
                   className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full bg-gray-700 hover:bg-gray-600 text-gray-300 transition-all active:scale-95"
@@ -259,12 +218,6 @@ export function WatchPage() {
           </div>
         )}
 
-        {/* Comments Section */}
-        <div className="mt-6">
-          <div className="card">
-            <Comments videoId={video.id} />
-          </div>
-        </div>
       </div>
     </Layout>
   )

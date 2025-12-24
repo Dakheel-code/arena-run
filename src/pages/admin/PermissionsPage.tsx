@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
+import { useAuth } from '../../context/AuthContext'
 import { Member, UserRole } from '../../types'
 import { Shield, Search, Loader, User, Crown, Edit3, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -33,6 +34,7 @@ const ROLE_CONFIG: Record<UserRole, { label: string; color: string; icon: any; d
 }
 
 export function PermissionsPage() {
+  const { user, refreshToken } = useAuth()
   const [members, setMembers] = useState<Member[]>([])
   const [filteredMembers, setFilteredMembers] = useState<Member[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -76,6 +78,16 @@ export function PermissionsPage() {
       setMembers((prev) =>
         prev.map((m) => (m.discord_id === member.discord_id ? { ...m, role: newRole } : m))
       )
+      
+      // If updating current user's role, refresh their token
+      if (user?.discord_id === member.discord_id) {
+        try {
+          await refreshToken()
+          console.log('Token refreshed for current user')
+        } catch (error) {
+          console.error('Failed to refresh token:', error)
+        }
+      }
     } catch (error) {
       console.error('Failed to update role:', error)
       alert('Failed to update role')

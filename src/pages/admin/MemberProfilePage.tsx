@@ -5,7 +5,7 @@ import { api } from '../../lib/api'
 import { useAuth } from '../../context/AuthContext'
 import { useLanguage } from '../../context/LanguageContext'
 import { Member, ViewSession } from '../../types'
-import { ArrowLeft, Loader, User, Calendar, LogIn, Video, Clock, Eye, Play, TrendingUp, ChevronLeft, ChevronRight, Upload, ThumbsUp, CheckCircle, MoreHorizontal, X, Chrome, Monitor, Shield, MapPin, Globe } from 'lucide-react'
+import { ArrowLeft, Loader, User, Calendar, LogIn, Video, Clock, Eye, Play, TrendingUp, ChevronLeft, ChevronRight, Upload, CheckCircle, MoreHorizontal, X, Chrome, Monitor, Shield, MapPin, Globe } from 'lucide-react'
 
 interface UploadedVideo {
   id: string
@@ -14,7 +14,6 @@ interface UploadedVideo {
   stream_uid: string
   duration?: number
   views_count: number
-  likes_count: number
   is_published: boolean
   created_at: string
 }
@@ -351,10 +350,6 @@ export function MemberProfilePage() {
                         <span className="flex items-center gap-1">
                           <Eye size={12} />
                           {video.views_count || 0}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <ThumbsUp size={12} />
-                          {video.likes_count || 0}
                         </span>
                       </div>
                       <span>{new Date(video.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>

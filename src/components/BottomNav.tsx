@@ -1,6 +1,7 @@
-import { Home, Video, History, KeyRound, Settings } from 'lucide-react'
+import { Home, Video, History, KeyRound, Settings, Upload, BarChart3 } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { hasPermission } from '../lib/permissions'
 import { useLanguage } from '../context/LanguageContext'
 
 const triggerHapticFeedback = () => {
@@ -14,8 +15,8 @@ export function BottomNav() {
   const { user } = useAuth()
   const { t } = useLanguage()
   
-  // Hide BottomNav completely for non-admin users
-  if (!user?.is_admin) {
+  // Hide BottomNav for users without admin panel access
+  if (!hasPermission(user, 'ACCESS_ADMIN_PANEL')) {
     return null
   }
   

@@ -36,8 +36,6 @@ export interface Video {
   uploader_avatar?: string;
   // Stats
   views_count?: number;
-  likes_count?: number;
-  user_liked?: boolean;
 }
 
 export interface ViewSession {
