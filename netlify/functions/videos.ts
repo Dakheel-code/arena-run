@@ -4,6 +4,8 @@ import { createClient } from '@supabase/supabase-js'
 const CF_ACCOUNT_ID = process.env.CF_ACCOUNT_ID!
 const CF_STREAM_API_TOKEN = process.env.CF_STREAM_API_TOKEN!
 const JWT_SECRET = process.env.JWT_SECRET!
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN!
+const CHANNEL_UPLOADS = process.env.CHANNEL_UPLOADS
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -42,30 +44,28 @@ async function sendDiscordNotification(
     authorName?: string
   }
 ) {
-  // Get webhook URL from settings
+  // Check if bot token and channel are configured
+  if (!DISCORD_BOT_TOKEN || !CHANNEL_UPLOADS) {
+    console.warn('⚠️ Discord bot or channel not configured')
+    return
+  }
+  
+  // Get notification settings
   const { data: settings } = await supabase
     .from('settings')
-    .select('webhook_url, notify_new_upload, notify_new_publish')
+    .select('notify_new_upload, notify_new_publish')
     .single()
-  
-  if (!settings?.webhook_url) return
   
   // Check if notifications are enabled
   const isUploadNotification = title.includes('Upload')
   const isPublishNotification = title.includes('Published')
   
-  if (isUploadNotification && !settings.notify_new_upload) return
-  if (isPublishNotification && !settings.notify_new_publish) return
-  
-  // Add mention to description if discord ID provided
-  let finalDescription = description
-  if (options?.discordId) {
-    finalDescription = `<@${options.discordId}>\n\n${description}`
-  }
+  if (isUploadNotification && settings && !settings.notify_new_upload) return
+  if (isPublishNotification && settings && !settings.notify_new_publish) return
   
   const embed: any = {
     title,
-    description: finalDescription,
+    description,
     color: 0xF59E0B, // Gold/Amber color
     fields: fields || [],
     timestamp: new Date().toISOString(),
@@ -98,11 +98,37 @@ async function sendDiscordNotification(
     }]
   }
   
-  await fetch(settings.webhook_url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
+  // Add allowed mentions if discord ID provided
+  if (options?.discordId) {
+    payload.allowed_mentions = {
+      parse: [],
+      users: [options.discordId]
+    }
+  }
+  
+  // Send via Discord Bot API
+  try {
+    const response = await fetch(
+      `https://discord.com/api/v10/channels/${CHANNEL_UPLOADS}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bot ${DISCORD_BOT_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      }
+    )
+    
+    if (!response.ok) {
+      const error = await response.text()
+      console.error('❌ Discord API error:', error)
+    } else {
+      console.log('✅ Notification sent via Discord Bot')
+    }
+  } catch (error) {
+    console.error('❌ Failed to send Discord notification:', error)
+  }
 }
 
 export const handler: Handler = async (event) => {
