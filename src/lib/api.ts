@@ -75,12 +75,6 @@ export const api = {
   deleteVideo: (id: string) =>
     fetchAPI<{ success: boolean }>(`/videos?id=${id}`, { method: 'DELETE' }),
 
-  // Likes
-  likeVideo: (videoId: string) =>
-    fetchAPI<{ liked: boolean; likes_count: number }>('/likes', {
-      method: 'POST',
-      body: JSON.stringify({ video_id: videoId }),
-    }),
 
   // Playback
   getPlaybackToken: (videoId: string) =>
