@@ -1,170 +1,169 @@
-# 🤖 Swaplist Discord Bot
+# 🤖 Arena Run Discord Notification Bot
 
-Discord bot for managing the Swaplist video platform directly from Discord.
+بوت Discord لإرسال إشعارات تلقائية عن الأحداث المهمة في منصة Arena Run.
 
-## 📋 Features
+## ✨ المميزات
 
-The bot provides the following slash commands:
+### 📤 إشعارات الفيديوهات
+- **رفع فيديو جديد**: إشعار فوري عند رفع أي فيديو جديد
+- **نشر فيديو**: إشعار مع رابط مباشر عند نشر فيديو للعامة
+- **إلغاء النشر**: إشعار عند إخفاء فيديو
 
-### `/publish <video_id>`
-Publish a video to make it visible to all users.
-- **Parameters:** `video_id` (UUID of the video)
-- **Permissions:** Administrator only
-- **Example:** `/publish 123e4567-e89b-12d3-a456-426614174000`
+### 👁️ إشعارات المشاهدة
+- **جلسة مشاهدة جديدة**: تتبع من يشاهد الفيديوهات
+- **معلومات الجلسة**: اسم العضو، الفيديو، الدولة، والوقت
 
-### `/unpublish <video_id>`
-Unpublish a video to hide it from regular users.
-- **Parameters:** `video_id` (UUID of the video)
-- **Permissions:** Administrator only
-- **Example:** `/unpublish 123e4567-e89b-12d3-a456-426614174000`
+### 🔒 إشعارات الأمان
+- **تغيير الدولة**: تنبيه عند تسجيل دخول من دولة مختلفة
+- **تغيير IP**: مراقبة تغييرات عنوان IP
+- **مشاهدات مفرطة**: كشف المشاهدات المشبوهة
+- **VPN/Proxy**: اكتشاف استخدام VPN أو Proxy
+- **أجهزة متعددة**: تنبيه عند استخدام أجهزة مختلفة
+- **ساعات غريبة**: نشاط في أوقات غير عادية
 
-### `/delete <video_id>`
-Permanently delete a video from both the database and Cloudflare Stream.
-- **Parameters:** `video_id` (UUID of the video)
-- **Permissions:** Administrator only
-- **Example:** `/delete 123e4567-e89b-12d3-a456-426614174000`
-- **⚠️ Warning:** This action cannot be undone!
+## 🚀 التثبيت والتشغيل المحلي
 
-### `/sessions <discord_id>`
-Get the last 10 login sessions for a specific member.
-- **Parameters:** `discord_id` (Discord ID of the member)
-- **Permissions:** Administrator only
-- **Example:** `/sessions 123456789012345678`
-- **Shows:** Video watched, duration, country, and timestamp for each session
+### 1️⃣ إنشاء البوت في Discord
 
-## 🚀 Setup Instructions
+1. اذهب إلى [Discord Developer Portal](https://discord.com/developers/applications)
+2. اضغط **New Application** وأدخل اسم البوت
+3. اذهب إلى قسم **Bot** واضغط **Add Bot**
+4. فعّل **Privileged Gateway Intents**:
+   - ✅ Server Members Intent
+   - ✅ Message Content Intent
+5. انسخ **Bot Token** (ستحتاجه لاحقاً)
+6. اذهب إلى **OAuth2** → **General** وانسخ **Client ID**
+7. اذهب إلى **OAuth2** → **URL Generator**:
+   - اختر Scopes: `bot`, `applications.commands`
+   - اختر Bot Permissions: `Send Messages`, `Embed Links`, `Read Messages`
+   - انسخ الرابط وافتحه لإضافة البوت لسيرفرك
 
-### 1. Create Discord Bot
+### 2️⃣ الحصول على IDs القنوات
 
-1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
-2. Click "New Application" and give it a name
-3. Go to "Bot" section and click "Add Bot"
-4. Enable these **Privileged Gateway Intents**:
-   - Server Members Intent
-   - Message Content Intent
-5. Copy the bot token (you'll need this for `.env`)
-6. Go to "OAuth2" → "General"
-   - Copy the Client ID (you'll need this for `.env`)
-7. Go to "OAuth2" → "URL Generator"
-   - Select scopes: `bot`, `applications.commands`
-   - Select bot permissions: `Administrator` (or at minimum: `Send Messages`, `Use Slash Commands`)
-   - Copy the generated URL and open it to invite the bot to your server
+1. فعّل **Developer Mode** في Discord:
+   - Settings → Advanced → Developer Mode ✅
+2. انقر بزر الماوس الأيمن على كل قناة واختر **Copy ID**:
+   - قناة إشعارات الرفع (مثلاً: #uploads)
+   - قناة إشعارات الأمان (مثلاً: #security)
+   - قناة إشعارات الجلسات (مثلاً: #sessions)
 
-### 2. Install Dependencies
+### 3️⃣ تثبيت المكتبات
 
 ```bash
 cd discord-bot
 npm install
 ```
 
-### 3. Configure Environment Variables
+### 4️⃣ إعداد ملف البيئة
 
-1. Copy `.env.example` to `.env`:
+1. انسخ ملف `.env.example` إلى `.env`:
 ```bash
-cp .env.example .env
+copy .env.example .env
 ```
 
-2. Fill in your credentials in `.env`:
+2. افتح ملف `.env` واملأ البيانات:
 
 ```env
-# Discord Bot Configuration
-DISCORD_BOT_TOKEN=your_bot_token_from_step_1.5
-DISCORD_CLIENT_ID=your_client_id_from_step_1.6
-DISCORD_GUILD_ID=your_server_id
+# معلومات البوت من Discord Developer Portal
+DISCORD_BOT_TOKEN=your_bot_token_here
+DISCORD_CLIENT_ID=your_client_id_here
+DISCORD_GUILD_ID=your_server_id_here
 
-# Supabase Configuration (same as main project)
-SUPABASE_URL=your_supabase_url
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+# IDs القنوات (اختياري - اترك فارغ لتعطيل)
+CHANNEL_UPLOADS=1234567890123456789
+CHANNEL_SECURITY=1234567890123456789
+CHANNEL_SESSIONS=1234567890123456789
 
-# Cloudflare Stream Configuration (same as main project)
-CF_ACCOUNT_ID=your_cloudflare_account_id
-CF_STREAM_API_TOKEN=your_cloudflare_stream_api_token
+# معلومات Supabase (نفس المشروع الرئيسي)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 ```
 
-**To get your Guild ID (Server ID):**
-1. Enable Developer Mode in Discord (Settings → Advanced → Developer Mode)
-2. Right-click your server icon → Copy ID
+### 5️⃣ تشغيل البوت
 
-### 4. Run the Bot
-
-**Development mode (with auto-restart):**
+**للتطوير (مع إعادة التشغيل التلقائي):**
 ```bash
 npm run dev
 ```
 
-**Production mode:**
+**للإنتاج:**
 ```bash
 npm start
 ```
 
-## 📝 Usage Examples
+## 📊 التحكم في الإشعارات
 
-### Publishing a Video
-1. Get the video ID from the admin panel (Videos page)
-2. Use the command: `/publish 123e4567-e89b-12d3-a456-426614174000`
-3. The bot will confirm the action with an embed showing video details
+يمكنك التحكم في الإشعارات من خلال جدول `settings` في Supabase:
 
-### Checking Member Sessions
-1. Get the Discord ID of the member (right-click user → Copy ID)
-2. Use the command: `/sessions 123456789012345678`
-3. The bot will show the last 10 sessions with:
-   - Video title
-   - Watch duration
-   - Country
-   - Timestamp
+```sql
+-- تعطيل إشعارات الرفع
+UPDATE settings SET notify_new_upload = false;
 
-### Deleting a Video
-1. Get the video ID from the admin panel
-2. Use the command: `/delete 123e4567-e89b-12d3-a456-426614174000`
-3. Confirm you want to delete (this is permanent!)
+-- تعطيل إشعارات الأمان
+UPDATE settings SET notify_country_change = false;
 
-## 🔒 Security
-
-- Only users with **Administrator** permissions can use these commands
-- The bot uses the Supabase Service Role Key for full database access
-- All commands are logged in the console
-- Failed operations return error messages only visible to the command user (ephemeral)
-
-## 🛠️ Troubleshooting
-
-### Bot doesn't respond to commands
-- Make sure the bot is online (check console for "Bot logged in as...")
-- Verify the bot has proper permissions in your server
-- Check that slash commands are registered (console should show "Slash commands registered successfully!")
-
-### "Video not found" error
-- Double-check the video ID is correct (UUID format)
-- Verify the video exists in the database
-
-### "Member not found" error
-- Verify the Discord ID is correct
-- Make sure the member exists in the members table
-
-### Commands not showing up
-- Wait a few minutes for Discord to sync the commands
-- Try kicking and re-inviting the bot
-- Make sure you used the correct Guild ID in `.env`
-
-## 📦 Dependencies
-
-- **discord.js** (v14) - Discord API wrapper
-- **@supabase/supabase-js** (v2) - Supabase client
-- **dotenv** - Environment variables management
-
-## 🔄 Updating
-
-To update dependencies:
-```bash
-npm update
+-- تغيير حد المشاهدات المفرطة
+UPDATE settings SET excessive_views_threshold = 10;
 ```
 
-## 📞 Support
+## 🎯 كيفية العمل
 
-For issues or questions, check the main project documentation or contact the development team.
+البوت يستخدم **Supabase Realtime** للاستماع للتغييرات في قاعدة البيانات:
 
-## ⚠️ Important Notes
+1. **عند رفع فيديو جديد** → يرسل إشعار لقناة `CHANNEL_UPLOADS`
+2. **عند نشر فيديو** → يرسل إشعار مع زر للمشاهدة
+3. **عند جلسة مشاهدة جديدة** → يرسل إشعار لقناة `CHANNEL_SESSIONS`
+4. **عند تنبيه أمني** → يرسل إشعار لقناة `CHANNEL_SECURITY`
 
-- The bot requires the same environment variables as the main project (Supabase, Cloudflare)
-- Make sure to keep your `.env` file secure and never commit it to version control
-- The bot operates with full admin privileges - use carefully!
-- Deleted videos cannot be recovered
+## 🔧 استكشاف الأخطاء
+
+### البوت لا يعمل
+- ✅ تأكد من صحة `DISCORD_BOT_TOKEN`
+- ✅ تأكد من تفعيل Privileged Gateway Intents
+- ✅ تحقق من الـ Console للأخطاء
+
+### الإشعارات لا تصل
+- ✅ تأكد من صحة IDs القنوات
+- ✅ تأكد من صلاحيات البوت في السيرفر
+- ✅ تحقق من إعدادات الإشعارات في جدول `settings`
+
+### خطأ في الاتصال بـ Supabase
+- ✅ تأكد من صحة `SUPABASE_URL` و `SUPABASE_SERVICE_ROLE_KEY`
+- ✅ تحقق من تفعيل Realtime في Supabase
+
+## 📦 رفع البوت على سيرفر
+
+بعد التأكد من عمل البوت محلياً، يمكنك رفعه على:
+
+### Railway
+1. اذهب إلى [Railway.app](https://railway.app)
+2. اضغط **New Project** → **Deploy from GitHub**
+3. اختر المجلد `discord-bot`
+4. أضف المتغيرات البيئية من ملف `.env`
+
+### Heroku
+```bash
+heroku create your-bot-name
+heroku config:set DISCORD_BOT_TOKEN=your_token
+heroku config:set SUPABASE_URL=your_url
+# ... باقي المتغيرات
+git push heroku main
+```
+
+## 📝 ملاحظات مهمة
+
+- ⚠️ **لا ترفع ملف `.env` على GitHub أبداً**
+- 🔒 استخدم `SUPABASE_SERVICE_ROLE_KEY` وليس `SUPABASE_ANON_KEY`
+- 📊 البوت يحتاج صلاحيات قراءة وكتابة في قاعدة البيانات
+- 🔄 البوت يعمل 24/7 ويستمع للأحداث في الوقت الفعلي
+
+## 🆘 الدعم
+
+إذا واجهت أي مشكلة، تحقق من:
+1. Console الـ Bot للأخطاء
+2. Logs في Supabase Dashboard
+3. صلاحيات البوت في Discord Server Settings
+
+---
+
+**صُنع بـ ❤️ لمنصة Arena Run**
