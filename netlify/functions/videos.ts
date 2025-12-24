@@ -44,24 +44,40 @@ async function sendDiscordNotification(
     authorName?: string
   }
 ) {
+  console.log('🔔 Attempting to send notification:', title)
+  console.log('📋 Bot Token:', DISCORD_BOT_TOKEN ? 'SET' : 'MISSING')
+  console.log('📋 Channel:', CHANNEL_UPLOADS || 'MISSING')
+  
   // Check if bot token and channel are configured
   if (!DISCORD_BOT_TOKEN || !CHANNEL_UPLOADS) {
-    console.warn('⚠️ Discord bot or channel not configured')
+    console.error('❌ Discord bot or channel not configured')
     return
   }
   
   // Get notification settings
-  const { data: settings } = await supabase
+  const { data: settings, error: settingsError } = await supabase
     .from('settings')
     .select('notify_new_upload, notify_new_publish')
     .single()
+  
+  console.log('⚙️ Settings:', settings)
+  console.log('⚙️ Settings Error:', settingsError)
   
   // Check if notifications are enabled
   const isUploadNotification = title.includes('Upload')
   const isPublishNotification = title.includes('Published')
   
-  if (isUploadNotification && settings && !settings.notify_new_upload) return
-  if (isPublishNotification && settings && !settings.notify_new_publish) return
+  console.log('📤 Is Upload:', isUploadNotification, '- Enabled:', settings?.notify_new_upload)
+  console.log('🎬 Is Publish:', isPublishNotification, '- Enabled:', settings?.notify_new_publish)
+  
+  if (isUploadNotification && settings && !settings.notify_new_upload) {
+    console.log('⏭️ Upload notifications disabled, skipping')
+    return
+  }
+  if (isPublishNotification && settings && !settings.notify_new_publish) {
+    console.log('⏭️ Publish notifications disabled, skipping')
+    return
+  }
   
   const embed: any = {
     title,
