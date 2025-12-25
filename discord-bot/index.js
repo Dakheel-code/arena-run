@@ -2,6 +2,8 @@ const dns = require('dns');
 const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, REST, Routes } = require('discord.js');
 const { createClient } = require('@supabase/supabase-js');
 
+const BOT_VERSION = '2025-12-25-title-fallback-v2';
+
 // Set DNS to use Google's DNS servers to avoid network issues
 dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
 
@@ -50,6 +52,7 @@ async function resolveGuildIdFromSettings() {
 console.log('🔧 Supabase Configuration:');
 console.log('   URL:', process.env.SUPABASE_URL);
 console.log('   Service Key:', process.env.SUPABASE_SERVICE_ROLE_KEY ? `${process.env.SUPABASE_SERVICE_ROLE_KEY.substring(0, 4)}...${process.env.SUPABASE_SERVICE_ROLE_KEY.substring(process.env.SUPABASE_SERVICE_ROLE_KEY.length - 4)}` : 'MISSING');
+console.log('🤖 Bot Version:', BOT_VERSION);
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]
@@ -399,22 +402,46 @@ async function handlePostCommand(interaction) {
     }
 
     let uploaderDiscordId = video.uploaded_by ? String(video.uploaded_by) : null;
+    const titleMentionMatch = String(video.title || '').match(/<@!?(\d+)>/);
+    if (titleMentionMatch?.[1]) {
+      uploaderDiscordId = String(titleMentionMatch[1]);
+    }
     let uploaderMention = uploaderDiscordId ? `<@${uploaderDiscordId}>` : null;
-    const uploaderName = video.uploader_name ? String(video.uploader_name) : 'Unknown';
+    let uploaderName = video.uploader_name ? String(video.uploader_name) : 'Unknown';
     let uploaderAvatar = video.uploader_avatar ? String(video.uploader_avatar) : null;
 
-    if (!uploaderDiscordId && uploaderName && uploaderName !== 'Unknown') {
+    // Fetch member data to get discord_global_name (server nickname)
+    if (uploaderDiscordId) {
+      try {
+        const { data: member } = await supabase
+          .from('members')
+          .select('discord_global_name, discord_username, discord_avatar')
+          .eq('discord_id', uploaderDiscordId)
+          .limit(1)
+          .maybeSingle();
+
+        if (member) {
+          // Use server nickname if available, otherwise use username
+          uploaderName = member.discord_global_name || member.discord_username || uploaderName;
+          if (!uploaderAvatar && member.discord_avatar) {
+            uploaderAvatar = String(member.discord_avatar);
+          }
+        }
+      } catch {
+        // ignore
+      }
+    } else if (uploaderName && uploaderName !== 'Unknown') {
       try {
         const { data: memberByGameId } = await supabase
           .from('members')
-          .select('discord_id, discord_avatar')
+          .select('discord_id, discord_global_name, discord_username, discord_avatar')
           .ilike('game_id', uploaderName)
           .limit(1)
           .maybeSingle();
 
         const member = memberByGameId || (await supabase
           .from('members')
-          .select('discord_id, discord_avatar')
+          .select('discord_id, discord_global_name, discord_username, discord_avatar')
           .ilike('discord_username', uploaderName)
           .limit(1)
           .maybeSingle()).data;
@@ -422,6 +449,7 @@ async function handlePostCommand(interaction) {
         if (member?.discord_id) {
           uploaderDiscordId = String(member.discord_id);
           uploaderMention = `<@${uploaderDiscordId}>`;
+          uploaderName = member.discord_global_name || member.discord_username || uploaderName;
           if (!uploaderAvatar && member.discord_avatar) {
             uploaderAvatar = String(member.discord_avatar);
           }
@@ -431,10 +459,21 @@ async function handlePostCommand(interaction) {
       }
     }
 
+    // Try to get guild member avatar (server-specific avatar)
     if (!uploaderAvatar && uploaderDiscordId) {
       try {
-        const user = await client.users.fetch(uploaderDiscordId);
-        uploaderAvatar = user?.displayAvatarURL?.({ size: 256 }) || null;
+        const guild = interaction.guild;
+        if (guild) {
+          const guildMember = await guild.members.fetch(uploaderDiscordId);
+          // Use guild avatar if available, otherwise use user avatar
+          uploaderAvatar = guildMember?.displayAvatarURL?.({ size: 256 }) || null;
+        }
+        
+        // Fallback to user avatar if no guild avatar
+        if (!uploaderAvatar) {
+          const user = await client.users.fetch(uploaderDiscordId);
+          uploaderAvatar = user?.displayAvatarURL?.({ size: 256 }) || null;
+        }
       } catch {
         // ignore
       }
@@ -449,23 +488,21 @@ async function handlePostCommand(interaction) {
       ? String(shieldHitsNum)
       : shieldHitsRaw.replace(/^\+/, '').trim();
 
+    // Use title from database as-is (no mention replacement)
     const rawTitle = String(video.title || '').trim();
-    const upperTitle = rawTitle.toUpperCase();
-    const upperUploaderName = String(uploaderName || '').trim().toUpperCase();
-    let embedTitle = upperTitle;
-    let includeUploaderLine = true;
+    const hasMentionLike = /<@!?\d+>/.test(rawTitle);
+    const cleanSeason = String(video.season || '').replace(/[^0-9]/g, '');
+    const cleanDay = String(video.day || '').replace(/[^0-9]/g, '');
+    const fallbackTitleParts = [String(uploaderName || 'Unknown')];
+    if (cleanSeason) fallbackTitleParts.push(`S${cleanSeason}`);
+    if (cleanDay) fallbackTitleParts.push(`DAY ${cleanDay}`);
+    const fallbackTitle = fallbackTitleParts.join(' - ');
+    const embedTitle = rawTitle && !hasMentionLike ? rawTitle : fallbackTitle;
+    console.log('[post] rawTitle:', rawTitle);
+    console.log('[post] fallbackTitle:', fallbackTitle);
+    console.log('[post] embedTitle:', embedTitle);
 
-    if (uploaderMention && upperUploaderName && upperTitle.startsWith(upperUploaderName)) {
-      const rest = rawTitle.slice(upperUploaderName.length);
-      embedTitle = `${uploaderMention}${String(rest || '').toUpperCase()}`;
-      includeUploaderLine = false;
-    }
-
-    const detailsLines = [];
-    if (includeUploaderLine) {
-      detailsLines.push(uploaderMention || `**${uploaderName}**`);
-      detailsLines.push('');
-    }
+    const detailsLines = []
 
     if (video.wins_attacks && video.arena_time) {
       detailsLines.push(`**${video.wins_attacks}** within **${video.arena_time} minutes**${overtimeNote}`);
@@ -508,7 +545,7 @@ async function handlePostCommand(interaction) {
       components: [row],
       allowedMentions: {
         parse: [],
-        users: uploaderDiscordId ? [uploaderDiscordId] : []
+        users: []
       }
     });
 
@@ -520,7 +557,7 @@ async function handlePostCommand(interaction) {
           .setTitle('Thank you!')
           .setDescription(
             `Your video has been posted successfully ✅\n\n` +
-            `**${String(video.title || '').trim()}**\n\n` +
+            `**${String(embedTitle || '').trim()}**\n\n` +
             `We truly appreciate your time and effort—your contribution makes a real difference.`
           )
           .addFields(
@@ -538,7 +575,7 @@ async function handlePostCommand(interaction) {
       console.warn('⚠️ Failed to send DM to uploader:', e?.message || e);
     }
 
-    await interaction.reply({ content: `✅ Video posted to ${channel.name}!`, ephemeral: true });
+    await interaction.reply({ content: `✅ Video posted to ${channel.name}! (bot ${BOT_VERSION})`, ephemeral: true });
   } catch (error) {
     console.error('Error posting video:', error);
     await interaction.reply({ content: '❌ Failed to post video.', ephemeral: true });
