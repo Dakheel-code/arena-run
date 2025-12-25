@@ -561,7 +561,7 @@ async function handlePostCommand(interaction) {
       console.warn('⚠️ Failed to send DM to uploader:', e?.message || e);
     }
 
-    await interaction.reply({ content: `✅ Video posted to ${channel.name}! (bot ${BOT_VERSION})`, ephemeral: true });
+    await interaction.reply({ content: `✅ Video posted to ${channel.name}!`, ephemeral: true });
   } catch (error) {
     console.error('Error posting video:', error);
     await interaction.reply({ content: '❌ Failed to post video.', ephemeral: true });
