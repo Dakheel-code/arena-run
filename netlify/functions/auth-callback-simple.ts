@@ -155,6 +155,7 @@ async function getLocationFromIP(ip: string) {
 async function logLoginAttempt(data: {
   discord_id: string
   discord_username?: string
+  discord_global_name?: string
   discord_avatar?: string
   email?: string
   status: 'success' | 'failed'
@@ -222,8 +223,10 @@ export const handler: Handler = async (event) => {
     // Get Discord user
     const discordUser = await getDiscordUser(tokens.access_token)
     console.log('Discord user:', discordUser.username, discordUser.id)
+    console.log('Discord global_name:', discordUser.global_name)
     
-    const avatarUrl = discordUser.avatar 
+    // Default avatar (will be replaced with guild avatar if available)
+    let avatarUrl = discordUser.avatar 
       ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`
       : null
 
@@ -246,6 +249,7 @@ export const handler: Handler = async (event) => {
       await logLoginAttempt({
         discord_id: discordUser.id,
         discord_username: discordUser.username,
+        discord_global_name: discordUser.global_name,
         discord_avatar: avatarUrl || undefined,
         email: discordUser.email,
         status: 'failed',
@@ -288,6 +292,16 @@ export const handler: Handler = async (event) => {
 
     const member = memberResult.member
     const userGuildId = memberResult.guildId
+    const serverNickname = member.nick || discordUser.global_name || discordUser.username
+    console.log('Server nickname:', serverNickname)
+    
+    // Use guild avatar if available, otherwise use default avatar
+    if (member.avatar) {
+      avatarUrl = `https://cdn.discordapp.com/guilds/${userGuildId}/users/${discordUser.id}/avatars/${member.avatar}.png`
+      console.log('Using guild avatar:', avatarUrl)
+    } else {
+      console.log('Using default Discord avatar:', avatarUrl)
+    }
 
     // Check for required role
     console.log('Checking required role...')
@@ -327,6 +341,7 @@ export const handler: Handler = async (event) => {
         await logLoginAttempt({
           discord_id: discordUser.id,
           discord_username: discordUser.username,
+          discord_global_name: serverNickname,
           discord_avatar: avatarUrl || undefined,
           email: discordUser.email,
           status: 'failed',
@@ -385,6 +400,7 @@ export const handler: Handler = async (event) => {
         .insert({ 
           discord_id: discordUser.id, 
           discord_username: discordUser.username,
+          discord_global_name: serverNickname,
           discord_avatar: avatarUrl,
           game_id: discordUser.username.toLowerCase().replace(/\s+/g, '_') || 'player', 
           is_active: true,
@@ -412,6 +428,7 @@ export const handler: Handler = async (event) => {
         .from('members')
         .update({ 
           discord_username: discordUser.username,
+          discord_global_name: serverNickname,
           discord_avatar: avatarUrl,
           last_login: new Date().toISOString(),
           login_count: (memberData.login_count || 0) + 1
@@ -430,6 +447,7 @@ export const handler: Handler = async (event) => {
     await logLoginAttempt({
       discord_id: discordUser.id,
       discord_username: discordUser.username,
+      discord_global_name: serverNickname,
       discord_avatar: avatarUrl || undefined,
       email: discordUser.email,
       status: 'success',

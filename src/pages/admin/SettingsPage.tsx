@@ -183,6 +183,7 @@ export function SettingsPage() {
       }
       
       const filtered = allMembers.filter(m => 
+        m.discord_global_name?.toLowerCase().includes(value.toLowerCase()) ||
         m.discord_username?.toLowerCase().includes(value.toLowerCase()) ||
         m.game_id.toLowerCase().includes(value.toLowerCase()) ||
         m.discord_id.includes(value)
@@ -199,7 +200,7 @@ export function SettingsPage() {
 
   const handleSelectMember = (member: Member) => {
     setSelectedMember(member)
-    setSearchQuery(member.discord_username || member.game_id)
+    setSearchQuery(member.discord_global_name || member.discord_username || member.game_id)
     setShowSuggestions(false)
   }
 
@@ -1024,7 +1025,7 @@ export function SettingsPage() {
                     {member.discord_avatar ? (
                       <img 
                         src={member.discord_avatar} 
-                        alt={member.discord_username || 'Avatar'}
+                        alt={member.discord_global_name || member.discord_username || 'Avatar'}
                         className="w-10 h-10 rounded-full object-cover"
                       />
                     ) : (
@@ -1033,7 +1034,7 @@ export function SettingsPage() {
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{member.discord_username || member.game_id}</p>
+                      <p className="font-medium truncate">{member.discord_global_name || member.discord_username || member.game_id}</p>
                       <p className="text-xs text-gray-500 truncate">{member.game_id}</p>
                     </div>
                   </button>
@@ -1058,7 +1059,7 @@ export function SettingsPage() {
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{selectedMember.discord_username || selectedMember.game_id}</p>
+                  <p className="font-medium truncate">{selectedMember.discord_global_name || selectedMember.discord_username || selectedMember.game_id}</p>
                   <p className="text-xs text-gray-500 truncate">{selectedMember.game_id}</p>
                   {selectedMember.role_assigned_by_name && (
                     <p className="text-xs text-theme/70 truncate mt-0.5">
@@ -1132,7 +1133,7 @@ export function SettingsPage() {
                         {member.discord_avatar ? (
                           <img 
                             src={member.discord_avatar} 
-                            alt={member.discord_username || 'Avatar'}
+                            alt={member.discord_global_name || member.discord_username || 'Avatar'}
                             className="w-10 h-10 rounded-full object-cover"
                           />
                         ) : (
@@ -1141,7 +1142,7 @@ export function SettingsPage() {
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{member.discord_username || member.game_id}</p>
+                          <p className="font-medium truncate">{member.discord_global_name || member.discord_username || member.game_id}</p>
                           <p className="text-xs text-gray-500 truncate">{member.game_id}</p>
                           {member.role_assigned_by_name && (
                             <p className="text-xs text-theme/60 truncate mt-0.5">

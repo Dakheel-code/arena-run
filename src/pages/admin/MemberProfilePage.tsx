@@ -191,7 +191,7 @@ export function MemberProfilePage() {
             {profile.discord_avatar ? (
               <img 
                 src={profile.discord_avatar} 
-                alt={profile.discord_username || 'Avatar'}
+                alt={profile.discord_global_name || profile.discord_username || 'Avatar'}
                 className="w-20 h-20 rounded-full object-cover"
               />
             ) : (
@@ -202,7 +202,7 @@ export function MemberProfilePage() {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-1">
                 <User className="w-6 h-6 text-theme" />
-                <h1 className="text-2xl font-bold text-theme">{profile.discord_username || profile.discord_id}</h1>
+                <h1 className="text-2xl font-bold text-theme">{profile.discord_global_name || profile.discord_username || profile.discord_id}</h1>
               </div>
               <p className="text-sm text-gray-500 font-mono">{profile.discord_id}</p>
               {profile.last_login && (
@@ -409,7 +409,7 @@ export function MemberProfilePage() {
                               ) : (
                                 <User size={20} />
                               )}
-                              {profile.discord_username || profile.game_id}
+                              {profile.discord_global_name || profile.discord_username || profile.game_id}
                             </Link>
                           </td>
                           <td className="py-3 px-4">

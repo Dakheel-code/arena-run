@@ -48,6 +48,7 @@ export function PermissionsPage() {
       (m) =>
         m.discord_id.includes(searchQuery) ||
         m.game_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (m.discord_global_name && m.discord_global_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (m.discord_username && m.discord_username.toLowerCase().includes(searchQuery.toLowerCase()))
     )
     
@@ -187,7 +188,7 @@ export function PermissionsPage() {
                           {member.discord_avatar ? (
                             <img 
                               src={member.discord_avatar} 
-                              alt={member.discord_username || 'Avatar'}
+                              alt={member.discord_global_name || member.discord_username || 'Avatar'}
                               className="w-10 h-10 rounded-full object-cover"
                             />
                           ) : (
@@ -196,7 +197,7 @@ export function PermissionsPage() {
                             </div>
                           )}
                           <div>
-                            <p className="font-medium">{member.discord_username || member.game_id}</p>
+                            <p className="font-medium">{member.discord_global_name || member.discord_username || member.game_id}</p>
                             <p className="text-xs text-gray-500">{member.discord_id}</p>
                           </div>
                         </Link>
@@ -246,7 +247,7 @@ export function PermissionsPage() {
                     {member.discord_avatar ? (
                       <img 
                         src={member.discord_avatar} 
-                        alt={member.discord_username || 'Avatar'}
+                        alt={member.discord_global_name || member.discord_username || 'Avatar'}
                         className="w-12 h-12 rounded-full object-cover"
                       />
                     ) : (
@@ -255,7 +256,7 @@ export function PermissionsPage() {
                       </div>
                     )}
                     <div className="flex-1">
-                      <p className="font-medium text-theme-light">{member.discord_username || member.game_id}</p>
+                      <p className="font-medium text-theme-light">{member.discord_global_name || member.discord_username || member.game_id}</p>
                       <p className="text-sm text-gray-400">{member.game_id}</p>
                     </div>
                   </Link>

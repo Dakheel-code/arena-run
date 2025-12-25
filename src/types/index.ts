@@ -58,6 +58,7 @@ export interface Member {
   id: string;
   discord_id: string;
   discord_username?: string;
+  discord_global_name?: string;
   discord_avatar?: string;
   game_id: string;
   is_active: boolean;

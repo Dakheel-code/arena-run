@@ -447,6 +447,7 @@ export function VideosPage() {
                   onChange={(e) => {
                     const searchValue = e.target.value.toLowerCase()
                     const selectedMember = members.find(m => 
+                      m.discord_global_name?.toLowerCase() === searchValue.toLowerCase() ||
                       m.discord_username?.toLowerCase() === searchValue.toLowerCase() ||
                       m.game_id?.toLowerCase() === searchValue.toLowerCase() ||
                       m.discord_id === searchValue
@@ -456,7 +457,7 @@ export function VideosPage() {
                       setEditingVideo(prev => prev ? {
                         ...prev,
                         uploaded_by: selectedMember.discord_id,
-                        uploader_name: selectedMember.discord_username || selectedMember.game_id || ''
+                        uploader_name: selectedMember.discord_global_name || selectedMember.discord_username || selectedMember.game_id || ''
                       } : null)
                     } else {
                       setEditingVideo(prev => prev ? {
@@ -470,7 +471,7 @@ export function VideosPage() {
                 />
                 <datalist id="members-list">
                   {members.map((member) => (
-                    <option key={member.discord_id} value={member.discord_username || member.game_id}>
+                    <option key={member.discord_id} value={member.discord_global_name || member.discord_username || member.game_id}>
                       {member.discord_id}
                     </option>
                   ))}

@@ -33,7 +33,8 @@ export function MembersPage() {
       (m) =>
         m.discord_id.includes(searchQuery) ||
         m.game_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (m.discord_username && m.discord_username.toLowerCase().includes(searchQuery.toLowerCase()))
+        (m.discord_username && m.discord_username.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (m.discord_global_name && m.discord_global_name.toLowerCase().includes(searchQuery.toLowerCase()))
     )
     // Sort by last_login (most recent first), null values at the end
     filtered = filtered.sort((a, b) => {
@@ -225,6 +226,7 @@ export function MembersPage() {
               <thead>
                 <tr className="border-b border-gray-700">
                   <th className="text-right py-3 px-4">{t('member')}</th>
+                  <th className="text-right py-3 px-4">Username</th>
                   <th className="text-right py-3 px-4">{t('discordId')}</th>
                   <th className="text-right py-3 px-4">{t('status')}</th>
                   <th className="text-right py-3 px-4">{t('lastLogin')}</th>
@@ -243,7 +245,7 @@ export function MembersPage() {
                       {member.discord_avatar ? (
                         <img 
                           src={member.discord_avatar} 
-                          alt={member.discord_username || 'Avatar'}
+                          alt={member.discord_global_name || member.discord_username || 'Avatar'}
                           className="w-10 h-10 rounded-full object-cover"
                         />
                       ) : (
@@ -253,7 +255,7 @@ export function MembersPage() {
                       )}
                       <div className="flex items-center gap-2">
                         <span className="text-theme-light font-medium">
-                          {member.discord_username || member.discord_id}
+                          {member.discord_global_name || member.discord_username || member.discord_id}
                         </span>
                         {member.role === 'super_admin' && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-purple-500/20 text-purple-400 border border-purple-500/30">
@@ -276,6 +278,8 @@ export function MembersPage() {
                       </div>
                     </Link>
                   </td>
+                  {/* Username */}
+                  <td className="py-3 px-4 text-sm text-gray-400">{member.discord_username || '-'}</td>
                   {/* Discord ID */}
                   <td className="py-3 px-4 font-mono text-sm text-gray-400">{member.discord_id}</td>
                   {/* Status */}
@@ -424,7 +428,7 @@ export function MembersPage() {
                   {member.discord_avatar ? (
                     <img 
                       src={member.discord_avatar} 
-                      alt={member.discord_username || 'Avatar'}
+                      alt={member.discord_global_name || member.discord_username || 'Avatar'}
                       className="w-12 h-12 rounded-full object-cover"
                     />
                   ) : (
@@ -435,8 +439,9 @@ export function MembersPage() {
                   <div className="flex-1">
                     <div className="flex-1">
                       <h3 className="text-theme-light font-medium">
-                        {member.discord_username || member.discord_id}
+                        {member.discord_global_name || member.discord_username || member.discord_id}
                       </h3>
+                      <p className="text-sm text-gray-400">{member.discord_username || '-'}</p>
                       {member.role === 'super_admin' && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-purple-500/20 text-purple-400 border border-purple-500/30">
                           <Crown size={12} />
