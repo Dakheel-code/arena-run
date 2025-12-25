@@ -2,7 +2,7 @@ const dns = require('dns');
 const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, REST, Routes } = require('discord.js');
 const { createClient } = require('@supabase/supabase-js');
 
-const BOT_VERSION = '2025-12-25-title-fallback-v2';
+const BOT_VERSION = '2025-12-25-mention-title-v3';
 
 // Set DNS to use Google's DNS servers to avoid network issues
 dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
@@ -493,7 +493,7 @@ async function handlePostCommand(interaction) {
     const hasMentionLike = /<@!?\d+>/.test(rawTitle);
     const cleanSeason = String(video.season || '').replace(/[^0-9]/g, '');
     const cleanDay = String(video.day || '').replace(/[^0-9]/g, '');
-    const fallbackTitleParts = [String(uploaderName || 'Unknown')];
+    const fallbackTitleParts = [uploaderMention || String(uploaderName || 'Unknown')];
     if (cleanSeason) fallbackTitleParts.push(`S${cleanSeason}`);
     if (cleanDay) fallbackTitleParts.push(`DAY ${cleanDay}`);
     const fallbackTitle = fallbackTitleParts.join(' - ');
