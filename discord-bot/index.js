@@ -2,7 +2,7 @@ const dns = require('dns');
 const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, REST, Routes } = require('discord.js');
 const { createClient } = require('@supabase/supabase-js');
 
-const BOT_VERSION = '2025-12-25-mention-title-v3';
+const BOT_VERSION = '2025-12-25-mention-title-v4';
 
 // Set DNS to use Google's DNS servers to avoid network issues
 dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
@@ -488,18 +488,13 @@ async function handlePostCommand(interaction) {
       ? String(shieldHitsNum)
       : shieldHitsRaw.replace(/^\+/, '').trim();
 
-    // Use title from database as-is (no mention replacement)
-    const rawTitle = String(video.title || '').trim();
-    const hasMentionLike = /<@!?\d+>/.test(rawTitle);
+    // Always build title with mention from video data
     const cleanSeason = String(video.season || '').replace(/[^0-9]/g, '');
     const cleanDay = String(video.day || '').replace(/[^0-9]/g, '');
-    const fallbackTitleParts = [uploaderMention || String(uploaderName || 'Unknown')];
-    if (cleanSeason) fallbackTitleParts.push(`S${cleanSeason}`);
-    if (cleanDay) fallbackTitleParts.push(`DAY ${cleanDay}`);
-    const fallbackTitle = fallbackTitleParts.join(' - ');
-    const embedTitle = rawTitle && !hasMentionLike ? rawTitle : fallbackTitle;
-    console.log('[post] rawTitle:', rawTitle);
-    console.log('[post] fallbackTitle:', fallbackTitle);
+    const titleParts = [uploaderMention || String(uploaderName || 'Unknown')];
+    if (cleanSeason) titleParts.push(`S${cleanSeason}`);
+    if (cleanDay) titleParts.push(`DAY ${cleanDay}`);
+    const embedTitle = titleParts.join(' - ');
     console.log('[post] embedTitle:', embedTitle);
 
     const detailsLines = []
