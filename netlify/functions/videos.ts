@@ -341,6 +341,15 @@ export const handler: Handler = async (event) => {
       return { statusCode: 500, body: JSON.stringify({ message: 'Failed to create upload' }) }
     }
 
+    // Get uploader's discord_global_name from members table
+    const { data: member } = await supabase
+      .from('members')
+      .select('discord_global_name, discord_username')
+      .eq('discord_id', user.discord_id)
+      .single()
+    
+    const uploaderName = member?.discord_global_name || member?.discord_username || user.username
+
     // Save video to database
     const { data, error } = await supabase
       .from('videos')
@@ -359,7 +368,7 @@ export const handler: Handler = async (event) => {
         end_rank,
         has_commentary,
         uploaded_by: user.discord_id,
-        uploader_name: user.username,
+        uploader_name: uploaderName,
       })
       .select()
       .single()
@@ -432,7 +441,27 @@ export const handler: Handler = async (event) => {
       if (is_published !== undefined) updateData.is_published = is_published
       if (title !== undefined) updateData.title = title
       if (uploaded_by !== undefined) updateData.uploaded_by = uploaded_by
-      if (uploader_name !== undefined) updateData.uploader_name = uploader_name
+      if (uploader_name !== undefined) {
+        updateData.uploader_name = uploader_name
+        
+        // Update title if it contains the old uploader name
+        const { data: currentVideo } = await supabase
+          .from('videos')
+          .select('title, uploader_name')
+          .eq('id', id)
+          .single()
+        
+        if (currentVideo && currentVideo.uploader_name && currentVideo.title) {
+          const oldName = currentVideo.uploader_name
+          const newName = uploader_name
+          
+          // If title starts with old uploader name, replace it with new name (case-insensitive check)
+          if (currentVideo.title.toLowerCase().startsWith(oldName.toLowerCase())) {
+            const rest = currentVideo.title.slice(oldName.length)
+            updateData.title = newName + rest
+          }
+        }
+      }
     }
     
     // Fields editable by both admin and owner

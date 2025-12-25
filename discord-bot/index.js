@@ -2,7 +2,7 @@ const dns = require('dns');
 const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, REST, Routes } = require('discord.js');
 const { createClient } = require('@supabase/supabase-js');
 
-const BOT_VERSION = '2025-12-25-mention-title-v4';
+const BOT_VERSION = '2025-12-25-mention-title-v5';
 
 // Set DNS to use Google's DNS servers to avoid network issues
 dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
@@ -539,8 +539,8 @@ async function handlePostCommand(interaction) {
       embeds: [embed],
       components: [row],
       allowedMentions: {
-        parse: [],
-        users: []
+        parse: ['users'],
+        users: uploaderDiscordId ? [uploaderDiscordId] : []
       }
     });
 
