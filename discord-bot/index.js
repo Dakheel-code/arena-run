@@ -2,7 +2,7 @@ const dns = require('dns');
 const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, REST, Routes } = require('discord.js');
 const { createClient } = require('@supabase/supabase-js');
 
-const BOT_VERSION = '2025-12-25-mention-title-v6';
+const BOT_VERSION = '2025-12-25-use-db-title-v7';
 
 // Set DNS to use Google's DNS servers to avoid network issues
 dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
@@ -488,13 +488,8 @@ async function handlePostCommand(interaction) {
       ? String(shieldHitsNum)
       : shieldHitsRaw.replace(/^\+/, '').trim();
 
-    // Always build title with mention from video data
-    const cleanSeason = String(video.season || '').replace(/[^0-9]/g, '');
-    const cleanDay = String(video.day || '').replace(/[^0-9]/g, '');
-    const titleParts = [uploaderMention || String(uploaderName || 'Unknown')];
-    if (cleanSeason) titleParts.push(`S${cleanSeason}`);
-    if (cleanDay) titleParts.push(`DAY ${cleanDay}`);
-    const embedTitle = titleParts.join(' - ');
+    // Use title from database as-is
+    const embedTitle = String(video.title || 'Untitled').trim();
     console.log('[post] embedTitle:', embedTitle);
 
     const detailsLines = []
@@ -537,10 +532,7 @@ async function handlePostCommand(interaction) {
 
     await channel.send({
       embeds: [embed],
-      components: [row],
-      allowedMentions: {
-        users: uploaderDiscordId ? [uploaderDiscordId] : []
-      }
+      components: [row]
     });
 
     try {
