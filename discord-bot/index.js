@@ -384,7 +384,8 @@ async function getRecentVideos() {
 // Command handlers
 async function handlePostCommand(interaction) {
   const videoId = interaction.options.getString('video_id');
-  const channel = interaction.options.getChannel('channel') || interaction.channel;
+  const channelId = interaction.options.getString('channel');
+  const channel = channelId ? await interaction.guild.channels.fetch(channelId) : interaction.channel;
   
   try {
     const { data: video, error } = await supabase
