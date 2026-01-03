@@ -78,6 +78,11 @@ export const api = {
     fetchAPI<{ message: string; total: number; updated: number; failed: number }>('/update-video-durations', {
       method: 'POST',
     }),
+  updateSingleVideoDuration: (videoId: string) =>
+    fetchAPI<{ success: boolean; duration?: number }>('/update-single-video-duration', {
+      method: 'POST',
+      body: JSON.stringify({ videoId }),
+    }),
 
   // Playback
   getPlaybackToken: (videoId: string) =>

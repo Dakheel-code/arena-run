@@ -84,7 +84,7 @@ export function NewRunPage() {
     lastUpdateTime.current = Date.now()
 
     try {
-      const { uploadUrl } = await api.createVideo({
+      const { uploadUrl, video } = await api.createVideo({
         title: generatedTitle,
         description: uploadData.description,
         season: uploadData.season,
@@ -105,6 +105,17 @@ export function NewRunPage() {
       })
 
       if (tusUpload) {
+        // Update video duration after upload completes
+        // Wait a bit for Cloudflare to process the video
+        setTimeout(async () => {
+          try {
+            await api.updateSingleVideoDuration(video.id)
+            console.log('Video duration updated successfully')
+          } catch (error) {
+            console.error('Failed to update video duration:', error)
+          }
+        }, 5000) // Wait 5 seconds before trying to get duration
+
         alert('Video uploaded successfully! It will be processed and reviewed shortly.')
         navigate('/')
       }

@@ -89,7 +89,7 @@ export function VideosPage() {
     setUploadProgress(0)
 
     try {
-      const { uploadUrl } = await api.createVideo({
+      const { uploadUrl, video } = await api.createVideo({
         title: generatedTitle,
         description: uploadData.description,
         season: uploadData.season,
@@ -110,6 +110,17 @@ export function VideosPage() {
       })
 
       if (tusUpload) {
+        // Update video duration after upload completes
+        setTimeout(async () => {
+          try {
+            await api.updateSingleVideoDuration(video.id)
+            console.log('Video duration updated successfully')
+            fetchVideos()
+          } catch (error) {
+            console.error('Failed to update video duration:', error)
+          }
+        }, 5000)
+
         alert('Video uploaded successfully! It will be processed shortly.')
         setShowUploadModal(false)
         setUploadData({
