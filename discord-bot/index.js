@@ -891,7 +891,12 @@ client.on('interactionCreate', async interaction => {
     return interaction.reply({ content: '❌ Guild only!', ephemeral: true });
   }
 
-  if (!interaction.member.permissions.has('Administrator')) {
+  // Check if user has Administrator permission or "Under Sheriff" role
+  const ALLOWED_ROLE_ID = '789747360351387648'; // Under Sheriff role
+  const hasAdminPermission = interaction.member.permissions.has('Administrator');
+  const hasAllowedRole = interaction.member.roles.cache.has(ALLOWED_ROLE_ID);
+  
+  if (!hasAdminPermission && !hasAllowedRole) {
     return interaction.reply({ content: '❌ Admin only!', ephemeral: true });
   }
 
