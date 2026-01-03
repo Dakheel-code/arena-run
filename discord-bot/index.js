@@ -539,24 +539,14 @@ async function handlePostCommand(interaction) {
     try {
       if (uploaderDiscordId) {
         const user = await client.users.fetch(uploaderDiscordId);
-        const dmEmbed = new EmbedBuilder()
-          .setColor(0x10B981)
-          .setTitle('Thank you!')
-          .setDescription(
-            `Your video has been posted successfully ✅\n\n` +
-            `**${String(embedTitle || '').trim()}**\n\n` +
-            `We truly appreciate your time and effort—your contribution makes a real difference.`
-          )
-          .addFields(
-            { name: 'Posted in', value: `<#${channel.id}>`, inline: true }
-          )
-          .setTimestamp();
+        const dmMessage = 
+          `Hi <@${uploaderDiscordId}>,\n` +
+          `your video has been reviewed and posted successfully. Thank you!\n\n` +
+          `**${String(embedTitle || '').trim()}**\n\n` +
+          `We truly appreciate your time and effort — your contribution makes a real difference.\n\n` +
+          `Posted in: <#${channel.id}>`;
 
-        if (uploaderAvatar) {
-          dmEmbed.setThumbnail(uploaderAvatar);
-        }
-
-        await user.send({ embeds: [dmEmbed] });
+        await user.send(dmMessage);
       }
     } catch (e) {
       console.warn('⚠️ Failed to send DM to uploader:', e?.message || e);
