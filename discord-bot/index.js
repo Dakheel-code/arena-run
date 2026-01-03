@@ -793,10 +793,11 @@ const commands = [
         .setRequired(true)
         .setAutocomplete(true)
     )
-    .addChannelOption(option =>
+    .addStringOption(option =>
       option.setName('channel')
         .setDescription('Channel to post (optional)')
         .setRequired(false)
+        .setAutocomplete(true)
     ),
   
   new SlashCommandBuilder()
@@ -860,6 +861,33 @@ const commands = [
 // Handle interactions
 client.on('interactionCreate', async interaction => {
   if (interaction.isAutocomplete()) {
+    const focusedOption = interaction.options.getFocused(true);
+    
+    // Handle channel autocomplete
+    if (focusedOption.name === 'channel') {
+      try {
+        const ALLOWED_CATEGORY_ID = '931989735742775356';
+        const guild = interaction.guild;
+        const channels = guild.channels.cache
+          .filter(channel => 
+            channel.type === 0 && // Text channels only
+            channel.parentId === ALLOWED_CATEGORY_ID
+          )
+          .map(channel => ({
+            name: channel.name,
+            value: channel.id
+          }))
+          .slice(0, 25); // Discord limit
+
+        await safeAutocompleteRespond(interaction, channels);
+      } catch (error) {
+        console.error('Channel autocomplete error:', error);
+        await safeAutocompleteRespond(interaction, []);
+      }
+      return;
+    }
+    
+    // Handle video_id autocomplete
     if (interaction.commandName === 'post' || interaction.commandName === 'publish' || 
         interaction.commandName === 'unpublish' || interaction.commandName === 'delete') {
       try {
