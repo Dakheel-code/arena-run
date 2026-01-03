@@ -15,6 +15,7 @@ import { SettingsPage } from './pages/admin/SettingsPage'
 import LoginLogsPage from './pages/admin/LoginLogsPage'
 import { NewRunPage } from './pages/NewRunPage'
 import { EditVideoPage } from './pages/EditVideoPage'
+import { UploadSuccessPage } from './pages/UploadSuccessPage'
 
 function AppRoutes() {
   return (
@@ -23,6 +24,7 @@ function AppRoutes() {
       <Route path="/videos" element={<HomePage />} />
       <Route path="/watch/:id" element={<WatchPage />} />
       <Route path="/new-run" element={<NewRunPage />} />
+      <Route path="/upload-success" element={<UploadSuccessPage />} />
       <Route path="/edit-video/:id" element={<EditVideoPage />} />
       
       {/* Admin routes */}

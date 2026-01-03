@@ -116,8 +116,7 @@ export function NewRunPage() {
           }
         }, 5000) // Wait 5 seconds before trying to get duration
 
-        alert('Video uploaded successfully! It will be processed and reviewed shortly.')
-        navigate('/')
+        navigate('/upload-success')
       }
     } catch (error) {
       console.error('Upload failed:', error)
