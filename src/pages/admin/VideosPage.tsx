@@ -38,7 +38,6 @@ export function VideosPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [watchingVideo, setWatchingVideo] = useState<Video | null>(null)
-  const [isUpdatingDurations, setIsUpdatingDurations] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -203,21 +202,6 @@ export function VideosPage() {
     }
   }
 
-  const updateAllDurations = async () => {
-    if (!confirm('Update durations for all videos without duration data? This may take a few minutes.')) return
-    setIsUpdatingDurations(true)
-    try {
-      const result = await api.updateVideoDurations()
-      alert(`Duration update completed!\n\nTotal: ${result.total}\nUpdated: ${result.updated}\nFailed: ${result.failed}`)
-      await fetchVideos()
-    } catch (error) {
-      console.error('Failed to update durations:', error)
-      alert('Failed to update video durations')
-    } finally {
-      setIsUpdatingDurations(false)
-    }
-  }
-
   const handleEditSave = async () => {
     if (!editingVideo) return
     
@@ -262,25 +246,11 @@ export function VideosPage() {
           </div>
           <p className="text-sm md:text-base text-gray-400">{t('uploadAndManage')}</p>
         </div>
-        <div className="flex gap-2">
-          <button 
-            onClick={updateAllDurations} 
-            disabled={isUpdatingDurations}
-            className="btn-secondary text-sm md:text-base px-3 py-2 md:px-4 md:py-2 flex items-center gap-2"
-          >
-            {isUpdatingDurations ? (
-              <Loader className="animate-spin" size={16} />
-            ) : (
-              <Upload size={16} />
-            )}
-            <span className="hidden md:inline">Update Durations</span>
-          </button>
-          <button onClick={() => navigate('/new-run')} className="btn-discord text-sm md:text-base px-3 py-2 md:px-6 md:py-3">
-            <Plus size={16} className="md:w-5 md:h-5" />
-            <span className="hidden sm:inline">{t('newRun')}</span>
-            <span className="sm:hidden">New</span>
-          </button>
-        </div>
+        <button onClick={() => navigate('/new-run')} className="btn-discord text-sm md:text-base px-3 py-2 md:px-6 md:py-3">
+          <Plus size={16} className="md:w-5 md:h-5" />
+          <span className="hidden sm:inline">{t('newRun')}</span>
+          <span className="sm:hidden">New</span>
+        </button>
       </div>
 
       {isLoading ? (
