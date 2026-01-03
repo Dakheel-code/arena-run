@@ -74,7 +74,10 @@ export const api = {
     }),
   deleteVideo: (id: string) =>
     fetchAPI<{ success: boolean }>(`/videos?id=${id}`, { method: 'DELETE' }),
-
+  updateVideoDurations: () =>
+    fetchAPI<{ message: string; total: number; updated: number; failed: number }>('/update-video-durations', {
+      method: 'POST',
+    }),
 
   // Playback
   getPlaybackToken: (videoId: string) =>

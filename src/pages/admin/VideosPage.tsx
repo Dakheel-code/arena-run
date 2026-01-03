@@ -38,6 +38,7 @@ export function VideosPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [watchingVideo, setWatchingVideo] = useState<Video | null>(null)
+  const [isUpdatingDurations, setIsUpdatingDurations] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -180,14 +181,29 @@ export function VideosPage() {
     }
   }
 
-  const deleteVideo = async (video: Video) => {
-    if (!confirm(`Are you sure you want to delete "${video.title}"?`)) return
-
+  const deleteVideo = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this video?')) return
     try {
-      await api.deleteVideo(video.id)
-      setVideos((prev) => prev.filter((v) => v.id !== video.id))
+      await api.deleteVideo(id)
+      setVideos((prev) => prev.filter((v) => v.id !== id))
     } catch (error) {
       console.error('Failed to delete video:', error)
+      alert('Failed to delete video')
+    }
+  }
+
+  const updateAllDurations = async () => {
+    if (!confirm('Update durations for all videos without duration data? This may take a few minutes.')) return
+    setIsUpdatingDurations(true)
+    try {
+      const result = await api.updateVideoDurations()
+      alert(`Duration update completed!\n\nTotal: ${result.total}\nUpdated: ${result.updated}\nFailed: ${result.failed}`)
+      await fetchVideos()
+    } catch (error) {
+      console.error('Failed to update durations:', error)
+      alert('Failed to update video durations')
+    } finally {
+      setIsUpdatingDurations(false)
     }
   }
 
@@ -235,11 +251,25 @@ export function VideosPage() {
           </div>
           <p className="text-sm md:text-base text-gray-400">{t('uploadAndManage')}</p>
         </div>
-        <button onClick={() => navigate('/new-run')} className="btn-discord text-sm md:text-base px-3 py-2 md:px-6 md:py-3">
-          <Plus size={16} className="md:w-5 md:h-5" />
-          <span className="hidden sm:inline">{t('newRun')}</span>
-          <span className="sm:hidden">New</span>
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={updateAllDurations} 
+            disabled={isUpdatingDurations}
+            className="btn-secondary text-sm md:text-base px-3 py-2 md:px-4 md:py-2 flex items-center gap-2"
+          >
+            {isUpdatingDurations ? (
+              <Loader className="animate-spin" size={16} />
+            ) : (
+              <Upload size={16} />
+            )}
+            <span className="hidden md:inline">Update Durations</span>
+          </button>
+          <button onClick={() => navigate('/new-run')} className="btn-discord text-sm md:text-base px-3 py-2 md:px-6 md:py-3">
+            <Plus size={16} className="md:w-5 md:h-5" />
+            <span className="hidden sm:inline">{t('newRun')}</span>
+            <span className="sm:hidden">New</span>
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -356,7 +386,7 @@ export function VideosPage() {
                   </button>
 
                   <button
-                    onClick={() => deleteVideo(video)}
+                    onClick={() => deleteVideo(video.id)}
                     className="flex items-center justify-center gap-2 p-2 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg transition-colors"
                   >
                     <Trash2 size={18} />
