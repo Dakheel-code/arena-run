@@ -90,7 +90,7 @@ async function getAllowedRoles() {
   }
 }
 
-async function sendDiscordNotification(message: string, color: number = 5814783) {
+async function sendDiscordNotification(message: string, color: number = 5814783, options?: { userId?: string, username?: string, avatarUrl?: string }) {
   try {
     const { data: settings } = await supabase
       .from('settings')
@@ -102,13 +102,20 @@ async function sendDiscordNotification(message: string, color: number = 5814783)
       return
     }
 
-    const embed = {
+    const embed: any = {
       title: '🔔 Arena Run Notification',
       description: message,
       color: color,
       timestamp: new Date().toISOString(),
       footer: {
         text: 'Arena Run Security System'
+      }
+    }
+
+    if (options?.username && options?.avatarUrl) {
+      embed.author = {
+        name: options.username,
+        icon_url: options.avatarUrl
       }
     }
 
@@ -274,13 +281,17 @@ export const handler: Handler = async (event) => {
           : 'Unknown'
         
         await sendDiscordNotification(
-          `🚫 **Unauthorized Login Attempt**\n\n` +
-          `👤 **User:** ${discordUser.username}\n` +
-          `🆔 **Discord ID:** ${discordUser.id}\n` +
-          `❌ **Reason:** Not a member of the required Discord server\n` +
-          `🌍 **Location:** ${locationStr}\n` +
-          `📍 **IP Address:** ${ip_address}`,
-          15158332 // Red color
+          `⚠️ **Unauthorized Login Attempt**\n\n` +
+          `**User:** <@${discordUser.id}>\n` +
+          `**Reason:** Missing required role (Deputy)\n` +
+          `**Location:** ${locationStr}\n` +
+          `**IP Address:** ${ip_address}`,
+          15158332, // Red color
+          {
+            userId: discordUser.id,
+            username: discordUser.username,
+            avatarUrl: avatarUrl || `https://cdn.discordapp.com/embed/avatars/${parseInt(discordUser.id) % 5}.png`
+          }
         )
       }
 
@@ -367,12 +378,16 @@ export const handler: Handler = async (event) => {
           
           await sendDiscordNotification(
             `⚠️ **Unauthorized Login Attempt**\n\n` +
-            `👤 **User:** ${discordUser.username}\n` +
-            `🆔 **Discord ID:** ${discordUser.id}\n` +
-            `❌ **Reason:** Missing required role (${allowedRoles.join(', ')})\n` +
-            `🌍 **Location:** ${locationStr}\n` +
-            `📍 **IP Address:** ${ip_address}`,
-            15105570 // Orange color
+            `**User:** <@${discordUser.id}>\n` +
+            `**Reason:** Missing required role (${allowedRoles.join(', ')})\n` +
+            `**Location:** ${locationStr}\n` +
+            `**IP Address:** ${ip_address}`,
+            15105570, // Orange color
+            {
+              userId: discordUser.id,
+              username: serverNickname,
+              avatarUrl: avatarUrl || `https://cdn.discordapp.com/embed/avatars/${parseInt(discordUser.id) % 5}.png`
+            }
           )
         }
 
