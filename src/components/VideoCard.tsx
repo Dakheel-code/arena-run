@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Play, Clock, ThumbsUp, User } from 'lucide-react'
+import { Play, Clock, User } from 'lucide-react'
 import { Video } from '../types'
 import { LazyImage } from './LazyImage'
 
@@ -18,13 +18,6 @@ function formatDuration(seconds?: number): string {
   const mins = Math.floor(seconds / 60)
   const secs = Math.floor(seconds % 60)
   return `${mins}:${secs.toString().padStart(2, '0')}`
-}
-
-function formatNumber(num?: number): string {
-  if (!num) return '0'
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
-  if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
-  return num.toString()
 }
 
 function getThumbnailUrl(streamUid: string): string {
@@ -123,8 +116,8 @@ export function VideoCard({ video }: VideoCardProps) {
         <div className="flex items-center justify-between text-[10px] sm:text-xs text-gray-500 pt-1.5 sm:pt-2 border-t border-gray-700/50">
           <div className="flex items-center gap-2 sm:gap-3">
             <span className="flex items-center gap-0.5 sm:gap-1">
-              <ThumbsUp size={12} className="text-gray-400" />
-              <span className="text-[10px] sm:text-xs">{formatNumber(video.likes_count)}</span>
+              <Clock size={12} className="text-gray-400" />
+              <span className="text-[10px] sm:text-xs">{formatDuration(video.duration)}</span>
             </span>
           </div>
           <span className="text-gray-500 text-[10px] sm:text-xs">
