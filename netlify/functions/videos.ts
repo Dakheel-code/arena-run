@@ -108,8 +108,17 @@ async function sendDiscordNotification(
     }]
   }
   
-  // Add allowed mentions if discord ID provided
-  if (options?.discordId) {
+  // Add role mention for new uploads
+  const isUploadNotif = title.includes('Upload')
+  if (isUploadNotif) {
+    payload.content = '<@&1428664396145754203>' // @ARENA RUN TEAM role mention
+    payload.allowed_mentions = {
+      parse: [],
+      roles: ['1428664396145754203'],
+      users: options?.discordId ? [options.discordId] : []
+    }
+  } else if (options?.discordId) {
+    // Add allowed mentions if discord ID provided (for non-upload notifications)
     payload.allowed_mentions = {
       parse: [],
       users: [options.discordId]
@@ -133,7 +142,29 @@ async function sendDiscordNotification(
       )
       
       if (response.ok) {
-        console.log('✅ Notification sent via Discord Bot')
+        console.log('✅ Notification sent via Discord Bot to primary channel')
+        
+        // Send to second channel for new uploads
+        if (isUploadNotif) {
+          const secondChannelId = '984981028454162492'
+          try {
+            await fetch(
+              `https://discord.com/api/v10/channels/${secondChannelId}/messages`,
+              {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bot ${DISCORD_BOT_TOKEN}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+              }
+            )
+            console.log('✅ Notification also sent to second channel')
+          } catch (err) {
+            console.error('❌ Failed to send to second channel:', err)
+          }
+        }
+        
         return
       }
 
