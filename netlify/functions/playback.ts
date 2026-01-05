@@ -118,7 +118,7 @@ export const handler: Handler = async (event) => {
   // Generate watermark code
   const watermarkCode = generateWatermarkCode()
 
-  // Get client info for session creation later
+  // Get client info
   const ip = event.headers['x-forwarded-for']?.split(',')[0] || event.headers['client-ip'] || event.headers['x-real-ip'] || 'unknown'
   const userAgent = event.headers['user-agent'] || 'unknown'
 
@@ -144,26 +144,46 @@ export const handler: Handler = async (event) => {
     country = 'Unknown'
   }
 
-  // Return stream UID and session data (session will be created when user watches 3+ seconds)
+  // Create view session (view count will be incremented after 3 seconds of watch time)
+  const { data: session, error: sessionError } = await supabase
+    .from('view_sessions')
+    .insert({
+      video_id: videoId,
+      discord_id: user.discord_id,
+      watermark_code: watermarkCode,
+      ip_address: ip,
+      country,
+      city,
+      is_vpn: isVpn,
+      isp,
+      user_agent: userAgent,
+      watch_seconds: 0,
+    })
+    .select()
+    .single()
+
+  if (sessionError) {
+    return { statusCode: 500, body: JSON.stringify({ message: sessionError.message }) }
+  }
+
+  // Get updated video data with new view count
+  const { data: updatedVideo } = await supabase
+    .from('videos')
+    .select('views')
+    .eq('id', videoId)
+    .single()
+
+  // Check for security alerts
+  await checkSecurityAlerts(user.discord_id, country, ip, videoId, userAgent)
+
+  // Return stream UID for unsigned playback
+  // Note: For production, consider enabling signed URLs in Cloudflare Stream settings
   const token = video.stream_uid
 
   return {
     statusCode: 200,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-      token, 
-      sessionData: {
-        video_id: videoId,
-        discord_id: user.discord_id,
-        watermark_code: watermarkCode,
-        ip_address: ip,
-        country,
-        city,
-        is_vpn: isVpn,
-        isp,
-        user_agent: userAgent,
-      }
-    }),
+    body: JSON.stringify({ token, session }),
   }
 }
 
