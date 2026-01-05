@@ -88,35 +88,15 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
     setIsPiPSupported('pictureInPictureEnabled' in document)
   }, [])
 
-  // Handle fullscreen changes and screen orientation
+  // Handle fullscreen changes
   useEffect(() => {
-    const handleFullscreenChange = async () => {
+    const handleFullscreenChange = () => {
       const isFS = !!document.fullscreenElement
       setIsFullscreen(isFS)
-      
-      // Auto-rotate to landscape in fullscreen on mobile
-      if (isFS && 'orientation' in screen && window.innerWidth < 768) {
-        try {
-          await (screen.orientation as any).lock('landscape')
-        } catch (err) {
-          console.log('Orientation lock not supported')
-        }
-      } else if (!isFS && 'orientation' in screen) {
-        try {
-          (screen.orientation as any).unlock()
-        } catch (err) {
-          console.log('Orientation unlock not supported')
-        }
-      }
     }
     document.addEventListener('fullscreenchange', handleFullscreenChange)
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange)
-      if ('orientation' in screen) {
-        try {
-          (screen.orientation as any).unlock()
-        } catch (err) {}
-      }
     }
   }, [])
 
