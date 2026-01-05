@@ -70,6 +70,11 @@ export const handler: Handler = async (event) => {
       .from('view_sessions')
       .update({ watch_seconds: watchSeconds })
       .eq('id', sessionId)
+    
+    // Increment view count only when user watches 3+ seconds (and only once per session)
+    if (watchSeconds >= 3 && session.watch_seconds < 3) {
+      await supabase.rpc('increment_views', { vid: session.video_id })
+    }
   }
 
   return {

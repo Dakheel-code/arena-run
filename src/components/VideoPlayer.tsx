@@ -215,7 +215,12 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   const updateWatchTime = useCallback(async () => {
     if (!sessionId) return
     const currentTime = watchTimeRef.current
-    if (currentTime - lastUpdateRef.current >= 5) {
+    // Send update at 3 seconds to count view, then every 5 seconds
+    const shouldUpdate = 
+      (currentTime >= 3 && lastUpdateRef.current < 3) || 
+      (currentTime - lastUpdateRef.current >= 5)
+    
+    if (shouldUpdate) {
       await api.updateWatchTime(sessionId, Math.floor(currentTime))
       lastUpdateRef.current = currentTime
     }

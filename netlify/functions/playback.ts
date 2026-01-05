@@ -144,7 +144,7 @@ export const handler: Handler = async (event) => {
     country = 'Unknown'
   }
 
-  // Create view session
+  // Create view session (view count will be incremented after 3 seconds of watch time)
   const { data: session, error: sessionError } = await supabase
     .from('view_sessions')
     .insert({
@@ -165,9 +165,6 @@ export const handler: Handler = async (event) => {
   if (sessionError) {
     return { statusCode: 500, body: JSON.stringify({ message: sessionError.message }) }
   }
-
-  // Increment view count (only once per session)
-  await supabase.rpc('increment_views', { vid: videoId })
 
   // Get updated video data with new view count
   const { data: updatedVideo } = await supabase
