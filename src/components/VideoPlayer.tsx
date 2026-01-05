@@ -28,6 +28,7 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
   const containerRef = useRef<HTMLDivElement>(null)
   const hlsRef = useRef<Hls | null>(null)
   const { saveProgress, getProgress, clearProgress } = useWatchHistory(videoId)
+  const autoFullscreenTriggeredRef = useRef(false)
   const [watermarkCode, setWatermarkCode] = useState('')
   const [watermarkPosition, setWatermarkPosition] = useState({ x: 10, y: 10 })
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -90,14 +91,6 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
   useEffect(() => {
     setIsPiPSupported('pictureInPictureEnabled' in document)
   }, [])
-
-  useEffect(() => {
-    if (!autoFullscreen) return
-    const isMobileViewport = window.matchMedia('(max-width: 767px)').matches
-    if (isMobileViewport) {
-      setIsPseudoFullscreen(true)
-    }
-  }, [autoFullscreen])
 
   // Handle fullscreen changes
   useEffect(() => {
@@ -479,7 +472,18 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
         playsInline
         controlsList="nodownload nofullscreen"
         onContextMenu={(e) => e.preventDefault()}
-        onPlay={() => setIsPlaying(true)}
+        onPlay={() => {
+          setIsPlaying(true)
+          if (!autoFullscreen) return
+          if (autoFullscreenTriggeredRef.current) return
+          if (isFullscreen) return
+
+          const isMobileViewport = window.matchMedia('(max-width: 767px)').matches
+          if (isMobileViewport) {
+            setIsPseudoFullscreen(true)
+            autoFullscreenTriggeredRef.current = true
+          }
+        }}
         onPause={() => setIsPlaying(false)}
         onVolumeChange={(e) => {
           const video = e.currentTarget

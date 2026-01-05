@@ -96,8 +96,10 @@ export function WatchPage() {
 
   if (isMobile) {
     return (
-      <div className="fixed inset-0 bg-black">
-        <VideoPlayer videoId={video.id} streamUid={video.stream_uid} autoFullscreen />
+      <div className="min-h-[100dvh] bg-black p-3 pt-4">
+        <div className="max-w-4xl mx-auto">
+          <VideoPlayer videoId={video.id} streamUid={video.stream_uid} autoFullscreen />
+        </div>
       </div>
     )
   }
