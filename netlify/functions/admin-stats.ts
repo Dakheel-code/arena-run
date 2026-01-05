@@ -226,6 +226,32 @@ export const handler: Handler = async (event) => {
     }
   })
 
+  // Get top countries by unique members
+  const { data: allSessionsWithCountry } = await supabase
+    .from('view_sessions')
+    .select('discord_id, country')
+    .not('country', 'is', null)
+
+  // Count unique members per country
+  const countryMemberMap = new Map<string, Set<string>>()
+  allSessionsWithCountry?.forEach((session: any) => {
+    if (session.country && session.country !== 'Unknown') {
+      if (!countryMemberMap.has(session.country)) {
+        countryMemberMap.set(session.country, new Set())
+      }
+      countryMemberMap.get(session.country)!.add(session.discord_id)
+    }
+  })
+
+  // Build top countries list
+  const topCountries = Array.from(countryMemberMap.entries())
+    .map(([country, members]) => ({
+      country,
+      memberCount: members.size
+    }))
+    .sort((a, b) => b.memberCount - a.memberCount)
+    .slice(0, 10)
+
   // Get period-specific stats if date range provided
   let periodViews = 0
   let periodWatchTime = 0
@@ -266,6 +292,7 @@ export const handler: Handler = async (event) => {
       periodSessions,
       topViewers,
       topWatchTime,
+      topCountries,
     }),
   }
 }

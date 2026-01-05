@@ -4,7 +4,7 @@ import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
 import { useLanguage } from '../../context/LanguageContext'
 import { Video as VideoType } from '../../types'
-import { Users, Video, Eye, ThumbsUp, Clock, Calendar, TrendingUp, Play, UserPlus, Loader, Upload, User, LayoutDashboard } from 'lucide-react'
+import { Users, Video, Eye, ThumbsUp, Clock, Calendar, TrendingUp, Play, UserPlus, Loader, Upload, User, LayoutDashboard, Globe } from 'lucide-react'
 
 interface TopUploader {
   id: string
@@ -44,6 +44,11 @@ interface TopWatcher {
   seconds: number
 }
 
+interface TopCountry {
+  country: string
+  memberCount: number
+}
+
 interface Stats {
   totalViews: number
   totalLikes: number
@@ -62,6 +67,7 @@ interface Stats {
   periodSessions?: number
   topViewers?: TopViewer[]
   topWatchTime?: TopWatcher[]
+  topCountries?: TopCountry[]
 }
 
 type TimePeriod = 'today' | 'week' | 'month' | '3months' | '6months' | 'year' | 'all' | 'custom'
@@ -89,6 +95,7 @@ export function AdminDashboard() {
   const [showAllViewers, setShowAllViewers] = useState(false)
   const [showAllUploaders, setShowAllUploaders] = useState(false)
   const [showAllWatchTime, setShowAllWatchTime] = useState(false)
+  const [showAllCountries, setShowAllCountries] = useState(false)
 
   useEffect(() => {
     fetchStats()
@@ -488,6 +495,43 @@ export function AdminDashboard() {
               )}
             </div>
           </div>
+
+          {/* Top Countries */}
+          {stats?.topCountries && stats.topCountries.length > 0 && (
+            <div className="card mb-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Globe className="text-cyan-400" size={20} />
+                Top Countries by Members
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                {stats.topCountries.slice(0, showAllCountries ? 10 : 5).map((country, index) => (
+                  <div
+                    key={country.country}
+                    className="bg-gray-800/50 rounded-lg p-3 hover:bg-gray-800 transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`text-xs font-bold ${index === 0 ? 'text-yellow-400' : index === 1 ? 'text-gray-300' : index === 2 ? 'text-amber-600' : 'text-gray-500'}`}>
+                        #{index + 1}
+                      </span>
+                      <Globe size={14} className="text-cyan-400" />
+                    </div>
+                    <p className="font-semibold text-white truncate">{country.country}</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {country.memberCount} {country.memberCount === 1 ? 'member' : 'members'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              {stats.topCountries.length > 5 && (
+                <button
+                  onClick={() => setShowAllCountries(!showAllCountries)}
+                  className="w-full mt-4 py-2 text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+                >
+                  {showAllCountries ? 'Show Less' : `Show More (${stats.topCountries.length - 5} more)`}
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Top Videos */}
