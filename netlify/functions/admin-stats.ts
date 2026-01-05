@@ -39,12 +39,16 @@ export const handler: Handler = async (event) => {
   const startDate = event.queryStringParameters?.start
   const endDate = event.queryStringParameters?.end || new Date().toISOString()
 
-  // Get total views from videos
+  // Get total views from view_sessions (count all sessions)
+  const { count: totalViews } = await supabase
+    .from('view_sessions')
+    .select('*', { count: 'exact', head: true })
+
+  // Get total likes from videos
   const { data: videos } = await supabase
     .from('videos')
-    .select('views_count, likes_count, created_at, title, is_published')
+    .select('likes_count, is_published')
 
-  const totalViews = videos?.reduce((sum, v) => sum + (v.views_count || 0), 0) || 0
   const totalLikes = videos?.reduce((sum, v) => sum + (v.likes_count || 0), 0) || 0
   const publishedVideos = videos?.filter(v => v.is_published).length || 0
 
