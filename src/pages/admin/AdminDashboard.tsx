@@ -96,6 +96,7 @@ export function AdminDashboard() {
   const [showAllUploaders, setShowAllUploaders] = useState(false)
   const [showAllWatchTime, setShowAllWatchTime] = useState(false)
   const [showAllCountries, setShowAllCountries] = useState(false)
+  const [showAllVideos, setShowAllVideos] = useState(false)
 
   useEffect(() => {
     fetchStats()
@@ -541,10 +542,11 @@ export function AdminDashboard() {
                 {t('topVideos')}
               </h2>
               {stats?.topVideos && stats.topVideos.length > 0 ? (
+                <>
                 <div className="space-y-3">
-                  {stats.topVideos.map((video, index) => (
+                  {stats.topVideos.slice(0, showAllVideos ? 10 : 5).map((video, index) => (
                     <div key={video.id} className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg">
-                      <div className="w-8 h-8 rounded-full bg-theme/20 flex items-center justify-center text-sm font-bold text-theme-light">
+                      <div className="w-8 h-8 rounded-full bg-theme/20 flex items-center justify-center text-sm font-bold text-white">
                         {index + 1}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -554,7 +556,7 @@ export function AdminDashboard() {
                         >
                           {video.title}
                         </Link>
-                        <div className="flex items-center gap-3 text-xs text-gray-400">
+                        <div className="flex items-center gap-3 text-xs text-white">
                           <span className="flex items-center gap-1">
                             <Eye size={12} /> {video.views}
                           </span>
@@ -566,6 +568,15 @@ export function AdminDashboard() {
                     </div>
                   ))}
                 </div>
+                {stats.topVideos.length > 5 && (
+                  <button
+                    onClick={() => setShowAllVideos(!showAllVideos)}
+                    className="w-full mt-4 py-2 text-sm text-theme-light hover:text-theme transition-colors"
+                  >
+                    {showAllVideos ? 'Show Less' : `Show More (${stats.topVideos.length - 5} more)`}
+                  </button>
+                )}
+                </>
               ) : (
                 <p className="text-gray-400 text-center py-4">{t('noVideosYet')}</p>
               )}
