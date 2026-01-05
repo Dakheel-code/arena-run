@@ -73,6 +73,7 @@ interface Stats {
   topViewers?: TopViewer[]
   topWatchTime?: TopWatcher[]
   topCountries?: TopCountry[]
+  totalCountries?: number
 }
 
 type TimePeriod = 'today' | 'week' | 'month' | '3months' | '6months' | 'year' | 'all' | 'custom'
@@ -342,7 +343,7 @@ export function AdminDashboard() {
           </div>
 
           {/* Secondary Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
             <div className="card">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
@@ -384,6 +385,17 @@ export function AdminDashboard() {
                 <div>
                   <p className="text-2xl font-bold">{stats?.newMembersThisMonth || 0}</p>
                   <p className="text-xs text-gray-400">{t('newThisMonth')}</p>
+                </div>
+              </div>
+            </div>
+            <div className="card">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                  <Globe size={20} className="text-cyan-400" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{stats?.totalCountries || 0}</p>
+                  <p className="text-xs text-gray-400">Countries</p>
                 </div>
               </div>
             </div>

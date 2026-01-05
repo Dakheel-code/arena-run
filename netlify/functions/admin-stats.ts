@@ -370,6 +370,7 @@ export const handler: Handler = async (event) => {
       topViewers,
       topWatchTime,
       topCountries,
+      totalCountries: topCountries.length,
     }),
   }
 }
