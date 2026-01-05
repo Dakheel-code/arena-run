@@ -235,11 +235,22 @@ export const handler: Handler = async (event) => {
     .not('country', 'is', null)
     .order('logged_at', { ascending: false })
 
+  // Helper function to extract country name (remove city if present)
+  const extractCountryName = (location: string): string => {
+    if (!location) return ''
+    // If format is "Country, City", extract just the country
+    const parts = location.split(',')
+    return parts[0].trim()
+  }
+
   // Get the last login country for each member
   const memberLastCountry = new Map<string, string>()
   allLogins?.forEach((login: any) => {
     if (login.country && login.country !== 'Unknown' && !memberLastCountry.has(login.discord_id)) {
-      memberLastCountry.set(login.discord_id, login.country)
+      const countryName = extractCountryName(login.country)
+      if (countryName) {
+        memberLastCountry.set(login.discord_id, countryName)
+      }
     }
   })
 
@@ -252,7 +263,10 @@ export const handler: Handler = async (event) => {
 
   sessionCountries?.forEach((session: any) => {
     if (session.country && session.country !== 'Unknown' && !memberLastCountry.has(session.discord_id)) {
-      memberLastCountry.set(session.discord_id, session.country)
+      const countryName = extractCountryName(session.country)
+      if (countryName) {
+        memberLastCountry.set(session.discord_id, countryName)
+      }
     }
   })
 
