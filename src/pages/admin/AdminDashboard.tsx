@@ -396,7 +396,7 @@ export function AdminDashboard() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats?.totalCountries || 0}</p>
-                  <p className="text-xs text-gray-400">Countries</p>
+                  <p className="text-xs text-gray-400">{t('totalCountries')}</p>
                 </div>
               </div>
             </div>
@@ -439,7 +439,7 @@ export function AdminDashboard() {
                     onClick={() => setShowAllViewers(!showAllViewers)}
                     className="w-full mt-2 py-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors"
                   >
-                    {showAllViewers ? 'Show Less' : `Show More (${stats.topViewers.length - 5} more)`}
+                    {showAllViewers ? t('showLess') : `${t('showMore')} (${stats.topViewers.length - 5} more)`}
                   </button>
                 )}
                 </>
@@ -483,7 +483,7 @@ export function AdminDashboard() {
                     onClick={() => setShowAllUploaders(!showAllUploaders)}
                     className="w-full mt-2 py-1.5 text-xs text-green-400 hover:text-green-300 transition-colors"
                   >
-                    {showAllUploaders ? 'Show Less' : `Show More (${topUploaders.length - 5} more)`}
+                    {showAllUploaders ? t('showLess') : `${t('showMore')} (${topUploaders.length - 5} more)`}
                   </button>
                 )}
                 </>
@@ -527,7 +527,7 @@ export function AdminDashboard() {
                     onClick={() => setShowAllWatchTime(!showAllWatchTime)}
                     className="w-full mt-2 py-1.5 text-xs text-orange-400 hover:text-orange-300 transition-colors"
                   >
-                    {showAllWatchTime ? 'Show Less' : `Show More (${stats.topWatchTime.length - 5} more)`}
+                    {showAllWatchTime ? t('showLess') : `${t('showMore')} (${stats.topWatchTime.length - 5} more)`}
                   </button>
                 )}
                 </>
@@ -542,7 +542,7 @@ export function AdminDashboard() {
             <div className="card mb-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Globe className="text-cyan-400" size={20} />
-                Top Countries by Members
+                {t('topCountriesByMembers')}
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                 {stats.topCountries.slice(0, showAllCountries ? stats.topCountries.length : 5).map((country, index) => (
@@ -577,7 +577,7 @@ export function AdminDashboard() {
                   onClick={() => setShowAllCountries(!showAllCountries)}
                   className="w-full mt-4 py-2 text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
                 >
-                  {showAllCountries ? 'Show Less' : `Show More (${stats.topCountries.length - 5} more)`}
+                  {showAllCountries ? t('showLess') : `${t('showMore')} (${stats.topCountries.length - 5} more)`}
                 </button>
               )}
             </div>
@@ -622,7 +622,7 @@ export function AdminDashboard() {
                     onClick={() => setShowAllVideos(!showAllVideos)}
                     className="w-full mt-4 py-2 text-sm text-theme-light hover:text-theme transition-colors"
                   >
-                    {showAllVideos ? 'Show Less' : `Show More (${stats.topVideos.length - 5} more)`}
+                    {showAllVideos ? t('showLess') : `${t('showMore')} (${stats.topVideos.length - 5} more)`}
                   </button>
                 )}
                 </>
