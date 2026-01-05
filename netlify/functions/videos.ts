@@ -364,6 +364,28 @@ export const handler: Handler = async (event) => {
       uploader_avatar: avatarMap.get(video.uploaded_by) || null
     })) || []
 
+    // Auto-update durations for videos with missing/invalid duration in background (non-blocking)
+    if (user.is_admin) {
+      const videosNeedingUpdate = videosWithAvatars.filter(v => 
+        !v.duration || v.duration < 0
+      ).slice(0, 5) // Update max 5 videos per request to avoid timeout
+      
+      if (videosNeedingUpdate.length > 0) {
+        // Run in background without waiting
+        Promise.all(
+          videosNeedingUpdate.map(v => 
+            updateVideoDuration(v.id, v.stream_uid).catch(err => 
+              console.error(`Background update failed for ${v.id}:`, err)
+            )
+          )
+        ).then(() => {
+          console.log(`✅ Background update completed for ${videosNeedingUpdate.length} videos`)
+        }).catch(err => {
+          console.error('Background update error:', err)
+        })
+      }
+    }
+
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
