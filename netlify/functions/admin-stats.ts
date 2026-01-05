@@ -294,7 +294,7 @@ export const handler: Handler = async (event) => {
       }
     })
     .sort((a, b) => b.memberCount - a.memberCount)
-    .slice(0, 10)
+    .slice(0, 50)
 
   // Get period-specific stats if date range provided
   let periodViews = 0
