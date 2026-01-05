@@ -227,7 +227,7 @@ export const handler: Handler = async (event) => {
   })
 
   // Get top countries by unique members from their last login
-  // First, get the most recent login for each member
+  // First, get the most recent login for each member from login_logs
   const { data: allLogins } = await supabase
     .from('login_logs')
     .select('discord_id, country, logged_at')
@@ -240,6 +240,19 @@ export const handler: Handler = async (event) => {
   allLogins?.forEach((login: any) => {
     if (login.country && login.country !== 'Unknown' && !memberLastCountry.has(login.discord_id)) {
       memberLastCountry.set(login.discord_id, login.country)
+    }
+  })
+
+  // Fallback: Get country from view_sessions for members not in login_logs
+  const { data: sessionCountries } = await supabase
+    .from('view_sessions')
+    .select('discord_id, country')
+    .not('country', 'is', null)
+    .order('started_at', { ascending: false })
+
+  sessionCountries?.forEach((session: any) => {
+    if (session.country && session.country !== 'Unknown' && !memberLastCountry.has(session.discord_id)) {
+      memberLastCountry.set(session.discord_id, session.country)
     }
   })
 
