@@ -139,7 +139,7 @@ export const handler: Handler = async (event) => {
   const discordIds = [...new Set(rawSessions?.map(s => s.discord_id) || [])]
   const { data: membersData } = await supabase
     .from('members')
-    .select('discord_id, discord_username, game_id, discord_avatar')
+    .select('discord_id, discord_username, discord_global_name, game_id, discord_avatar')
     .in('discord_id', discordIds.length > 0 ? discordIds : ['none'])
 
   const memberMap = new Map(membersData?.map(m => [m.discord_id, m]) || [])
@@ -148,7 +148,7 @@ export const handler: Handler = async (event) => {
     const member = memberMap.get(s.discord_id)
     return {
       ...s,
-      member_name: member?.discord_username || member?.game_id || s.discord_id.slice(0, 8) + '...',
+      member_name: member?.discord_global_name || member?.discord_username || member?.game_id || s.discord_id.slice(0, 8) + '...',
       member_avatar: member?.discord_avatar
     }
   }) || []
@@ -199,7 +199,7 @@ export const handler: Handler = async (event) => {
   // Fetch member info for these discord_ids
   const { data: allMembersData } = await supabase
     .from('members')
-    .select('discord_id, discord_username, game_id, discord_avatar')
+    .select('discord_id, discord_username, discord_global_name, game_id, discord_avatar')
     .in('discord_id', allDiscordIds.length > 0 ? allDiscordIds : ['none'])
 
   const memberInfoMap = new Map(allMembersData?.map(m => [m.discord_id, m]) || [])
@@ -209,7 +209,7 @@ export const handler: Handler = async (event) => {
     const member = memberInfoMap.get(id)
     return {
       id,
-      name: member?.discord_username || member?.game_id || id.slice(0, 8) + '...',
+      name: member?.discord_global_name || member?.discord_username || member?.game_id || id.slice(0, 8) + '...',
       avatar: member?.discord_avatar,
       count: data.sessions
     }
@@ -220,7 +220,7 @@ export const handler: Handler = async (event) => {
     const member = memberInfoMap.get(id)
     return {
       id,
-      name: member?.discord_username || member?.game_id || id.slice(0, 8) + '...',
+      name: member?.discord_global_name || member?.discord_username || member?.game_id || id.slice(0, 8) + '...',
       avatar: member?.discord_avatar,
       seconds: data.watchTime
     }
