@@ -315,7 +315,15 @@ export const translations = {
     
     // Login Logs Page
     loginLogs: 'Login Logs',
+    loginDetails: 'Login Details',
     trackLoginAttempts: 'Track all login attempts including successful and failed attempts',
+    userInformation: 'User Information',
+    statusAndResult: 'Status & Result',
+    dateAndTime: 'Date & Time',
+    deviceInformation: 'Device Information',
+    permissionsAndRoles: 'Permissions & Roles',
+    userAgent: 'User Agent',
+    failureReasonLabel: 'Failure Reason',
     searchByUsername: 'Search by username, Discord ID, or email...',
     allStatus: 'All Status',
     successOnly: 'Success Only',
@@ -667,7 +675,15 @@ export const translations = {
     
     // Login Logs Page
     loginLogs: 'سجلات الدخول',
+    loginDetails: 'تفاصيل الدخول',
     trackLoginAttempts: 'تتبع جميع محاولات تسجيل الدخول بما في ذلك المحاولات الناجحة والفاشلة',
+    userInformation: 'معلومات المستخدم',
+    statusAndResult: 'الحالة والنتيجة',
+    dateAndTime: 'التاريخ والوقت',
+    deviceInformation: 'معلومات الجهاز',
+    permissionsAndRoles: 'الصلاحيات والأدوار',
+    userAgent: 'User Agent',
+    failureReasonLabel: 'سبب الفشل',
     searchByUsername: 'البحث بالاسم أو معرف Discord أو البريد الإلكتروني...',
     allStatus: 'جميع الحالات',
     successOnly: 'الناجحة فقط',
@@ -1022,7 +1038,15 @@ export const translations = {
     
     // Login Logs Page
     loginLogs: 'ログインログ',
+    loginDetails: 'ログイン詳細',
     trackLoginAttempts: '成功と失敗を含むすべてのログイン試行を追跡',
+    userInformation: 'ユーザー情報',
+    statusAndResult: 'ステータスと結果',
+    dateAndTime: '日時',
+    deviceInformation: 'デバイス情報',
+    permissionsAndRoles: '権限とロール',
+    userAgent: 'ユーザーエージェント',
+    failureReasonLabel: '失敗理由',
     searchByUsername: 'ユーザー名、Discord ID、またはメールで検索...',
     allStatus: 'すべてのステータス',
     successOnly: '成功のみ',
@@ -1377,7 +1401,15 @@ export const translations = {
     
     // Login Logs Page
     loginLogs: '로그인 로그',
+    loginDetails: '로그인 세부정보',
     trackLoginAttempts: '성공 및 실패한 모든 로그인 시도 추적',
+    userInformation: '사용자 정보',
+    statusAndResult: '상태 및 결과',
+    dateAndTime: '날짜 및 시간',
+    deviceInformation: '기기 정보',
+    permissionsAndRoles: '권한 및 역할',
+    userAgent: '사용자 에이전트',
+    failureReasonLabel: '실패 이유',
     searchByUsername: '사용자명, Discord ID 또는 이메일로 검색...',
     allStatus: '모든 상태',
     successOnly: '성공만',

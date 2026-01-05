@@ -533,7 +533,7 @@ export default function LoginLogsPage() {
               <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-500 p-6 border-b border-gray-700 flex items-center justify-between">
                 <h3 className="text-xl font-bold flex items-center gap-2">
                   <Shield size={24} />
-                  Login Details
+                  {t('loginDetails')}
                 </h3>
                 <button
                   onClick={() => setSelectedLog(null)}
@@ -548,7 +548,7 @@ export default function LoginLogsPage() {
                 <div className="bg-gray-800/50 rounded-xl p-4">
                   <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
                     <User size={16} />
-                    User Information
+                    {t('userInformation')}
                   </h4>
                   <div className="flex items-center gap-4 mb-4">
                     {selectedLog.discord_avatar ? (
@@ -570,25 +570,25 @@ export default function LoginLogsPage() {
 
                 {/* Status & Reason */}
                 <div className="bg-gray-800/50 rounded-xl p-4">
-                  <h4 className="text-sm font-medium text-gray-400 mb-3">Status & Result</h4>
+                  <h4 className="text-sm font-medium text-gray-400 mb-3">{t('statusAndResult')}</h4>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400">Status:</span>
+                      <span className="text-gray-400">{t('status')}:</span>
                       {selectedLog.status === 'success' ? (
                         <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-green-500/20 text-green-400 border border-green-500/30">
                           <CheckCircle size={14} />
-                          Success
+                          {t('success')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-red-500/20 text-red-400 border border-red-500/30">
                           <XCircle size={14} />
-                          Failed
+                          {t('failed')}
                         </span>
                       )}
                     </div>
                     {selectedLog.failure_reason && (
                       <div className="flex flex-col gap-1">
-                        <span className="text-gray-400 text-sm">Failure Reason:</span>
+                        <span className="text-gray-400 text-sm">{t('failureReasonLabel')}:</span>
                         <div className="flex items-start gap-2 bg-red-500/10 border border-red-500/30 rounded-lg p-3">
                           <AlertTriangle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
                           <span className="text-sm text-red-400">{selectedLog.failure_reason}</span>
@@ -602,7 +602,7 @@ export default function LoginLogsPage() {
                 <div className="bg-gray-800/50 rounded-xl p-4">
                   <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
                     <Clock size={16} />
-                    Date & Time
+                    {t('dateAndTime')}
                   </h4>
                   <p className="text-lg font-semibold text-white">
                     {new Date(selectedLog.logged_at).toLocaleString('en-US', {
@@ -621,19 +621,19 @@ export default function LoginLogsPage() {
                 <div className="bg-gray-800/50 rounded-xl p-4">
                   <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
                     <MapPin size={16} />
-                    Location
+                    {t('location')}
                   </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Country:</span>
+                      <span className="text-gray-400">{t('country')}:</span>
                       <span className="text-white font-medium">{selectedLog.country || '-'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">City:</span>
+                      <span className="text-gray-400">{t('city')}:</span>
                       <span className="text-white font-medium">{selectedLog.city || '-'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">IP Address:</span>
+                      <span className="text-gray-400">{t('ipAddress')}:</span>
                       <span className="text-white font-mono text-sm">{selectedLog.ip_address || 'Unknown'}</span>
                     </div>
                   </div>
@@ -643,18 +643,18 @@ export default function LoginLogsPage() {
                 <div className="bg-gray-800/50 rounded-xl p-4">
                   <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
                     <Monitor size={16} />
-                    Device Information
+                    {t('deviceInformation')}
                   </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400">Device Type:</span>
+                      <span className="text-gray-400">{t('deviceType')}:</span>
                       <span className="text-white font-medium flex items-center gap-2">
                         <Chrome size={14} />
                         {getUserAgent(selectedLog.user_agent)}
                       </span>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="text-gray-400 text-sm">User Agent:</span>
+                      <span className="text-gray-400 text-sm">{t('userAgent')}:</span>
                       <span className="text-white text-xs font-mono bg-gray-900/50 p-2 rounded break-all">
                         {selectedLog.user_agent || '-'}
                       </span>
@@ -666,7 +666,7 @@ export default function LoginLogsPage() {
                 <div className="bg-gray-800/50 rounded-xl p-4">
                   <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
                     <Shield size={16} />
-                    Permissions & Roles
+                    {t('permissionsAndRoles')}
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {selectedLog.is_admin && (
