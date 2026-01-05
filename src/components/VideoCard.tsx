@@ -13,10 +13,20 @@ interface VideoCardProps {
   video: Video
 }
 
-function formatDuration(seconds?: number | null): string {
-  if (seconds === null || seconds === undefined || seconds < 0) return '--:--'
-  const mins = Math.floor(seconds / 60)
-  const secs = Math.floor(seconds % 60)
+function isValidDurationSeconds(seconds: unknown): seconds is number {
+  return typeof seconds === 'number' && Number.isFinite(seconds) && seconds > 0
+}
+
+function formatDuration(seconds: number): string {
+  const totalSeconds = Math.floor(seconds)
+  const hours = Math.floor(totalSeconds / 3600)
+  const mins = Math.floor((totalSeconds % 3600) / 60)
+  const secs = Math.floor(totalSeconds % 60)
+
+  if (hours > 0) {
+    return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
@@ -26,6 +36,7 @@ function getThumbnailUrl(streamUid: string): string {
 
 export function VideoCard({ video }: VideoCardProps) {
   const thumbnailUrl = video.thumbnail_url || (video.stream_uid ? getThumbnailUrl(video.stream_uid) : null)
+  const durationSeconds = isValidDurationSeconds(video.duration) ? video.duration : null
   
   return (
     <Link
@@ -58,10 +69,10 @@ export function VideoCard({ video }: VideoCardProps) {
         </div>
 
         {/* Duration badge */}
-        {video.duration && (
+        {durationSeconds !== null && (
           <div className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
             <Clock size={12} />
-            {formatDuration(video.duration)}
+            {formatDuration(durationSeconds)}
           </div>
         )}
 
@@ -113,13 +124,7 @@ export function VideoCard({ video }: VideoCardProps) {
         )}
 
         {/* Stats Row */}
-        <div className="flex items-center justify-between text-[10px] sm:text-xs text-gray-500 pt-1.5 sm:pt-2 border-t border-gray-700/50">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <span className="flex items-center gap-0.5 sm:gap-1">
-              <Clock size={12} className="text-gray-400" />
-              <span className="text-[10px] sm:text-xs">{formatDuration(video.duration)}</span>
-            </span>
-          </div>
+        <div className="flex items-center justify-end text-[10px] sm:text-xs text-gray-500 pt-1.5 sm:pt-2 border-t border-gray-700/50">
           <span className="text-gray-500 text-[10px] sm:text-xs">
             {new Date(video.created_at).toLocaleDateString('en-US', {
               month: 'short',
