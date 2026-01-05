@@ -384,15 +384,15 @@ export function SessionsPage() {
           <>
             {/* Desktop Table View */}
             <div className="overflow-x-auto hidden md:block">
-              <table className="w-full text-sm" dir="rtl">
+              <table className="w-full text-sm" dir="ltr">
                 <thead>
                   <tr className="border-b border-gray-700">
-                    <th className="py-3 px-4 text-right text-gray-400 font-medium">{t('member')}</th>
-                    <th className="py-3 px-4 text-right text-gray-400 font-medium">{t('video')}</th>
-                    <th className="py-3 px-4 text-right text-gray-400 font-medium">{t('country')}</th>
-                    <th className="py-3 px-4 text-right text-gray-400 font-medium">{t('duration')}</th>
-                    <th className="py-3 px-4 text-right text-gray-400 font-medium">{t('started')}</th>
-                    <th className="py-3 px-4 text-right text-gray-400 font-medium">{t('more')}</th>
+                    <th className="py-3 px-4 text-left text-gray-400 font-medium">{t('member')}</th>
+                    <th className="py-3 px-4 text-left text-gray-400 font-medium">{t('video')}</th>
+                    <th className="py-3 px-4 text-left text-gray-400 font-medium">{t('country')}</th>
+                    <th className="py-3 px-4 text-left text-gray-400 font-medium">{t('duration')}</th>
+                    <th className="py-3 px-4 text-left text-gray-400 font-medium">{t('started')}</th>
+                    <th className="py-3 px-4 text-left text-gray-400 font-medium">{t('more')}</th>
                   </tr>
                 </thead>
                 <tbody>

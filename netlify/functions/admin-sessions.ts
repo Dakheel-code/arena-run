@@ -52,7 +52,7 @@ export const handler: Handler = async (event) => {
     const discordIds = [...new Set(sessions?.map(s => s.discord_id) || [])]
     const { data: members } = await supabase
       .from('members')
-      .select('discord_id, discord_username, game_id, discord_avatar')
+      .select('discord_id, discord_username, discord_global_name, game_id, discord_avatar')
       .in('discord_id', discordIds)
 
     // Create a map for quick lookup
@@ -61,7 +61,8 @@ export const handler: Handler = async (event) => {
     // Merge member info with sessions
     const sessionsWithMembers = sessions?.map(session => ({
       ...session,
-      member_name: memberMap.get(session.discord_id)?.discord_username || 
+      member_name: memberMap.get(session.discord_id)?.discord_global_name || 
+                   memberMap.get(session.discord_id)?.discord_username || 
                    memberMap.get(session.discord_id)?.game_id || 
                    session.discord_id.slice(0, 10) + '...',
       member_avatar: memberMap.get(session.discord_id)?.discord_avatar || null
