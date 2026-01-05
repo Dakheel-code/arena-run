@@ -103,42 +103,67 @@ export const handler: Handler = async (event) => {
   }
 
   const body = JSON.parse(event.body || '{}')
-  const { sessionId, watchSeconds, action } = body
+  const { sessionId, sessionData, watchSeconds, action } = body
 
-  if (!sessionId) {
-    return { statusCode: 400, body: JSON.stringify({ message: 'Session ID required' }) }
-  }
-
-  // Verify session belongs to user
-  const { data: session } = await supabase
-    .from('view_sessions')
-    .select('*')
-    .eq('id', sessionId)
-    .eq('discord_id', user.discord_id)
-    .single()
-
-  if (!session) {
-    return { statusCode: 404, body: JSON.stringify({ message: 'Session not found' }) }
+  // If sessionId exists, verify it belongs to user
+  let session = null
+  if (sessionId) {
+    const { data } = await supabase
+      .from('view_sessions')
+      .select('*')
+      .eq('id', sessionId)
+      .eq('discord_id', user.discord_id)
+      .single()
+    session = data
   }
 
   if (action === 'end') {
-    // End session
-    await supabase
-      .from('view_sessions')
-      .update({ ended_at: new Date().toISOString() })
-      .eq('id', sessionId)
+    // End session if it exists
+    if (sessionId && session) {
+      await supabase
+        .from('view_sessions')
+        .update({ ended_at: new Date().toISOString() })
+        .eq('id', sessionId)
+    }
   } else if (watchSeconds !== undefined) {
-    // Update watch time
-    await supabase
-      .from('view_sessions')
-      .update({ watch_seconds: watchSeconds })
-      .eq('id', sessionId)
-    
-    // Increment view count only when user watches 3+ seconds (and only once per session)
-    if (watchSeconds >= 3 && session.watch_seconds < 3) {
-      await supabase.rpc('increment_views', { vid: session.video_id })
-      // Send new session notification after view is counted
-      await sendNewSessionNotification(session, session.video_id, user.discord_id)
+    // Create session when user watches 3+ seconds (only once)
+    if (watchSeconds >= 3 && !session && sessionData) {
+      // Create the session
+      const { data: newSession, error: sessionError } = await supabase
+        .from('view_sessions')
+        .insert({
+          video_id: sessionData.video_id,
+          discord_id: sessionData.discord_id,
+          watermark_code: sessionData.watermark_code,
+          ip_address: sessionData.ip_address,
+          country: sessionData.country,
+          city: sessionData.city,
+          is_vpn: sessionData.is_vpn,
+          isp: sessionData.isp,
+          user_agent: sessionData.user_agent,
+          watch_seconds: watchSeconds,
+        })
+        .select()
+        .single()
+
+      if (!sessionError && newSession) {
+        // Increment view count
+        await supabase.rpc('increment_views', { vid: sessionData.video_id })
+        // Send new session notification
+        await sendNewSessionNotification(newSession, sessionData.video_id, user.discord_id)
+        // Return the new session ID
+        return {
+          statusCode: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ success: true, sessionId: newSession.id }),
+        }
+      }
+    } else if (session) {
+      // Update existing session watch time
+      await supabase
+        .from('view_sessions')
+        .update({ watch_seconds: watchSeconds })
+        .eq('id', sessionId)
     }
   }
 

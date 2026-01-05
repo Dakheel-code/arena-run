@@ -30,6 +30,7 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   const [watermarkCode, setWatermarkCode] = useState('')
   const [watermarkPosition, setWatermarkPosition] = useState({ x: 10, y: 10 })
   const [sessionId, setSessionId] = useState<string | null>(null)
+  const [sessionData, setSessionData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -170,8 +171,9 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
     const initPlayer = async () => {
       try {
         setIsLoading(true)
-        const { token, session } = await api.getPlaybackToken(videoId)
-        setSessionId(session.id)
+        const { token, sessionData: data } = await api.getPlaybackToken(videoId)
+        setSessionData(data)
+        setWatermarkCode(data.watermark_code)
 
         const video = videoRef.current
         if (!video) return
@@ -213,18 +215,21 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
 
   // Track watch time
   const updateWatchTime = useCallback(async () => {
-    if (!sessionId) return
     const currentTime = watchTimeRef.current
-    // Send update at 3 seconds to count view, then every 5 seconds
+    // Send update at 3 seconds to create session and count view, then every 5 seconds
     const shouldUpdate = 
       (currentTime >= 3 && lastUpdateRef.current < 3) || 
       (currentTime - lastUpdateRef.current >= 5)
     
     if (shouldUpdate) {
-      await api.updateWatchTime(sessionId, Math.floor(currentTime))
+      const response = await api.updateWatchTime(sessionId, Math.floor(currentTime), sessionData)
+      // If session was just created, save the session ID
+      if (response.sessionId && !sessionId) {
+        setSessionId(response.sessionId)
+      }
       lastUpdateRef.current = currentTime
     }
-  }, [sessionId])
+  }, [sessionId, sessionData])
 
   useEffect(() => {
     const video = videoRef.current
