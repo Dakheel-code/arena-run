@@ -29,6 +29,36 @@ function getUser(event: any) {
   return valid ? payload : null
 }
 
+async function getClientContext(event: any) {
+  const ip =
+    event.headers['x-forwarded-for']?.split(',')[0] ||
+    event.headers['client-ip'] ||
+    event.headers['x-real-ip'] ||
+    'unknown'
+  const userAgent = event.headers['user-agent'] || 'unknown'
+
+  let country: string = ''
+  let city: string = event.headers['cf-ipcity'] || ''
+  let isVpn: boolean = false
+  let isp: string = ''
+
+  if (ip !== 'unknown' && ip !== '127.0.0.1' && ip !== '::1') {
+    try {
+      const geoResponse = await fetch(`http://ip-api.com/json/${ip}?fields=country,city,proxy,hosting,isp`)
+      const geoData = await geoResponse.json()
+      country = geoData.country || 'Unknown'
+      if (!city) city = geoData.city || ''
+      isVpn = geoData.proxy || geoData.hosting || false
+      isp = geoData.isp || ''
+    } catch {
+      country = 'Unknown'
+    }
+  }
+  if (!country) country = 'Unknown'
+
+  return { ip, userAgent, country, city, isVpn, isp }
+}
+
 async function getNotificationSettings() {
   const { data } = await supabase
     .from('settings')
@@ -53,7 +83,7 @@ async function sendNewSessionNotification(session: any, videoId: string, discord
     .single()
 
   // Get member info
-  const { data: member } = await supabase
+  await supabase
     .from('members')
     .select('discord_username, game_id')
     .eq('discord_id', discordId)
@@ -103,43 +133,105 @@ export const handler: Handler = async (event) => {
   }
 
   const body = JSON.parse(event.body || '{}')
-  const { sessionId, watchSeconds, action } = body
+  const { sessionId, watchSeconds, action, videoId, watermarkCode } = body
 
-  if (!sessionId) {
-    return { statusCode: 400, body: JSON.stringify({ message: 'Session ID required' }) }
-  }
-
-  // Verify session belongs to user
-  const { data: session } = await supabase
-    .from('view_sessions')
-    .select('*')
-    .eq('id', sessionId)
-    .eq('discord_id', user.discord_id)
-    .single()
-
-  if (!session) {
-    return { statusCode: 404, body: JSON.stringify({ message: 'Session not found' }) }
-  }
-
+  // End requires an existing session
   if (action === 'end') {
-    // End session
+    if (!sessionId) {
+      return { statusCode: 400, body: JSON.stringify({ message: 'Session ID required' }) }
+    }
+
+    // Verify session belongs to user
+    const { data: session } = await supabase
+      .from('view_sessions')
+      .select('*')
+      .eq('id', sessionId)
+      .eq('discord_id', user.discord_id)
+      .single()
+
+    if (!session) {
+      return { statusCode: 404, body: JSON.stringify({ message: 'Session not found' }) }
+    }
+
     await supabase
       .from('view_sessions')
       .update({ ended_at: new Date().toISOString() })
       .eq('id', sessionId)
-  } else if (watchSeconds !== undefined) {
-    // Update watch time
+
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: true }),
+    }
+  }
+
+  if (watchSeconds !== undefined) {
+    // If session doesn't exist yet, create it only after 3 seconds
+    if (!sessionId) {
+      if (watchSeconds < 3) {
+        return {
+          statusCode: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ success: true }),
+        }
+      }
+
+      if (!videoId || !watermarkCode) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ message: 'Video ID and watermark code required' }),
+        }
+      }
+
+      const ctx = await getClientContext(event)
+
+      const { data: newSession, error: sessionError } = await supabase
+        .from('view_sessions')
+        .insert({
+          video_id: videoId,
+          discord_id: user.discord_id,
+          watermark_code: watermarkCode,
+          ip_address: ctx.ip,
+          country: ctx.country,
+          city: ctx.city,
+          is_vpn: ctx.isVpn,
+          isp: ctx.isp,
+          user_agent: ctx.userAgent,
+          watch_seconds: watchSeconds,
+        })
+        .select()
+        .single()
+
+      if (sessionError || !newSession) {
+        return { statusCode: 500, body: JSON.stringify({ message: sessionError?.message || 'Failed to create session' }) }
+      }
+
+      await supabase.rpc('increment_views', { vid: videoId })
+      await sendNewSessionNotification(newSession, videoId, user.discord_id)
+
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ success: true, sessionId: newSession.id }),
+      }
+    }
+
+    // Update existing session
+    const { data: session } = await supabase
+      .from('view_sessions')
+      .select('*')
+      .eq('id', sessionId)
+      .eq('discord_id', user.discord_id)
+      .single()
+
+    if (!session) {
+      return { statusCode: 404, body: JSON.stringify({ message: 'Session not found' }) }
+    }
+
     await supabase
       .from('view_sessions')
       .update({ watch_seconds: watchSeconds })
       .eq('id', sessionId)
-    
-    // Increment view count only when user watches 3+ seconds (and only once per session)
-    if (watchSeconds >= 3 && session.watch_seconds < 3) {
-      await supabase.rpc('increment_views', { vid: session.video_id })
-      // Send new session notification after view is counted
-      await sendNewSessionNotification(session, session.video_id, user.discord_id)
-    }
   }
 
   return {

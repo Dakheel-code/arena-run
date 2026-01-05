@@ -39,6 +39,7 @@ export const handler: Handler = async (event) => {
   const { count: totalViews } = await supabase
     .from('view_sessions')
     .select('*', { count: 'exact', head: true })
+    .gte('watch_seconds', 3)
 
   // Get active members count
   const { count: totalMembers } = await supabase
@@ -55,6 +56,7 @@ export const handler: Handler = async (event) => {
   const { data: recentSessions } = await supabase
     .from('view_sessions')
     .select('*')
+    .gte('watch_seconds', 3)
     .order('started_at', { ascending: false })
     .limit(10)
 

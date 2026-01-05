@@ -41,6 +41,7 @@ export const handler: Handler = async (event) => {
     const { data: sessions, error } = await supabase
       .from('view_sessions')
       .select('*, videos(title)')
+      .gte('watch_seconds', 3)
       .order('started_at', { ascending: false })
       .limit(1000)
 

@@ -49,6 +49,7 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   const lastTapRef = useRef(0)
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 })
   const sessionLoggedRef = useRef(false)
+  const creatingSessionRef = useRef(false)
   
   const playbackSpeeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4]
 
@@ -170,8 +171,7 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
     const initPlayer = async () => {
       try {
         setIsLoading(true)
-        const { token, session } = await api.getPlaybackToken(videoId)
-        setSessionId(session.id)
+        const { token } = await api.getPlaybackToken(videoId)
 
         const video = videoRef.current
         if (!video) return
@@ -213,7 +213,6 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
 
   // Track watch time
   const updateWatchTime = useCallback(async () => {
-    if (!sessionId) return
     const currentTime = watchTimeRef.current
     // Send update at 3 seconds to count view, then every 5 seconds
     const shouldUpdate = 
@@ -221,10 +220,35 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
       (currentTime - lastUpdateRef.current >= 5)
     
     if (shouldUpdate) {
-      await api.updateWatchTime(sessionId, Math.floor(currentTime))
+      if (!sessionId && creatingSessionRef.current) {
+        return
+      }
+
+      const payload = sessionId
+        ? { sessionId, watchSeconds: Math.floor(currentTime) }
+        : {
+            sessionId: null,
+            watchSeconds: Math.floor(currentTime),
+            videoId,
+            watermarkCode,
+          }
+
+      if (!sessionId) {
+        creatingSessionRef.current = true
+      }
+
+      const res = await api.updateWatchTime(payload)
+      if (!sessionId && res.sessionId) {
+        setSessionId(res.sessionId)
+      }
+
+      if (!sessionId) {
+        creatingSessionRef.current = false
+      }
+
       lastUpdateRef.current = currentTime
     }
-  }, [sessionId])
+  }, [sessionId, videoId, watermarkCode])
 
   useEffect(() => {
     const video = videoRef.current

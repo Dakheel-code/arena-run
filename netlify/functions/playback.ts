@@ -115,67 +115,6 @@ export const handler: Handler = async (event) => {
     return { statusCode: 404, body: JSON.stringify({ message: 'Video not found' }) }
   }
 
-  // Generate watermark code
-  const watermarkCode = generateWatermarkCode()
-
-  // Get client info
-  const ip = event.headers['x-forwarded-for']?.split(',')[0] || event.headers['client-ip'] || event.headers['x-real-ip'] || 'unknown'
-  const userAgent = event.headers['user-agent'] || 'unknown'
-
-  // Get country, city, and VPN/proxy info from GeoIP service
-  let country: string = ''
-  let city: string = event.headers['cf-ipcity'] || ''
-  let isVpn: boolean = false
-  let isp: string = ''
-  
-  if (ip !== 'unknown' && ip !== '127.0.0.1' && ip !== '::1') {
-    try {
-      const geoResponse = await fetch(`http://ip-api.com/json/${ip}?fields=country,city,proxy,hosting,isp`)
-      const geoData = await geoResponse.json()
-      country = geoData.country || 'Unknown'
-      if (!city) city = geoData.city || ''
-      isVpn = geoData.proxy || geoData.hosting || false
-      isp = geoData.isp || ''
-    } catch {
-      country = 'Unknown'
-    }
-  }
-  if (!country) {
-    country = 'Unknown'
-  }
-
-  // Create view session (view count will be incremented after 3 seconds of watch time)
-  const { data: session, error: sessionError } = await supabase
-    .from('view_sessions')
-    .insert({
-      video_id: videoId,
-      discord_id: user.discord_id,
-      watermark_code: watermarkCode,
-      ip_address: ip,
-      country,
-      city,
-      is_vpn: isVpn,
-      isp,
-      user_agent: userAgent,
-      watch_seconds: 0,
-    })
-    .select()
-    .single()
-
-  if (sessionError) {
-    return { statusCode: 500, body: JSON.stringify({ message: sessionError.message }) }
-  }
-
-  // Get updated video data with new view count
-  const { data: updatedVideo } = await supabase
-    .from('videos')
-    .select('views')
-    .eq('id', videoId)
-    .single()
-
-  // Check for security alerts
-  await checkSecurityAlerts(user.discord_id, country, ip, videoId, userAgent)
-
   // Return stream UID for unsigned playback
   // Note: For production, consider enabling signed URLs in Cloudflare Stream settings
   const token = video.stream_uid
@@ -183,7 +122,7 @@ export const handler: Handler = async (event) => {
   return {
     statusCode: 200,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token, session }),
+    body: JSON.stringify({ token }),
   }
 }
 

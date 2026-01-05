@@ -58,12 +58,14 @@ export const handler: Handler = async (event) => {
         .from('view_sessions')
         .select('video_id, watch_seconds', { count: 'exact' })
         .eq('discord_id', discordId)
+        .gte('watch_seconds', 3)
 
       // Get all sessions with video titles (for display with pagination on frontend)
       const { data: sessions } = await supabase
         .from('view_sessions')
         .select('*, videos(title)')
         .eq('discord_id', discordId)
+        .gte('watch_seconds', 3)
         .order('started_at', { ascending: false })
 
       // Calculate stats
@@ -79,6 +81,7 @@ export const handler: Handler = async (event) => {
         .from('view_sessions')
         .select('started_at')
         .eq('discord_id', discordId)
+        .gte('watch_seconds', 3)
         .order('started_at', { ascending: true })
         .limit(1)
         .single()

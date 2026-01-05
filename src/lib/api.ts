@@ -86,13 +86,13 @@ export const api = {
 
   // Playback
   getPlaybackToken: (videoId: string) =>
-    fetchAPI<{ token: string; session: import('../types').ViewSession }>(`/playback?videoId=${videoId}`),
+    fetchAPI<{ token: string }>(`/playback?videoId=${videoId}`),
 
   // Tracking
-  updateWatchTime: (sessionId: string, watchSeconds: number) =>
-    fetchAPI<{ success: boolean }>('/tracking', {
+  updateWatchTime: (params: { sessionId: string | null; watchSeconds: number; videoId?: string; watermarkCode?: string }) =>
+    fetchAPI<{ success: boolean; sessionId?: string }>('/tracking', {
       method: 'POST',
-      body: JSON.stringify({ sessionId, watchSeconds }),
+      body: JSON.stringify(params),
     }),
   endSession: (sessionId: string) =>
     fetchAPI<{ success: boolean }>('/tracking', {

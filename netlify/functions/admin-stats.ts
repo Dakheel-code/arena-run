@@ -43,6 +43,7 @@ export const handler: Handler = async (event) => {
   const { count: totalViews } = await supabase
     .from('view_sessions')
     .select('*', { count: 'exact', head: true })
+    .gte('watch_seconds', 3)
 
   // Get total likes from videos
   const { data: videos } = await supabase
@@ -77,6 +78,7 @@ export const handler: Handler = async (event) => {
   const { count: todayViews } = await supabase
     .from('view_sessions')
     .select('*', { count: 'exact', head: true })
+    .gte('watch_seconds', 3)
     .gte('started_at', today.toISOString())
 
   // Get this week's views
@@ -85,12 +87,14 @@ export const handler: Handler = async (event) => {
   const { count: weekViews } = await supabase
     .from('view_sessions')
     .select('*', { count: 'exact', head: true })
+    .gte('watch_seconds', 3)
     .gte('started_at', weekAgo.toISOString())
 
   // Get total watch time - limit to recent sessions for performance
   const { data: watchTimeData } = await supabase
     .from('view_sessions')
     .select('watch_seconds')
+    .gte('watch_seconds', 3)
     .order('started_at', { ascending: false })
     .limit(50000)
   const totalWatchTime = watchTimeData?.reduce((sum, s) => sum + (s.watch_seconds || 0), 0) || 0
@@ -99,6 +103,7 @@ export const handler: Handler = async (event) => {
   const { data: topVideosCount } = await supabase
     .from('view_sessions')
     .select('video_id')
+    .gte('watch_seconds', 3)
     .limit(50000)
 
   // Count views per video
@@ -135,6 +140,7 @@ export const handler: Handler = async (event) => {
   const { data: rawSessions } = await supabase
     .from('view_sessions')
     .select('*, videos(title)')
+    .gte('watch_seconds', 3)
     .order('started_at', { ascending: false })
     .limit(20)
 
@@ -168,6 +174,7 @@ export const handler: Handler = async (event) => {
   const { data: allSessions } = await supabase
     .from('view_sessions')
     .select('discord_id, watch_seconds')
+    .gte('watch_seconds', 3)
     .order('started_at', { ascending: false })
     .limit(50000)
 
@@ -318,6 +325,7 @@ export const handler: Handler = async (event) => {
     let query = supabase
       .from('view_sessions')
       .select('watch_seconds')
+      .gte('watch_seconds', 3)
       .gte('started_at', startDate)
       .lte('started_at', endDate)
 
