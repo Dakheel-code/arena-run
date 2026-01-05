@@ -5,7 +5,7 @@ interface LoadingSpinnerProps {
 
 export function LoadingSpinner({ size = 48, className = '' }: LoadingSpinnerProps) {
   return (
-    <div className={`flex flex-col items-center gap-4 ${className}`}>
+    <div className={`flex flex-col items-center gap-3 ${className}`}>
       {/* Animated Logo */}
       <div className="relative">
         <img 
@@ -25,13 +25,17 @@ export function LoadingSpinner({ size = 48, className = '' }: LoadingSpinnerProp
         />
       </div>
       
-      {/* Progress Bar */}
-      <div className="w-32 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-        <div className="h-full bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 animate-pulse" 
-             style={{ 
-               animation: 'shimmer 1.5s ease-in-out infinite',
-               backgroundSize: '200% 100%'
-             }}
+      {/* Progress Bar - same width as logo */}
+      <div 
+        className="h-1 bg-gray-700 rounded-full overflow-hidden relative"
+        style={{ width: size }}
+      >
+        <div 
+          className="absolute inset-0 h-full bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500"
+          style={{ 
+            animation: 'progressSlide 1.5s ease-in-out infinite',
+            width: '50%'
+          }}
         />
       </div>
     </div>

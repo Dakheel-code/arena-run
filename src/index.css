@@ -518,6 +518,15 @@ body {
   }
 }
 
+@keyframes progressSlide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
 .animate-fade-in-down {
   animation: fadeInDown 0.8s ease-out;
 }
