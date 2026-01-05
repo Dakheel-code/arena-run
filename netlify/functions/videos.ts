@@ -33,6 +33,54 @@ function getUser(event: any) {
   return valid ? payload : null
 }
 
+async function getVideoInfoFromCloudflare(streamUid: string) {
+  try {
+    const response = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/stream/${streamUid}`,
+      {
+        headers: {
+          Authorization: `Bearer ${CF_STREAM_API_TOKEN}`,
+        },
+      }
+    )
+
+    if (!response.ok) {
+      console.error(`Failed to fetch video ${streamUid}:`, response.status)
+      return null
+    }
+
+    const data = await response.json()
+    return data.result
+  } catch (error) {
+    console.error(`Error fetching video ${streamUid}:`, error)
+    return null
+  }
+}
+
+async function updateVideoDuration(videoId: string, streamUid: string) {
+  try {
+    const videoInfo = await getVideoInfoFromCloudflare(streamUid)
+    
+    if (videoInfo && videoInfo.duration) {
+      const duration = Math.round(videoInfo.duration)
+      
+      await supabase
+        .from('videos')
+        .update({ duration })
+        .eq('id', videoId)
+      
+      console.log(`✓ Updated video ${videoId} duration: ${duration}s`)
+      return duration
+    }
+    
+    console.log(`✗ No duration available for video ${videoId}`)
+    return null
+  } catch (error) {
+    console.error(`Error updating duration for video ${videoId}:`, error)
+    return null
+  }
+}
+
 async function sendDiscordNotification(
   title: string, 
   description: string, 
@@ -516,6 +564,23 @@ export const handler: Handler = async (event) => {
 
     if (error) {
       return { statusCode: 500, body: JSON.stringify({ message: error.message }) }
+    }
+
+    // Update duration if missing or invalid when publishing
+    if (is_published && data.stream_uid && (!data.duration || data.duration < 0)) {
+      console.log(`Attempting to update duration for video ${data.id} before publishing`)
+      await updateVideoDuration(data.id, data.stream_uid)
+      
+      // Fetch updated video data
+      const { data: updatedVideo } = await supabase
+        .from('videos')
+        .select('*')
+        .eq('id', id)
+        .single()
+      
+      if (updatedVideo) {
+        Object.assign(data, updatedVideo)
+      }
     }
 
     // Send notification if published

@@ -66,11 +66,11 @@ export const handler: Handler = async (event) => {
   }
 
   try {
-    // Get all videos without duration
+    // Get all videos without duration or with invalid duration (null, 0, or negative)
     const { data: videos, error } = await supabase
       .from('videos')
       .select('id, stream_uid, title')
-      .or('duration.is.null,duration.eq.0')
+      .or('duration.is.null,duration.eq.0,duration.lt.0')
 
     if (error) {
       return { statusCode: 500, body: JSON.stringify({ message: error.message }) }
