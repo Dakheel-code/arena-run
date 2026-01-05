@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Hls from 'hls.js'
 import { api } from '../lib/api'
-import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, PictureInPicture, X } from 'lucide-react'
+import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, PictureInPicture } from 'lucide-react'
 import { useWatchHistory } from '../hooks/useWatchHistory'
 
 interface VideoPlayerProps {
   videoId: string
   streamUid: string
-  autoFullscreen?: boolean
 }
 
 function generateWatermarkCode(): string {
@@ -23,19 +22,17 @@ function generateWatermarkCode(): string {
   return code
 }
 
-export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerProps) {
+export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const hlsRef = useRef<Hls | null>(null)
   const { saveProgress, getProgress, clearProgress } = useWatchHistory(videoId)
-  const autoFullscreenTriggeredRef = useRef(false)
   const [watermarkCode, setWatermarkCode] = useState('')
   const [watermarkPosition, setWatermarkPosition] = useState({ x: 10, y: 10 })
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isPseudoFullscreen, setIsPseudoFullscreen] = useState(false)
-  const [isNativeFullscreen, setIsNativeFullscreen] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [showControls, setShowControls] = useState(true)
@@ -52,7 +49,6 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
   const lastTapRef = useRef(0)
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 })
   const sessionLoggedRef = useRef(false)
-  const isFullscreen = isPseudoFullscreen || isNativeFullscreen
   
   const playbackSpeeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4]
 
@@ -92,31 +88,37 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
     setIsPiPSupported('pictureInPictureEnabled' in document)
   }, [])
 
-  // Handle fullscreen changes
+  // Handle fullscreen changes and screen orientation
   useEffect(() => {
-    const handleFullscreenChange = () => {
+    const handleFullscreenChange = async () => {
       const isFS = !!document.fullscreenElement
-      setIsNativeFullscreen(isFS)
+      setIsFullscreen(isFS)
+      
+      // Auto-rotate to landscape in fullscreen on mobile
+      if (isFS && 'orientation' in screen && window.innerWidth < 768) {
+        try {
+          await (screen.orientation as any).lock('landscape')
+        } catch (err) {
+          console.log('Orientation lock not supported')
+        }
+      } else if (!isFS && 'orientation' in screen) {
+        try {
+          (screen.orientation as any).unlock()
+        } catch (err) {
+          console.log('Orientation unlock not supported')
+        }
+      }
     }
     document.addEventListener('fullscreenchange', handleFullscreenChange)
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange)
+      if ('orientation' in screen) {
+        try {
+          (screen.orientation as any).unlock()
+        } catch (err) {}
+      }
     }
   }, [])
-
-  useEffect(() => {
-    if (!isFullscreen) {
-      document.body.style.overflow = ''
-      return
-    }
-
-    if (isPseudoFullscreen) {
-      document.body.style.overflow = 'hidden'
-      return
-    }
-
-    document.body.style.overflow = ''
-  }, [isFullscreen, isNativeFullscreen, isPseudoFullscreen])
 
   // Keep screen awake during playback
   useEffect(() => {
@@ -281,13 +283,6 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
       e.stopPropagation()
     }
     if (!containerRef.current) return
-
-    const isMobileViewport = window.matchMedia('(max-width: 767px)').matches
-    if (isMobileViewport) {
-      // Use pseudo-fullscreen on mobile to avoid browser UI/orientation issues
-      setIsPseudoFullscreen((prev) => !prev)
-      return
-    }
     
     try {
       if (!document.fullscreenElement) {
@@ -445,12 +440,10 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
     setShowControls(true)
   }
 
-  const isMobileViewport = window.matchMedia('(max-width: 767px)').matches
-
   return (
     <div 
       ref={containerRef} 
-      className={`relative bg-black overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50 w-[100dvw] h-[100dvh]' : 'aspect-video rounded-lg'}`}
+      className={`relative bg-black overflow-hidden ${isFullscreen ? 'w-screen h-screen' : 'aspect-video rounded-lg'}`}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onClick={handleContainerClick}
@@ -468,22 +461,11 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
 
       <video
         ref={videoRef}
-        className={`w-full h-full ${isFullscreen ? 'object-contain' : 'object-contain'}`}
+        className="w-full h-full"
         playsInline
         controlsList="nodownload nofullscreen"
         onContextMenu={(e) => e.preventDefault()}
-        onPlay={() => {
-          setIsPlaying(true)
-          if (!autoFullscreen) return
-          if (autoFullscreenTriggeredRef.current) return
-          if (isFullscreen) return
-
-          const isMobileViewport = window.matchMedia('(max-width: 767px)').matches
-          if (isMobileViewport) {
-            setIsPseudoFullscreen(true)
-            autoFullscreenTriggeredRef.current = true
-          }
-        }}
+        onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onVolumeChange={(e) => {
           const video = e.currentTarget
@@ -515,52 +497,25 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
       {/* Custom Controls */}
       {showControls && (
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 transition-opacity duration-300" style={{ zIndex: 20 }}>
-          {isFullscreen && isMobileViewport && (
-            <div
-              className="absolute top-0 left-0 right-0 flex items-center justify-end px-3 py-2"
-              style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}
-            >
-              <button
-                onClick={async (e) => {
-                  e.stopPropagation()
-                  if (document.fullscreenElement) {
-                    try {
-                      await document.exitFullscreen()
-                    } catch (err) {
-                      console.error('Fullscreen exit error:', err)
-                    }
-                    return
-                  }
-
-                  setIsPseudoFullscreen(false)
-                }}
-                className="p-2.5 bg-black/40 hover:bg-black/60 rounded-full transition-colors active:scale-95"
-                title="Close"
-              >
-                <X size={22} className="text-white" />
-              </button>
-            </div>
-          )}
-
           {/* Center Play/Pause */}
           <button
             onClick={(e) => {
               e.stopPropagation()
               togglePlayPause()
             }}
-            className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center transition-all active:scale-95 ${isFullscreen && isMobileViewport ? 'w-20 h-20' : 'w-16 h-16 sm:w-20 sm:h-20'}`}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 sm:w-20 sm:h-20 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center transition-all active:scale-95"
           >
             {isPlaying ? (
-              <Pause size={isFullscreen && isMobileViewport ? 38 : 32} className="text-white" fill="white" />
+              <Pause size={32} className="text-white" fill="white" />
             ) : (
-              <Play size={isFullscreen && isMobileViewport ? 38 : 32} className="text-white ml-1" fill="white" />
+              <Play size={32} className="text-white ml-1" fill="white" />
             )}
           </button>
 
           {/* Bottom Controls */}
           <div className="absolute bottom-0 left-0 right-0">
             {/* Progress Bar */}
-            <div className="px-3 sm:px-4 pb-2" style={{ paddingBottom: isFullscreen && isMobileViewport ? '8px' : undefined }}>
+            <div className="px-3 sm:px-4 pb-2">
               <div 
                 ref={progressBarRef}
                 onClick={handleProgressClick}
@@ -581,19 +536,16 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
               </div>
             </div>
 
-            <div
-              className={`px-3 sm:px-4 flex items-center gap-2 sm:gap-3 ${isFullscreen && isMobileViewport ? 'pb-4' : 'pb-3'}`}
-              style={{ paddingBottom: isFullscreen && isMobileViewport ? 'calc(env(safe-area-inset-bottom, 0px) + 12px)' : undefined }}
-            >
+            <div className="px-3 sm:px-4 pb-3 flex items-center gap-2 sm:gap-3">
             {/* Play/Pause */}
             <button
               onClick={togglePlayPause}
               className="p-2 hover:bg-white/20 rounded transition-colors active:scale-95"
             >
               {isPlaying ? (
-                <Pause size={isFullscreen && isMobileViewport ? 24 : 20} className="text-white" />
+                <Pause size={20} className="text-white" />
               ) : (
-                <Play size={isFullscreen && isMobileViewport ? 24 : 20} className="text-white" />
+                <Play size={20} className="text-white" />
               )}
             </button>
 
@@ -603,9 +555,9 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
               className="p-2 hover:bg-white/20 rounded transition-colors active:scale-95"
             >
               {isMuted || volume === 0 ? (
-                <VolumeX size={isFullscreen && isMobileViewport ? 24 : 20} className="text-white" />
+                <VolumeX size={20} className="text-white" />
               ) : (
-                <Volume2 size={isFullscreen && isMobileViewport ? 24 : 20} className="text-white" />
+                <Volume2 size={20} className="text-white" />
               )}
             </button>
 
@@ -645,7 +597,7 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
                 className="p-2 hover:bg-white/20 rounded transition-colors active:scale-95"
                 title="Picture in Picture"
               >
-                <PictureInPicture size={isFullscreen && isMobileViewport ? 24 : 20} className="text-white" />
+                <PictureInPicture size={20} className="text-white" />
               </button>
             )}
 
@@ -659,9 +611,9 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
               title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
             >
               {isFullscreen ? (
-                <Minimize size={isFullscreen && isMobileViewport ? 24 : 20} className="text-white" />
+                <Minimize size={20} className="text-white" />
               ) : (
-                <Maximize size={isFullscreen && isMobileViewport ? 24 : 20} className="text-white" />
+                <Maximize size={20} className="text-white" />
               )}
             </button>
             </div>
