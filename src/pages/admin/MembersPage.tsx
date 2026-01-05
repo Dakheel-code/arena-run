@@ -222,15 +222,15 @@ export function MembersPage() {
         <>
           {/* Desktop Table View */}
           <div className="card overflow-hidden hidden md:block">
-            <table className="w-full" dir="rtl">
+            <table className="w-full" dir="ltr">
               <thead>
                 <tr className="border-b border-gray-700">
-                  <th className="text-right py-3 px-4">{t('member')}</th>
-                  <th className="text-right py-3 px-4">Username</th>
-                  <th className="text-right py-3 px-4">{t('discordId')}</th>
-                  <th className="text-right py-3 px-4">{t('status')}</th>
-                  <th className="text-right py-3 px-4">{t('lastLogin')}</th>
-                  <th className="text-right py-3 px-4">{t('actions')}</th>
+                  <th className="text-left py-3 px-4">{t('member')}</th>
+                  <th className="text-left py-3 px-4">Username</th>
+                  <th className="text-left py-3 px-4">{t('discordId')}</th>
+                  <th className="text-left py-3 px-4">{t('status')}</th>
+                  <th className="text-left py-3 px-4">{t('lastLogin')}</th>
+                  <th className="text-left py-3 px-4">{t('actions')}</th>
                 </tr>
               </thead>
               <tbody>
