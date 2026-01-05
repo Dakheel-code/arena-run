@@ -102,6 +102,7 @@ export function AdminDashboard() {
   const [showAllWatchTime, setShowAllWatchTime] = useState(false)
   const [showAllCountries, setShowAllCountries] = useState(false)
   const [showAllVideos, setShowAllVideos] = useState(false)
+  const [showAllRecentSessions, setShowAllRecentSessions] = useState(false)
   const [selectedCountry, setSelectedCountry] = useState<TopCountry | null>(null)
 
   useEffect(() => {
@@ -624,6 +625,7 @@ export function AdminDashboard() {
                 {t('recentViews')}
               </h2>
               {stats?.recentSessions && stats.recentSessions.length > 0 ? (
+                <>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -635,7 +637,7 @@ export function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {stats.recentSessions.map((session) => (
+                      {stats.recentSessions.slice(0, showAllRecentSessions ? 20 : 5).map((session) => (
                         <tr key={session.id} className="border-b border-gray-700/50 hover:bg-gray-800/30 text-right">
                           <td className="py-2 px-3">
                             <Link 
@@ -677,6 +679,15 @@ export function AdminDashboard() {
                     </tbody>
                   </table>
                 </div>
+                {stats.recentSessions.length > 5 && (
+                  <button
+                    onClick={() => setShowAllRecentSessions(!showAllRecentSessions)}
+                    className="w-full mt-4 py-2 text-sm text-theme-light hover:text-theme transition-colors border-t border-gray-700 pt-4"
+                  >
+                    {showAllRecentSessions ? 'Show Less' : `Show More (${Math.min(stats.recentSessions.length - 5, 15)} more)`}
+                  </button>
+                )}
+                </>
               ) : (
                 <p className="text-gray-400 text-center py-4">{t('noRecentActivity')}</p>
               )}
