@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Hls from 'hls.js'
 import { api } from '../lib/api'
-import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, PictureInPicture } from 'lucide-react'
+import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, PictureInPicture, X } from 'lucide-react'
 import { useWatchHistory } from '../hooks/useWatchHistory'
 
 interface VideoPlayerProps {
@@ -452,10 +452,12 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
     setShowControls(true)
   }
 
+  const isMobileViewport = window.matchMedia('(max-width: 767px)').matches
+
   return (
     <div 
       ref={containerRef} 
-      className={`relative bg-black overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50 w-screen h-screen' : 'aspect-video rounded-lg'}`}
+      className={`relative bg-black overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50 w-[100dvw] h-[100dvh]' : 'aspect-video rounded-lg'}`}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onClick={handleContainerClick}
@@ -473,7 +475,7 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
 
       <video
         ref={videoRef}
-        className="w-full h-full"
+        className={`w-full h-full ${isFullscreen ? 'object-contain' : 'object-contain'}`}
         playsInline
         controlsList="nodownload nofullscreen"
         onContextMenu={(e) => e.preventDefault()}
@@ -509,25 +511,52 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
       {/* Custom Controls */}
       {showControls && (
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 transition-opacity duration-300" style={{ zIndex: 20 }}>
+          {isFullscreen && isMobileViewport && (
+            <div
+              className="absolute top-0 left-0 right-0 flex items-center justify-end px-3 py-2"
+              style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}
+            >
+              <button
+                onClick={async (e) => {
+                  e.stopPropagation()
+                  if (document.fullscreenElement) {
+                    try {
+                      await document.exitFullscreen()
+                    } catch (err) {
+                      console.error('Fullscreen exit error:', err)
+                    }
+                    return
+                  }
+
+                  setIsPseudoFullscreen(false)
+                }}
+                className="p-2.5 bg-black/40 hover:bg-black/60 rounded-full transition-colors active:scale-95"
+                title="Close"
+              >
+                <X size={22} className="text-white" />
+              </button>
+            </div>
+          )}
+
           {/* Center Play/Pause */}
           <button
             onClick={(e) => {
               e.stopPropagation()
               togglePlayPause()
             }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 sm:w-20 sm:h-20 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center transition-all active:scale-95"
+            className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center transition-all active:scale-95 ${isFullscreen && isMobileViewport ? 'w-20 h-20' : 'w-16 h-16 sm:w-20 sm:h-20'}`}
           >
             {isPlaying ? (
-              <Pause size={32} className="text-white" fill="white" />
+              <Pause size={isFullscreen && isMobileViewport ? 38 : 32} className="text-white" fill="white" />
             ) : (
-              <Play size={32} className="text-white ml-1" fill="white" />
+              <Play size={isFullscreen && isMobileViewport ? 38 : 32} className="text-white ml-1" fill="white" />
             )}
           </button>
 
           {/* Bottom Controls */}
           <div className="absolute bottom-0 left-0 right-0">
             {/* Progress Bar */}
-            <div className="px-3 sm:px-4 pb-2">
+            <div className="px-3 sm:px-4 pb-2" style={{ paddingBottom: isFullscreen && isMobileViewport ? '8px' : undefined }}>
               <div 
                 ref={progressBarRef}
                 onClick={handleProgressClick}
@@ -548,16 +577,19 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
               </div>
             </div>
 
-            <div className="px-3 sm:px-4 pb-3 flex items-center gap-2 sm:gap-3">
+            <div
+              className={`px-3 sm:px-4 flex items-center gap-2 sm:gap-3 ${isFullscreen && isMobileViewport ? 'pb-4' : 'pb-3'}`}
+              style={{ paddingBottom: isFullscreen && isMobileViewport ? 'calc(env(safe-area-inset-bottom, 0px) + 12px)' : undefined }}
+            >
             {/* Play/Pause */}
             <button
               onClick={togglePlayPause}
               className="p-2 hover:bg-white/20 rounded transition-colors active:scale-95"
             >
               {isPlaying ? (
-                <Pause size={20} className="text-white" />
+                <Pause size={isFullscreen && isMobileViewport ? 24 : 20} className="text-white" />
               ) : (
-                <Play size={20} className="text-white" />
+                <Play size={isFullscreen && isMobileViewport ? 24 : 20} className="text-white" />
               )}
             </button>
 
@@ -567,9 +599,9 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
               className="p-2 hover:bg-white/20 rounded transition-colors active:scale-95"
             >
               {isMuted || volume === 0 ? (
-                <VolumeX size={20} className="text-white" />
+                <VolumeX size={isFullscreen && isMobileViewport ? 24 : 20} className="text-white" />
               ) : (
-                <Volume2 size={20} className="text-white" />
+                <Volume2 size={isFullscreen && isMobileViewport ? 24 : 20} className="text-white" />
               )}
             </button>
 
@@ -609,7 +641,7 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
                 className="p-2 hover:bg-white/20 rounded transition-colors active:scale-95"
                 title="Picture in Picture"
               >
-                <PictureInPicture size={20} className="text-white" />
+                <PictureInPicture size={isFullscreen && isMobileViewport ? 24 : 20} className="text-white" />
               </button>
             )}
 
@@ -623,9 +655,9 @@ export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerP
               title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
             >
               {isFullscreen ? (
-                <Minimize size={20} className="text-white" />
+                <Minimize size={isFullscreen && isMobileViewport ? 24 : 20} className="text-white" />
               ) : (
-                <Maximize size={20} className="text-white" />
+                <Maximize size={isFullscreen && isMobileViewport ? 24 : 20} className="text-white" />
               )}
             </button>
             </div>
