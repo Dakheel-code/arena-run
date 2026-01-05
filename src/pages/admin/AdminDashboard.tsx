@@ -439,7 +439,7 @@ export function AdminDashboard() {
                     onClick={() => setShowAllViewers(!showAllViewers)}
                     className="w-full mt-2 py-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors"
                   >
-                    {showAllViewers ? t('showLess') : `${t('showMore')} (${stats.topViewers.length - 5} more)`}
+                    {showAllViewers ? t('showLess') : `${t('showMore')} (${stats.topViewers.length - 5} ${t('more')})`}
                   </button>
                 )}
                 </>
@@ -483,7 +483,7 @@ export function AdminDashboard() {
                     onClick={() => setShowAllUploaders(!showAllUploaders)}
                     className="w-full mt-2 py-1.5 text-xs text-green-400 hover:text-green-300 transition-colors"
                   >
-                    {showAllUploaders ? t('showLess') : `${t('showMore')} (${topUploaders.length - 5} more)`}
+                    {showAllUploaders ? t('showLess') : `${t('showMore')} (${topUploaders.length - 5} ${t('more')})`}
                   </button>
                 )}
                 </>
@@ -527,7 +527,7 @@ export function AdminDashboard() {
                     onClick={() => setShowAllWatchTime(!showAllWatchTime)}
                     className="w-full mt-2 py-1.5 text-xs text-orange-400 hover:text-orange-300 transition-colors"
                   >
-                    {showAllWatchTime ? t('showLess') : `${t('showMore')} (${stats.topWatchTime.length - 5} more)`}
+                    {showAllWatchTime ? t('showLess') : `${t('showMore')} (${stats.topWatchTime.length - 5} ${t('more')})`}
                   </button>
                 )}
                 </>
@@ -577,7 +577,7 @@ export function AdminDashboard() {
                   onClick={() => setShowAllCountries(!showAllCountries)}
                   className="w-full mt-4 py-2 text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
                 >
-                  {showAllCountries ? t('showLess') : `${t('showMore')} (${stats.topCountries.length - 5} more)`}
+                  {showAllCountries ? t('showLess') : `${t('showMore')} (${stats.topCountries.length - 5} ${t('more')})`}
                 </button>
               )}
             </div>
@@ -622,7 +622,7 @@ export function AdminDashboard() {
                     onClick={() => setShowAllVideos(!showAllVideos)}
                     className="w-full mt-4 py-2 text-sm text-theme-light hover:text-theme transition-colors"
                   >
-                    {showAllVideos ? t('showLess') : `${t('showMore')} (${stats.topVideos.length - 5} more)`}
+                    {showAllVideos ? t('showLess') : `${t('showMore')} (${stats.topVideos.length - 5} ${t('more')})`}
                   </button>
                 )}
                 </>
@@ -697,7 +697,7 @@ export function AdminDashboard() {
                     onClick={() => setShowAllRecentSessions(!showAllRecentSessions)}
                     className="w-full mt-4 py-2 text-sm text-theme-light hover:text-theme transition-colors border-t border-gray-700 pt-4"
                   >
-                    {showAllRecentSessions ? 'Show Less' : `Show More (${Math.min(stats.recentSessions.length - 5, 15)} more)`}
+                    {showAllRecentSessions ? t('showLess') : `${t('showMore')} (${Math.min(stats.recentSessions.length - 5, 15)} ${t('more')})`}
                   </button>
                 )}
                 </>
