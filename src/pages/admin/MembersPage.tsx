@@ -3,7 +3,8 @@ import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
 import { useLanguage } from '../../context/LanguageContext'
 import { Member } from '../../types'
-import { Upload, Search, UserCheck, UserX, Loader, FileSpreadsheet, Eye, ChevronLeft, ChevronRight, Plus, X, User, Users, Shield, Crown, Edit3 } from 'lucide-react'
+import { Upload, Search, UserCheck, UserX, FileSpreadsheet, Eye, ChevronLeft, ChevronRight, Plus, X, User, Users, Shield, Crown, Edit3 } from 'lucide-react'
+import { LoadingSpinner } from '../../components/LoadingSpinner'
 import { useNavigate, Link } from 'react-router-dom'
 import Papa from 'papaparse'
 
@@ -198,7 +199,7 @@ export function MembersPage() {
             className="btn-discord"
           >
             {isUploading ? (
-              <Loader className="animate-spin" size={20} />
+              <LoadingSpinner size={20} />
             ) : (
               <Upload size={20} />
             )}
@@ -216,7 +217,7 @@ export function MembersPage() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader className="animate-spin text-theme-light" size={48} />
+          <LoadingSpinner size={48} className="text-theme-light" />
         </div>
       ) : (
         <>
@@ -573,7 +574,7 @@ export function MembersPage() {
                 className="btn-discord w-full justify-center"
               >
                 {isAdding ? (
-                  <Loader className="animate-spin" size={20} />
+                  <LoadingSpinner size={20} />
                 ) : (
                   <Plus size={20} />
                 )}

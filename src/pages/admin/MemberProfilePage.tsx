@@ -5,7 +5,8 @@ import { api } from '../../lib/api'
 import { useAuth } from '../../context/AuthContext'
 import { useLanguage } from '../../context/LanguageContext'
 import { Member, ViewSession } from '../../types'
-import { ArrowLeft, Loader, User, Calendar, LogIn, Video, Clock, Eye, Play, TrendingUp, ChevronLeft, ChevronRight, Upload, ThumbsUp, CheckCircle, MoreHorizontal, X, Chrome, Monitor, Shield, MapPin, Globe } from 'lucide-react'
+import { ArrowLeft, User, Calendar, LogIn, Video, Clock, Eye, Play, TrendingUp, ChevronLeft, ChevronRight, Upload, ThumbsUp, CheckCircle, MoreHorizontal, X, Chrome, Monitor, Shield, MapPin, Globe } from 'lucide-react'
+import { LoadingSpinner } from '../../components/LoadingSpinner'
 
 interface UploadedVideo {
   id: string
@@ -146,7 +147,7 @@ export function MemberProfilePage() {
     return (
       <Layout>
         <div className="flex items-center justify-center py-20">
-          <Loader className="animate-spin text-theme-light" size={48} />
+          <LoadingSpinner size={48} className="text-theme-light" />
         </div>
       </Layout>
     )

@@ -5,7 +5,8 @@ import { api } from '../../lib/api'
 import { useLanguage } from '../../context/LanguageContext'
 import { useAuth } from '../../context/AuthContext'
 import { Video, Member } from '../../types'
-import { Plus, Trash2, Eye, EyeOff, Loader, Upload, X, Edit, Video as VideoIcon, User } from 'lucide-react'
+import { Plus, Trash2, Eye, EyeOff, Upload, X, Edit, Video as VideoIcon, User } from 'lucide-react'
+import { LoadingSpinner } from '../../components/LoadingSpinner'
 import { VideoPlayer } from '../../components/VideoPlayer'
 import * as tus from 'tus-js-client'
 
@@ -255,7 +256,7 @@ export function VideosPage() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader className="animate-spin text-theme-light" size={48} />
+          <LoadingSpinner size={48} className="text-theme-light" />
         </div>
       ) : (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -784,7 +785,7 @@ export function VideosPage() {
                 className="btn-discord w-full"
               >
                 {isUploading ? (
-                  <Loader className="animate-spin" size={20} />
+                  <LoadingSpinner size={20} />
                 ) : (
                   <Upload size={20} />
                 )}

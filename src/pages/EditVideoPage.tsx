@@ -4,7 +4,8 @@ import { Layout } from '../components/Layout'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import { Video } from '../types'
-import { ArrowLeft, Loader, Save } from 'lucide-react'
+import { ArrowLeft, Save } from 'lucide-react'
+import { LoadingSpinner } from '../components/LoadingSpinner'
 
 export function EditVideoPage() {
   const { id } = useParams<{ id: string }>()
@@ -80,7 +81,7 @@ export function EditVideoPage() {
     return (
       <Layout>
         <div className="flex items-center justify-center py-20">
-          <Loader className="animate-spin text-theme-light" size={48} />
+          <LoadingSpinner size={48} className="text-theme-light" />
         </div>
       </Layout>
     )
@@ -273,7 +274,7 @@ export function EditVideoPage() {
           >
             {isSaving ? (
               <>
-                <Loader className="animate-spin" size={20} />
+                <LoadingSpinner size={20} />
                 Saving...
               </>
             ) : (

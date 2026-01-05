@@ -4,7 +4,8 @@ import { Layout } from '../components/Layout'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
-import { Upload, Loader, ArrowLeft, Play } from 'lucide-react'
+import { Upload, ArrowLeft, Play } from 'lucide-react'
+import { LoadingSpinner } from '../components/LoadingSpinner'
 import * as tus from 'tus-js-client'
 
 export function NewRunPage() {
@@ -388,7 +389,7 @@ export function NewRunPage() {
             >
               {isUploading ? (
                 <>
-                  <Loader className="animate-spin" size={20} />
+                  <LoadingSpinner size={20} />
                   {t('uploading')}
                 </>
               ) : (

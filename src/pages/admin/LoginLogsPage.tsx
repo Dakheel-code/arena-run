@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Layout } from '../../components/Layout'
 import { useAuth } from '../../context/AuthContext'
 import { useLanguage } from '../../context/LanguageContext'
-import { Shield, Search, Filter, CheckCircle, XCircle, User, Clock, MapPin, Monitor, AlertTriangle, Loader, ChevronLeft, ChevronRight, MoreHorizontal, X, Globe, Chrome } from 'lucide-react'
+import { Shield, Search, Filter, CheckCircle, XCircle, User, Clock, MapPin, Monitor, AlertTriangle, ChevronLeft, ChevronRight, MoreHorizontal, X, Globe, Chrome } from 'lucide-react'
+import { LoadingSpinner } from '../../components/LoadingSpinner'
 
 interface LoginLog {
   id: string
@@ -199,7 +200,7 @@ export default function LoginLogsPage() {
         {/* Logs Table */}
         {loading ? (
           <div className="bg-discord-dark rounded-lg border border-gray-700 p-12 text-center">
-            <Loader className="animate-spin h-12 w-12 text-theme mx-auto" />
+            <LoadingSpinner size={48} className="text-theme mx-auto" />
             <p className="mt-4 text-gray-400">{t('loadingLogs')}</p>
           </div>
         ) : logs.length === 0 ? (

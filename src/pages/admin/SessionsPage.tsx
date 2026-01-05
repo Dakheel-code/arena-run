@@ -4,7 +4,8 @@ import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
 import { useLanguage } from '../../context/LanguageContext'
 import { ViewSession } from '../../types'
-import { Loader, Eye, ChevronLeft, ChevronRight, User, Clock, Globe, Monitor, Search, X, MoreHorizontal, Fingerprint, Chrome, Smartphone, Laptop } from 'lucide-react'
+import { Eye, ChevronLeft, ChevronRight, User, Clock, Globe, Monitor, Search, X, MoreHorizontal, Fingerprint, Chrome, Smartphone, Laptop } from 'lucide-react'
+import { LoadingSpinner } from '../../components/LoadingSpinner'
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
 
@@ -156,7 +157,7 @@ export function SessionsPage() {
     return (
       <Layout>
         <div className="flex items-center justify-center py-20">
-          <Loader className="animate-spin text-theme-light" size={48} />
+          <LoadingSpinner size={48} className="text-theme-light" />
         </div>
       </Layout>
     )
@@ -203,7 +204,7 @@ export function SessionsPage() {
             disabled={isSearching || !watermarkSearch.trim()}
             className="px-6 py-3 bg-theme hover:opacity-90 rounded-lg font-medium transition-opacity disabled:opacity-50 flex items-center gap-2"
           >
-            {isSearching ? <Loader className="animate-spin" size={18} /> : <Search size={18} />}
+            {isSearching ? <LoadingSpinner size={18} /> : <Search size={18} />}
             {t('search')}
           </button>
         </div>

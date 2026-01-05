@@ -6,7 +6,8 @@ import { useSettings } from '../../context/SettingsContext'
 import { useTheme, ThemeColor } from '../../context/ThemeContext'
 import { useLanguage } from '../../context/LanguageContext'
 import { Member, UserRole } from '../../types'
-import { Bell, Shield, Database, Globe, Loader, CheckCircle, AlertTriangle, MapPin, Wifi, Eye, Smartphone, Clock, ShieldAlert, Palette, Upload, Plus, X, Download, HardDrive, Zap, Image, Code, Crown, Edit3, Users, User, Settings } from 'lucide-react'
+import { Bell, Shield, Database, Globe, CheckCircle, AlertTriangle, MapPin, Wifi, Eye, Smartphone, Clock, ShieldAlert, Palette, Upload, Plus, X, Download, HardDrive, Zap, Image, Code, Crown, Edit3, Users, User, Settings } from 'lucide-react'
+import { LoadingSpinner } from '../../components/LoadingSpinner'
 
 const THEME_COLORS: { value: ThemeColor; label: string; color: string }[] = [
   { value: 'amber', label: 'Gold', color: 'bg-amber-500' },
@@ -413,7 +414,7 @@ export function SettingsPage() {
     return (
       <Layout>
         <div className="flex items-center justify-center py-20">
-          <Loader className="animate-spin text-discord-primary" size={48} />
+          <LoadingSpinner size={48} className="text-discord-primary" />
         </div>
       </Layout>
     )
@@ -1099,7 +1100,7 @@ export function SettingsPage() {
             </div>
           ) : isLoadingMembers ? (
             <div className="flex items-center justify-center py-8">
-              <Loader className="animate-spin text-theme-light" size={32} />
+              <LoadingSpinner size={32} className="text-theme-light" />
             </div>
           ) : searchQuery && searchResults.length === 0 ? (
             <div className="text-center py-8 text-gray-400">
@@ -1208,7 +1209,7 @@ export function SettingsPage() {
                   >
                     {isBackingUp ? (
                       <>
-                        <Loader className="animate-spin" size={18} />
+                        <LoadingSpinner size={18} />
                         <span>Creating Backup...</span>
                       </>
                     ) : (
@@ -1477,7 +1478,7 @@ export function SettingsPage() {
             >
               {isTestingNotifications ? (
                 <>
-                  <Loader className="animate-spin" size={16} />
+                  <LoadingSpinner size={16} />
                   Testing...
                 </>
               ) : (

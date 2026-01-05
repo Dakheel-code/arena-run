@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
 import { Member, UserRole } from '../../types'
-import { Shield, Search, Loader, User, Crown, Edit3, Users } from 'lucide-react'
+import { Shield, Search, User, Crown, Edit3, Users } from 'lucide-react'
+import { LoadingSpinner } from '../../components/LoadingSpinner'
 import { Link } from 'react-router-dom'
 
 const ROLE_CONFIG: Record<UserRole, { label: string; color: string; icon: any; description: string }> = {
@@ -159,7 +160,7 @@ export function PermissionsPage() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader className="animate-spin text-theme-light" size={48} />
+          <LoadingSpinner size={48} className="text-theme-light" />
         </div>
       ) : (
         <>
