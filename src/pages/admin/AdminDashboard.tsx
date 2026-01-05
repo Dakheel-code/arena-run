@@ -417,7 +417,7 @@ export function AdminDashboard() {
                         </div>
                       )}
                       <span className="text-sm flex-1 truncate">{viewer.name}</span>
-                      <span className="text-xs text-gray-500 bg-gray-700 px-1.5 py-0.5 rounded">{viewer.count}</span>
+                      <span className="text-xs text-white bg-gray-700 px-1.5 py-0.5 rounded">{viewer.count}</span>
                     </Link>
                   ))}
                 </div>
@@ -461,7 +461,7 @@ export function AdminDashboard() {
                         </div>
                       )}
                       <span className="text-sm flex-1 truncate">{uploader.name}</span>
-                      <span className="text-xs text-gray-500 bg-gray-700 px-1.5 py-0.5 rounded">{uploader.count}</span>
+                      <span className="text-xs text-white bg-gray-700 px-1.5 py-0.5 rounded">{uploader.count}</span>
                     </Link>
                   ))}
                 </div>
@@ -505,7 +505,7 @@ export function AdminDashboard() {
                         </div>
                       )}
                       <span className="text-sm flex-1 truncate">{watcher.name}</span>
-                      <span className="text-xs text-gray-500 bg-gray-700 px-1.5 py-0.5 rounded">{formatDuration(watcher.seconds)}</span>
+                      <span className="text-xs text-white bg-gray-700 px-1.5 py-0.5 rounded">{formatDuration(watcher.seconds)}</span>
                     </Link>
                   ))}
                 </div>
