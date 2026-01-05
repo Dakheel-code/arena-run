@@ -176,48 +176,6 @@ export const handler: Handler = async (event) => {
   // Check for security alerts
   await checkSecurityAlerts(user.discord_id, country, ip, videoId, userAgent)
 
-  // Send new session notification
-  const settings = await getNotificationSettings()
-  if (settings.notifyNewSession && settings.webhookUrl) {
-    const { data: member } = await supabase
-      .from('members')
-      .select('discord_username, game_id')
-      .eq('discord_id', user.discord_id)
-      .single()
-
-    // Count how many times this member has watched this specific video
-    const { count: memberVideoViews } = await supabase
-      .from('view_sessions')
-      .select('*', { count: 'exact', head: true })
-      .eq('discord_id', user.discord_id)
-      .eq('video_id', videoId)
-
-    // Format location with city and country
-    const location = city ? `${city}, ${country}` : country || 'Unknown'
-    const currentViews = updatedVideo?.views || video.views || 0
-
-    await fetch(settings.webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        embeds: [{
-          title: '👁️ New Watch Session Started',
-          fields: [
-            { name: 'Member', value: `<@${user.discord_id}>`, inline: true },
-            { name: 'Country', value: location, inline: true },
-            { name: 'Video', value: video.title, inline: false },
-            { name: 'Video Views', value: `${memberVideoViews || 0} views`, inline: true },
-          ],
-          color: 0x3498DB,
-          timestamp: new Date().toISOString(),
-          footer: {
-            text: 'RGR - Arena Run'
-          }
-        }],
-      }),
-    }).catch(err => console.error('Failed to send new session notification:', err))
-  }
-
   // Return stream UID for unsigned playback
   // Note: For production, consider enabling signed URLs in Cloudflare Stream settings
   const token = video.stream_uid

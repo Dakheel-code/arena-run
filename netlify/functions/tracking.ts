@@ -29,6 +29,69 @@ function getUser(event: any) {
   return valid ? payload : null
 }
 
+async function getNotificationSettings() {
+  const { data } = await supabase
+    .from('settings')
+    .select('*')
+    .single()
+
+  return {
+    notifyNewSession: data?.notify_new_session ?? true,
+    webhookUrl: data?.webhook_security || process.env.DISCORD_WEBHOOK_URL,
+  }
+}
+
+async function sendNewSessionNotification(session: any, videoId: string, discordId: string) {
+  const settings = await getNotificationSettings()
+  if (!settings.notifyNewSession || !settings.webhookUrl) return
+
+  // Get video info
+  const { data: video } = await supabase
+    .from('videos')
+    .select('title')
+    .eq('id', videoId)
+    .single()
+
+  // Get member info
+  const { data: member } = await supabase
+    .from('members')
+    .select('discord_username, game_id')
+    .eq('discord_id', discordId)
+    .single()
+
+  // Count how many times this member has watched this specific video
+  const { count: memberVideoViews } = await supabase
+    .from('view_sessions')
+    .select('*', { count: 'exact', head: true })
+    .eq('discord_id', discordId)
+    .eq('video_id', videoId)
+    .gte('watch_seconds', 3)
+
+  // Format location with city and country
+  const location = session.city ? `${session.city}, ${session.country}` : session.country || 'Unknown'
+
+  await fetch(settings.webhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      embeds: [{
+        title: '👁️ New Watch Session Started',
+        fields: [
+          { name: 'Member', value: `<@${discordId}>`, inline: true },
+          { name: 'Country', value: location, inline: true },
+          { name: 'Video', value: video?.title || 'Unknown', inline: false },
+          { name: 'Video Views', value: `${memberVideoViews || 0} views`, inline: true },
+        ],
+        color: 0x3498DB,
+        timestamp: new Date().toISOString(),
+        footer: {
+          text: 'RGR - Arena Run'
+        }
+      }],
+    }),
+  }).catch(err => console.error('Failed to send new session notification:', err))
+}
+
 export const handler: Handler = async (event) => {
   const user = getUser(event)
   if (!user) {
@@ -74,6 +137,8 @@ export const handler: Handler = async (event) => {
     // Increment view count only when user watches 3+ seconds (and only once per session)
     if (watchSeconds >= 3 && session.watch_seconds < 3) {
       await supabase.rpc('increment_views', { vid: session.video_id })
+      // Send new session notification after view is counted
+      await sendNewSessionNotification(session, session.video_id, user.discord_id)
     }
   }
 
