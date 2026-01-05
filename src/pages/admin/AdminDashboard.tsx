@@ -532,7 +532,7 @@ export function AdminDashboard() {
                 Top Countries by Members
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                {stats.topCountries.slice(0, showAllCountries ? 10 : 5).map((country, index) => (
+                {stats.topCountries.slice(0, showAllCountries ? stats.topCountries.length : 5).map((country, index) => (
                   <div
                     key={country.country}
                     onClick={() => setSelectedCountry(country)}

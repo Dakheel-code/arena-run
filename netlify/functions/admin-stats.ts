@@ -227,48 +227,78 @@ export const handler: Handler = async (event) => {
   })
 
   // Get top countries by unique members from their last login
-  // First, get the most recent login for each member from login_logs
-  const { data: allLogins } = await supabase
-    .from('login_logs')
-    .select('discord_id, country, logged_at')
-    .eq('status', 'success')
-    .not('country', 'is', null)
-    .order('logged_at', { ascending: false })
-
-  // Helper function to extract country name (remove city if present)
   const extractCountryName = (location: string): string => {
     if (!location) return ''
-    // If format is "Country, City", extract just the country
     const parts = location.split(',')
     return parts[0].trim()
   }
 
-  // Get the last login country for each member
+  const PAGE_SIZE = 1000
+
+  const allMembers: Array<{ discord_id: string; discord_global_name?: string; discord_username?: string; game_id?: string; discord_avatar?: string }> = []
+  for (let offset = 0; offset < 200000; offset += PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from('members')
+      .select('discord_id, discord_global_name, discord_username, game_id, discord_avatar')
+      .range(offset, offset + PAGE_SIZE - 1)
+
+    if (error) throw error
+    if (!data || data.length === 0) break
+    allMembers.push(...(data as any))
+    if (data.length < PAGE_SIZE) break
+  }
+
+  const allMemberIds = new Set(allMembers.map(m => m.discord_id).filter(Boolean))
+  const countryMemberInfoMap = new Map(allMembers.map(m => [m.discord_id, m]))
+
   const memberLastCountry = new Map<string, string>()
-  allLogins?.forEach((login: any) => {
-    if (login.country && login.country !== 'Unknown' && !memberLastCountry.has(login.discord_id)) {
+
+  for (let offset = 0; offset < 500000 && memberLastCountry.size < allMemberIds.size; offset += PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from('login_logs')
+      .select('discord_id, country, logged_at')
+      .eq('status', 'success')
+      .not('country', 'is', null)
+      .order('logged_at', { ascending: false })
+      .range(offset, offset + PAGE_SIZE - 1)
+
+    if (error) throw error
+    if (!data || data.length === 0) break
+
+    for (const login of data as any[]) {
+      if (!login?.discord_id || !allMemberIds.has(login.discord_id)) continue
+      if (memberLastCountry.has(login.discord_id)) continue
+      if (!login.country || login.country === 'Unknown') continue
       const countryName = extractCountryName(login.country)
-      if (countryName) {
-        memberLastCountry.set(login.discord_id, countryName)
-      }
+      if (!countryName) continue
+      memberLastCountry.set(login.discord_id, countryName)
     }
-  })
 
-  // Fallback: Get country from view_sessions for members not in login_logs
-  const { data: sessionCountries } = await supabase
-    .from('view_sessions')
-    .select('discord_id, country')
-    .not('country', 'is', null)
-    .order('started_at', { ascending: false })
+    if (data.length < PAGE_SIZE) break
+  }
 
-  sessionCountries?.forEach((session: any) => {
-    if (session.country && session.country !== 'Unknown' && !memberLastCountry.has(session.discord_id)) {
+  for (let offset = 0; offset < 500000 && memberLastCountry.size < allMemberIds.size; offset += PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from('view_sessions')
+      .select('discord_id, country, started_at')
+      .not('country', 'is', null)
+      .order('started_at', { ascending: false })
+      .range(offset, offset + PAGE_SIZE - 1)
+
+    if (error) throw error
+    if (!data || data.length === 0) break
+
+    for (const session of data as any[]) {
+      if (!session?.discord_id || !allMemberIds.has(session.discord_id)) continue
+      if (memberLastCountry.has(session.discord_id)) continue
+      if (!session.country || session.country === 'Unknown') continue
       const countryName = extractCountryName(session.country)
-      if (countryName) {
-        memberLastCountry.set(session.discord_id, countryName)
-      }
+      if (!countryName) continue
+      memberLastCountry.set(session.discord_id, countryName)
     }
-  })
+
+    if (data.length < PAGE_SIZE) break
+  }
 
   // Count unique members per country
   const countryMemberMap = new Map<string, Set<string>>()
@@ -278,17 +308,6 @@ export const handler: Handler = async (event) => {
     }
     countryMemberMap.get(country)!.add(discordId)
   })
-
-  // Get all unique discord_ids from all countries
-  const allCountryDiscordIds = [...memberLastCountry.keys()]
-  
-  // Fetch member info for all discord_ids
-  const { data: countryMembersData } = await supabase
-    .from('members')
-    .select('discord_id, discord_global_name, discord_username, game_id, discord_avatar')
-    .in('discord_id', allCountryDiscordIds.length > 0 ? allCountryDiscordIds : ['none'])
-
-  const countryMemberInfoMap = new Map(countryMembersData?.map(m => [m.discord_id, m]) || [])
 
   // Build top countries list with member details
   const topCountries = Array.from(countryMemberMap.entries())
@@ -308,7 +327,7 @@ export const handler: Handler = async (event) => {
       }
     })
     .sort((a, b) => b.memberCount - a.memberCount)
-    .slice(0, 50)
+    
 
   // Get period-specific stats if date range provided
   let periodViews = 0
