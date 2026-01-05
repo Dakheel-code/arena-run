@@ -32,7 +32,8 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isPseudoFullscreen, setIsPseudoFullscreen] = useState(false)
+  const [isNativeFullscreen, setIsNativeFullscreen] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [showControls, setShowControls] = useState(true)
@@ -49,6 +50,7 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   const lastTapRef = useRef(0)
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 })
   const sessionLoggedRef = useRef(false)
+  const isFullscreen = isPseudoFullscreen || isNativeFullscreen
   
   const playbackSpeeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4]
 
@@ -88,37 +90,32 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
     setIsPiPSupported('pictureInPictureEnabled' in document)
   }, [])
 
-  // Handle fullscreen changes and screen orientation
+  // Handle fullscreen changes
   useEffect(() => {
-    const handleFullscreenChange = async () => {
+    const handleFullscreenChange = () => {
       const isFS = !!document.fullscreenElement
-      setIsFullscreen(isFS)
-      
-      // Auto-rotate to landscape in fullscreen on mobile
-      if (isFS && 'orientation' in screen && window.innerWidth < 768) {
-        try {
-          await (screen.orientation as any).lock('landscape')
-        } catch (err) {
-          console.log('Orientation lock not supported')
-        }
-      } else if (!isFS && 'orientation' in screen) {
-        try {
-          (screen.orientation as any).unlock()
-        } catch (err) {
-          console.log('Orientation unlock not supported')
-        }
-      }
+      setIsNativeFullscreen(isFS)
     }
     document.addEventListener('fullscreenchange', handleFullscreenChange)
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange)
-      if ('orientation' in screen) {
-        try {
-          (screen.orientation as any).unlock()
-        } catch (err) {}
-      }
     }
   }, [])
+
+  useEffect(() => {
+    if (!isFullscreen) {
+      document.body.style.overflow = ''
+      return
+    }
+
+    const isAndroid = /android/i.test(navigator.userAgent)
+    if (isAndroid && isPseudoFullscreen) {
+      document.body.style.overflow = 'hidden'
+      return
+    }
+
+    document.body.style.overflow = ''
+  }, [isFullscreen, isNativeFullscreen, isPseudoFullscreen])
 
   // Keep screen awake during playback
   useEffect(() => {
@@ -283,6 +280,13 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
       e.stopPropagation()
     }
     if (!containerRef.current) return
+
+    const isAndroid = /android/i.test(navigator.userAgent)
+    if (isAndroid) {
+      // Always use pseudo-fullscreen on Android to avoid browser auto-rotation in native fullscreen
+      setIsPseudoFullscreen((prev) => !prev)
+      return
+    }
     
     try {
       if (!document.fullscreenElement) {
@@ -443,7 +447,7 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   return (
     <div 
       ref={containerRef} 
-      className={`relative bg-black overflow-hidden ${isFullscreen ? 'w-screen h-screen' : 'aspect-video rounded-lg'}`}
+      className={`relative bg-black overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50 w-screen h-screen' : 'aspect-video rounded-lg'}`}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onClick={handleContainerClick}
