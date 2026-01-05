@@ -243,12 +243,34 @@ export const handler: Handler = async (event) => {
     }
   })
 
-  // Build top countries list
+  // Get all unique discord_ids from all countries
+  const allCountryDiscordIds = [...new Set(allSessionsWithCountry?.map(s => s.discord_id) || [])]
+  
+  // Fetch member info for all discord_ids
+  const { data: countryMembersData } = await supabase
+    .from('members')
+    .select('discord_id, discord_global_name, discord_username, game_id, discord_avatar')
+    .in('discord_id', allCountryDiscordIds.length > 0 ? allCountryDiscordIds : ['none'])
+
+  const countryMemberInfoMap = new Map(countryMembersData?.map(m => [m.discord_id, m]) || [])
+
+  // Build top countries list with member details
   const topCountries = Array.from(countryMemberMap.entries())
-    .map(([country, members]) => ({
-      country,
-      memberCount: members.size
-    }))
+    .map(([country, memberIds]) => {
+      const members = Array.from(memberIds).map(id => {
+        const member = countryMemberInfoMap.get(id)
+        return {
+          id,
+          name: member?.discord_global_name || member?.discord_username || member?.game_id || id.slice(0, 8) + '...',
+          avatar: member?.discord_avatar
+        }
+      })
+      return {
+        country,
+        memberCount: memberIds.size,
+        members
+      }
+    })
     .sort((a, b) => b.memberCount - a.memberCount)
     .slice(0, 10)
 

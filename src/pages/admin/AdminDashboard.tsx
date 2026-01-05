@@ -4,7 +4,7 @@ import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
 import { useLanguage } from '../../context/LanguageContext'
 import { Video as VideoType } from '../../types'
-import { Users, Video, Eye, ThumbsUp, Clock, Calendar, TrendingUp, Play, UserPlus, Loader, Upload, User, LayoutDashboard, Globe } from 'lucide-react'
+import { Users, Video, Eye, ThumbsUp, Clock, Calendar, TrendingUp, Play, UserPlus, Loader, Upload, User, LayoutDashboard, Globe, X } from 'lucide-react'
 
 interface TopUploader {
   id: string
@@ -47,6 +47,11 @@ interface TopWatcher {
 interface TopCountry {
   country: string
   memberCount: number
+  members: Array<{
+    id: string
+    name: string
+    avatar?: string
+  }>
 }
 
 interface Stats {
@@ -97,6 +102,7 @@ export function AdminDashboard() {
   const [showAllWatchTime, setShowAllWatchTime] = useState(false)
   const [showAllCountries, setShowAllCountries] = useState(false)
   const [showAllVideos, setShowAllVideos] = useState(false)
+  const [selectedCountry, setSelectedCountry] = useState<TopCountry | null>(null)
 
   useEffect(() => {
     fetchStats()
@@ -196,6 +202,26 @@ export function AdminDashboard() {
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
     return `${Math.floor(diff / 86400)}d ago`
+  }
+
+  const getCountryFlag = (countryName: string): string => {
+    const countryToCode: { [key: string]: string } = {
+      'United States': 'US', 'Germany': 'DE', 'Romania': 'RO', 'Saudi Arabia': 'SA',
+      'Italy': 'IT', 'Japan': 'JP', 'Dominican Republic': 'DO', 'United Kingdom': 'GB',
+      'Peru': 'PE', 'India': 'IN', 'France': 'FR', 'Canada': 'CA', 'Brazil': 'BR',
+      'Mexico': 'MX', 'Spain': 'ES', 'Australia': 'AU', 'Netherlands': 'NL',
+      'Poland': 'PL', 'Sweden': 'SE', 'Turkey': 'TR', 'Egypt': 'EG', 'Pakistan': 'PK',
+      'Bangladesh': 'BD', 'Russia': 'RU', 'South Korea': 'KR', 'Argentina': 'AR',
+      'Colombia': 'CO', 'Chile': 'CL', 'Philippines': 'PH', 'Vietnam': 'VN',
+      'Thailand': 'TH', 'Malaysia': 'MY', 'Indonesia': 'ID', 'Singapore': 'SG',
+      'United Arab Emirates': 'AE', 'Kuwait': 'KW', 'Qatar': 'QA', 'Bahrain': 'BH',
+      'Oman': 'OM', 'Jordan': 'JO', 'Lebanon': 'LB', 'Iraq': 'IQ', 'Syria': 'SY',
+      'Yemen': 'YE', 'Palestine': 'PS', 'Morocco': 'MA', 'Algeria': 'DZ', 'Tunisia': 'TN',
+      'Libya': 'LY', 'Sudan': 'SD', 'Somalia': 'SO'
+    }
+    const code = countryToCode[countryName] || ''
+    if (!code) return '🌍'
+    return String.fromCodePoint(...[...code].map(c => 127397 + c.charCodeAt(0)))
   }
 
   return (
@@ -508,18 +534,27 @@ export function AdminDashboard() {
                 {stats.topCountries.slice(0, showAllCountries ? 10 : 5).map((country, index) => (
                   <div
                     key={country.country}
-                    className="bg-gray-800/50 rounded-lg p-3 hover:bg-gray-800 transition-colors"
+                    onClick={() => setSelectedCountry(country)}
+                    className="relative rounded-lg p-3 hover:bg-gray-800 transition-colors cursor-pointer overflow-hidden group"
+                    style={{
+                      background: `linear-gradient(135deg, rgba(31, 41, 55, 0.95) 0%, rgba(17, 24, 39, 0.95) 100%)`
+                    }}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className={`text-xs font-bold ${index === 0 ? 'text-yellow-400' : index === 1 ? 'text-gray-300' : index === 2 ? 'text-amber-600' : 'text-gray-500'}`}>
-                        #{index + 1}
-                      </span>
-                      <Globe size={14} className="text-cyan-400" />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-10 group-hover:opacity-20 transition-opacity text-8xl pointer-events-none">
+                      {getCountryFlag(country.country)}
                     </div>
-                    <p className="font-semibold text-white truncate">{country.country}</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {country.memberCount} {country.memberCount === 1 ? 'member' : 'members'}
-                    </p>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`text-xs font-bold ${index === 0 ? 'text-yellow-400' : index === 1 ? 'text-gray-300' : index === 2 ? 'text-amber-600' : 'text-gray-500'}`}>
+                          #{index + 1}
+                        </span>
+                        <Globe size={14} className="text-cyan-400" />
+                      </div>
+                      <p className="font-semibold text-white truncate">{country.country}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {country.memberCount} {country.memberCount === 1 ? 'member' : 'members'}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -648,6 +683,63 @@ export function AdminDashboard() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Country Members Modal */}
+      {selectedCountry && (
+        <div 
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedCountry(null)}
+        >
+          <div 
+            className="bg-discord-dark rounded-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto border border-gray-700"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-gradient-to-r from-cyan-600 to-cyan-500 p-6 border-b border-gray-700 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-5xl">{getCountryFlag(selectedCountry.country)}</span>
+                <div>
+                  <h3 className="text-xl font-bold text-white">{selectedCountry.country}</h3>
+                  <p className="text-sm text-cyan-100">
+                    {selectedCountry.memberCount} {selectedCountry.memberCount === 1 ? 'member' : 'members'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedCountry(null)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {selectedCountry.members.map((member) => (
+                  <Link
+                    key={member.id}
+                    to={`/admin/members/${member.id}`}
+                    onClick={() => setSelectedCountry(null)}
+                    className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition-colors"
+                  >
+                    {member.avatar ? (
+                      <img 
+                        src={member.avatar.startsWith('http') ? member.avatar : `https://cdn.discordapp.com/avatars/${member.id}/${member.avatar}.png`}
+                        alt={member.name}
+                        className="w-10 h-10 rounded-full"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
+                        <User size={20} className="text-cyan-400" />
+                      </div>
+                    )}
+                    <span className="text-white font-medium truncate">{member.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </Layout>
   )
