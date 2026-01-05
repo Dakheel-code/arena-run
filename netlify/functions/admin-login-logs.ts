@@ -86,6 +86,24 @@ export const handler: Handler = async (event) => {
 
       if (error) throw error
 
+      // Get member info for all logs to fetch discord_global_name
+      const discordIds = [...new Set(data?.map(log => log.discord_id) || [])]
+      const { data: members } = await supabase
+        .from('members')
+        .select('discord_id, discord_global_name, discord_username')
+        .in('discord_id', discordIds)
+
+      // Create a map for quick lookup
+      const memberMap = new Map(members?.map(m => [m.discord_id, m]) || [])
+
+      // Merge member info with logs (prioritize discord_global_name from members table)
+      const logsWithMemberNames = data?.map(log => ({
+        ...log,
+        discord_username: memberMap.get(log.discord_id)?.discord_global_name || 
+                         memberMap.get(log.discord_id)?.discord_username || 
+                         log.discord_username
+      })) || []
+
       return {
         statusCode: 200,
         headers: {
@@ -93,7 +111,7 @@ export const handler: Handler = async (event) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          logs: data,
+          logs: logsWithMemberNames,
           total: count,
           page,
           limit,
