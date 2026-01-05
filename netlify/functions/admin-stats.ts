@@ -93,19 +93,40 @@ export const handler: Handler = async (event) => {
     .select('watch_seconds')
   const totalWatchTime = watchTimeData?.reduce((sum, s) => sum + (s.watch_seconds || 0), 0) || 0
 
-  // Get top videos (most viewed) - need to fetch with id
-  const { data: allVideos } = await supabase
-    .from('videos')
-    .select('id, title, views_count, likes_count')
-    .order('views_count', { ascending: false })
-    .limit(5)
+  // Get top videos (most viewed) - count actual view sessions per video
+  const { data: allViewSessions } = await supabase
+    .from('view_sessions')
+    .select('video_id')
 
-  const topVideos = allVideos?.map(v => ({ 
-    id: v.id,
-    title: v.title, 
-    views: v.views_count || 0, 
-    likes: v.likes_count || 0 
-  })) || []
+  // Count views per video
+  const videoViewCounts = new Map<string, number>()
+  allViewSessions?.forEach((session: any) => {
+    const count = videoViewCounts.get(session.video_id) || 0
+    videoViewCounts.set(session.video_id, count + 1)
+  })
+
+  // Get top 5 video IDs by view count
+  const topVideoIds = Array.from(videoViewCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([id]) => id)
+
+  // Fetch video details for top videos
+  const { data: topVideosData } = await supabase
+    .from('videos')
+    .select('id, title, likes_count')
+    .in('id', topVideoIds.length > 0 ? topVideoIds : ['none'])
+
+  // Build top videos array with actual view counts
+  const topVideos = topVideoIds.map(videoId => {
+    const video = topVideosData?.find(v => v.id === videoId)
+    return {
+      id: videoId,
+      title: video?.title || 'Unknown',
+      views: videoViewCounts.get(videoId) || 0,
+      likes: video?.likes_count || 0
+    }
+  })
 
   // Get recent sessions with video titles
   const { data: rawSessions } = await supabase
