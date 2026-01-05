@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react'
+import { ReactNode, useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useSettings } from '../context/SettingsContext'
@@ -7,6 +7,7 @@ import { useTheme, ThemeColor } from '../context/ThemeContext'
 import { Language } from '../i18n/translations'
 import { Home, Video, Users, Settings, LogOut, Shield, History, Plus, Globe, ChevronDown, Menu, X, KeyRound, Moon, Sun } from 'lucide-react'
 import { BottomNav } from './BottomNav'
+import { api } from '../lib/api'
 
 interface LayoutProps {
   children: ReactNode
@@ -36,12 +37,32 @@ const THEME_COLORS: { value: ThemeColor; label: string; color: string }[] = [
 export function Layout({ children }: LayoutProps) {
   const { user, logout } = useAuth()
   const { settings } = useSettings()
-  const { language, setLanguage, t } = useLanguage()
+  const { t, language, setLanguage } = useLanguage()
   const { themeColor, setThemeColor, themeMode, setThemeMode } = useTheme()
   const location = useLocation()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [showLanguageMenu, setShowLanguageMenu] = useState(false)
   const [showColorPicker, setShowColorPicker] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [memberInfo, setMemberInfo] = useState<{ discord_global_name?: string; discord_avatar?: string } | null>(null)
+
+  useEffect(() => {
+    const fetchMemberInfo = async () => {
+      if (!user?.discord_id) return
+      try {
+        const { members } = await api.getMembers()
+        const member = members.find(m => m.discord_id === user.discord_id)
+        if (member) {
+          setMemberInfo({
+            discord_global_name: member.discord_global_name,
+            discord_avatar: member.discord_avatar
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch member info:', error)
+      }
+    }
+    fetchMemberInfo()
+  }, [user?.discord_id])
 
   const currentLanguage = LANGUAGES.find(l => l.code === language) || LANGUAGES[0]
 
@@ -266,7 +287,13 @@ export function Layout({ children }: LayoutProps) {
         {/* User Info */}
         <div className="p-4 border-t border-gray-700">
           <div className="flex items-center gap-3">
-            {user?.avatar ? (
+            {memberInfo?.discord_avatar ? (
+              <img
+                src={memberInfo.discord_avatar}
+                alt={memberInfo.discord_global_name || user?.username || 'Avatar'}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : user?.avatar ? (
               <img
                 src={user.avatar.startsWith('http') ? user.avatar : `https://cdn.discordapp.com/avatars/${user.discord_id}/${user.avatar}.png`}
                 alt={user?.username}
@@ -274,11 +301,11 @@ export function Layout({ children }: LayoutProps) {
               />
             ) : (
               <div className="w-10 h-10 rounded-full bg-theme/20 flex items-center justify-center">
-                <span className="text-theme-light font-bold">{user?.username?.charAt(0).toUpperCase()}</span>
+                <span className="text-theme-light font-bold">{(memberInfo?.discord_global_name || user?.username)?.charAt(0).toUpperCase()}</span>
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <p className="font-medium truncate">{user?.username}</p>
+              <p className="font-medium truncate">{memberInfo?.discord_global_name || user?.username}</p>
               <p className="text-xs text-gray-400">{user?.game_id || 'Member'}</p>
             </div>
             <button
