@@ -4,7 +4,8 @@ import { Layout } from '../../components/Layout'
 import { api } from '../../lib/api'
 import { useLanguage } from '../../context/LanguageContext'
 import { Video as VideoType } from '../../types'
-import { Users, Video, Eye, ThumbsUp, Clock, Calendar, TrendingUp, Play, UserPlus, Loader, Upload, User, LayoutDashboard, Globe, X } from 'lucide-react'
+import { Users, Video, Eye, ThumbsUp, Clock, Calendar, TrendingUp, Play, UserPlus, Upload, User, LayoutDashboard, Globe, X } from 'lucide-react'
+import { LoadingSpinner } from '../../components/LoadingSpinner'
 
 interface TopUploader {
   id: string
@@ -279,7 +280,7 @@ export function AdminDashboard() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader className="animate-spin text-theme-light" size={48} />
+          <LoadingSpinner size={48} className="text-theme-light" />
         </div>
       ) : (
         <>

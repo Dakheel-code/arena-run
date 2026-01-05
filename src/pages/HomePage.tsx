@@ -6,7 +6,8 @@ import { Layout } from '../components/Layout'
 import { FloatingNewRunButton } from '../components/FloatingNewRunButton'
 import { useLanguage } from '../context/LanguageContext'
 import { usePullToRefresh } from '../hooks/usePullToRefresh'
-import { Film, Loader, Search, Trophy, User, X, RefreshCw, Home } from 'lucide-react'
+import { Film, Search, Trophy, User, X, RefreshCw, Home } from 'lucide-react'
+import { LoadingSpinner } from '../components/LoadingSpinner'
 
 export function HomePage() {
   const { t } = useLanguage()
@@ -153,7 +154,7 @@ export function HomePage() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader className="animate-spin text-theme-light" size={48} />
+          <LoadingSpinner size={48} className="text-theme-light" />
         </div>
       ) : (
         <>

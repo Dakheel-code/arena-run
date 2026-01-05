@@ -6,7 +6,8 @@ import { VideoPlayer } from '../components/VideoPlayer'
 import { Layout } from '../components/Layout'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
-import { ArrowLeft, Loader, Trophy, Clock, Shield, TrendingUp, Calendar, Mic, User, Edit2 } from 'lucide-react'
+import { ArrowLeft, Trophy, Clock, Shield, TrendingUp, Calendar, Mic, User, Edit2 } from 'lucide-react'
+import { LoadingSpinner } from '../components/LoadingSpinner'
 
 export function WatchPage() {
   const { id } = useParams<{ id: string }>()
@@ -35,7 +36,7 @@ export function WatchPage() {
     return (
       <Layout>
         <div className="flex items-center justify-center py-20">
-          <Loader className="animate-spin text-theme-light" size={48} />
+          <LoadingSpinner size={48} className="text-theme-light" />
         </div>
       </Layout>
     )
