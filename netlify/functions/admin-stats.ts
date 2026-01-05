@@ -105,10 +105,10 @@ export const handler: Handler = async (event) => {
     videoViewCounts.set(session.video_id, count + 1)
   })
 
-  // Get top 5 video IDs by view count
+  // Get top 10 video IDs by view count
   const topVideoIds = Array.from(videoViewCounts.entries())
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
+    .slice(0, 10)
     .map(([id]) => id)
 
   // Fetch video details for top videos
@@ -204,8 +204,8 @@ export const handler: Handler = async (event) => {
 
   const memberInfoMap = new Map(allMembersData?.map(m => [m.discord_id, m]) || [])
 
-  // Build top viewers list
-  const topViewers = sortedBySession.slice(0, 5).map(([id, data]) => {
+  // Build top viewers list (top 10)
+  const topViewers = sortedBySession.slice(0, 10).map(([id, data]) => {
     const member = memberInfoMap.get(id)
     return {
       id,
@@ -215,8 +215,8 @@ export const handler: Handler = async (event) => {
     }
   })
 
-  // Build top watch time list
-  const topWatchTime = sortedByWatchTime.slice(0, 5).map(([id, data]) => {
+  // Build top watch time list (top 10)
+  const topWatchTime = sortedByWatchTime.slice(0, 10).map(([id, data]) => {
     const member = memberInfoMap.get(id)
     return {
       id,

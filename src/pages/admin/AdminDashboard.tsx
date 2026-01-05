@@ -86,6 +86,9 @@ export function AdminDashboard() {
   const [customEndDate, setCustomEndDate] = useState('')
   const [showCustomDates, setShowCustomDates] = useState(false)
   const [topUploaders, setTopUploaders] = useState<TopUploader[]>([])
+  const [showAllViewers, setShowAllViewers] = useState(false)
+  const [showAllUploaders, setShowAllUploaders] = useState(false)
+  const [showAllWatchTime, setShowAllWatchTime] = useState(false)
 
   useEffect(() => {
     fetchStats()
@@ -360,8 +363,9 @@ export function AdminDashboard() {
                 {t('topViewers')}
               </h3>
               {stats?.topViewers && stats.topViewers.length > 0 ? (
+                <>
                 <div className="space-y-2">
-                  {stats.topViewers.slice(0, 5).map((viewer, index) => (
+                  {stats.topViewers.slice(0, showAllViewers ? 10 : 5).map((viewer, index) => (
                     <Link
                       key={viewer.id}
                       to={`/admin/members/${viewer.id}`}
@@ -382,6 +386,15 @@ export function AdminDashboard() {
                     </Link>
                   ))}
                 </div>
+                {stats.topViewers.length > 5 && (
+                  <button
+                    onClick={() => setShowAllViewers(!showAllViewers)}
+                    className="w-full mt-2 py-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    {showAllViewers ? 'Show Less' : `Show More (${stats.topViewers.length - 5} more)`}
+                  </button>
+                )}
+                </>
               ) : (
                 <p className="text-gray-500 text-xs text-center py-2">{t('noData')}</p>
               )}
@@ -394,8 +407,9 @@ export function AdminDashboard() {
                 {t('topUploaders')}
               </h3>
               {topUploaders.length > 0 ? (
+                <>
                 <div className="space-y-2">
-                  {topUploaders.map((uploader, index) => (
+                  {topUploaders.slice(0, showAllUploaders ? 10 : 5).map((uploader, index) => (
                     <Link
                       key={uploader.id}
                       to={`/admin/members/${uploader.id}`}
@@ -416,6 +430,15 @@ export function AdminDashboard() {
                     </Link>
                   ))}
                 </div>
+                {topUploaders.length > 5 && (
+                  <button
+                    onClick={() => setShowAllUploaders(!showAllUploaders)}
+                    className="w-full mt-2 py-1.5 text-xs text-green-400 hover:text-green-300 transition-colors"
+                  >
+                    {showAllUploaders ? 'Show Less' : `Show More (${topUploaders.length - 5} more)`}
+                  </button>
+                )}
+                </>
               ) : (
                 <p className="text-gray-500 text-xs text-center py-2">{t('noData')}</p>
               )}
@@ -428,8 +451,9 @@ export function AdminDashboard() {
                 {t('topWatchTime')}
               </h3>
               {stats?.topWatchTime && stats.topWatchTime.length > 0 ? (
+                <>
                 <div className="space-y-2">
-                  {stats.topWatchTime.slice(0, 5).map((watcher, index) => (
+                  {stats.topWatchTime.slice(0, showAllWatchTime ? 10 : 5).map((watcher, index) => (
                     <Link
                       key={watcher.id}
                       to={`/admin/members/${watcher.id}`}
@@ -450,6 +474,15 @@ export function AdminDashboard() {
                     </Link>
                   ))}
                 </div>
+                {stats.topWatchTime.length > 5 && (
+                  <button
+                    onClick={() => setShowAllWatchTime(!showAllWatchTime)}
+                    className="w-full mt-2 py-1.5 text-xs text-orange-400 hover:text-orange-300 transition-colors"
+                  >
+                    {showAllWatchTime ? 'Show Less' : `Show More (${stats.topWatchTime.length - 5} more)`}
+                  </button>
+                )}
+                </>
               ) : (
                 <p className="text-gray-500 text-xs text-center py-2">{t('noData')}</p>
               )}
