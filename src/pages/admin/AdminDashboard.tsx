@@ -536,13 +536,13 @@ export function AdminDashboard() {
                   <div
                     key={country.country}
                     onClick={() => setSelectedCountry(country)}
-                    className="relative rounded-lg p-3 hover:bg-gray-800 transition-colors cursor-pointer overflow-hidden group"
+                    className="relative rounded-lg p-4 hover:bg-gray-800 transition-colors cursor-pointer overflow-hidden group"
                     style={{
                       background: `linear-gradient(135deg, rgba(31, 41, 55, 0.95) 0%, rgba(17, 24, 39, 0.95) 100%)`
                     }}
                   >
-                    <div className="absolute inset-0 flex items-center justify-center opacity-10 group-hover:opacity-20 transition-opacity text-8xl pointer-events-none">
-                      {getCountryFlag(country.country)}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-20 group-hover:opacity-30 transition-opacity pointer-events-none">
+                      <span className="text-[120px] leading-none">{getCountryFlag(country.country)}</span>
                     </div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-2">

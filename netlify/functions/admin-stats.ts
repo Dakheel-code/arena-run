@@ -226,25 +226,34 @@ export const handler: Handler = async (event) => {
     }
   })
 
-  // Get top countries by unique members
-  const { data: allSessionsWithCountry } = await supabase
-    .from('view_sessions')
-    .select('discord_id, country')
+  // Get top countries by unique members from their last login
+  // First, get the most recent login for each member
+  const { data: allLogins } = await supabase
+    .from('login_logs')
+    .select('discord_id, country, logged_at')
+    .eq('status', 'success')
     .not('country', 'is', null)
+    .order('logged_at', { ascending: false })
 
-  // Count unique members per country
-  const countryMemberMap = new Map<string, Set<string>>()
-  allSessionsWithCountry?.forEach((session: any) => {
-    if (session.country && session.country !== 'Unknown') {
-      if (!countryMemberMap.has(session.country)) {
-        countryMemberMap.set(session.country, new Set())
-      }
-      countryMemberMap.get(session.country)!.add(session.discord_id)
+  // Get the last login country for each member
+  const memberLastCountry = new Map<string, string>()
+  allLogins?.forEach((login: any) => {
+    if (login.country && login.country !== 'Unknown' && !memberLastCountry.has(login.discord_id)) {
+      memberLastCountry.set(login.discord_id, login.country)
     }
   })
 
+  // Count unique members per country
+  const countryMemberMap = new Map<string, Set<string>>()
+  memberLastCountry.forEach((country, discordId) => {
+    if (!countryMemberMap.has(country)) {
+      countryMemberMap.set(country, new Set())
+    }
+    countryMemberMap.get(country)!.add(discordId)
+  })
+
   // Get all unique discord_ids from all countries
-  const allCountryDiscordIds = [...new Set(allSessionsWithCountry?.map(s => s.discord_id) || [])]
+  const allCountryDiscordIds = [...memberLastCountry.keys()]
   
   // Fetch member info for all discord_ids
   const { data: countryMembersData } = await supabase
