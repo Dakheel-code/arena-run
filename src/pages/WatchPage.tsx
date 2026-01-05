@@ -15,6 +15,16 @@ export function WatchPage() {
   const [video, setVideo] = useState<Video | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 767px)').matches)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const handler = () => setIsMobile(mq.matches)
+    handler()
+
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
 
   useEffect(() => {
     const fetchVideo = async () => {
@@ -32,6 +42,13 @@ export function WatchPage() {
   }, [id])
 
   if (isLoading) {
+    if (isMobile) {
+      return (
+        <div className="fixed inset-0 bg-black flex items-center justify-center">
+          <Loader className="animate-spin text-theme-light" size={48} />
+        </div>
+      )
+    }
     return (
       <Layout>
         <div className="flex items-center justify-center py-20">
@@ -42,6 +59,18 @@ export function WatchPage() {
   }
 
   if (error || !video) {
+    if (isMobile) {
+      return (
+        <div className="fixed inset-0 bg-black flex items-center justify-center p-6">
+          <div className="text-center">
+            <p className="text-red-400 mb-4">{error || 'Video not found'}</p>
+            <Link to="/" className="text-theme-light hover:underline">
+              Back to Home
+            </Link>
+          </div>
+        </div>
+      )
+    }
     return (
       <Layout>
         <div className="text-center py-20">
@@ -64,6 +93,14 @@ export function WatchPage() {
 
 
 
+
+  if (isMobile) {
+    return (
+      <div className="fixed inset-0 bg-black">
+        <VideoPlayer videoId={video.id} streamUid={video.stream_uid} autoFullscreen />
+      </div>
+    )
+  }
 
   return (
     <Layout>

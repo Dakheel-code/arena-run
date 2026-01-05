@@ -7,6 +7,7 @@ import { useWatchHistory } from '../hooks/useWatchHistory'
 interface VideoPlayerProps {
   videoId: string
   streamUid: string
+  autoFullscreen?: boolean
 }
 
 function generateWatermarkCode(): string {
@@ -22,7 +23,7 @@ function generateWatermarkCode(): string {
   return code
 }
 
-export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
+export function VideoPlayer({ videoId, streamUid, autoFullscreen }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const hlsRef = useRef<Hls | null>(null)
@@ -90,6 +91,14 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
     setIsPiPSupported('pictureInPictureEnabled' in document)
   }, [])
 
+  useEffect(() => {
+    if (!autoFullscreen) return
+    const isMobileViewport = window.matchMedia('(max-width: 767px)').matches
+    if (isMobileViewport) {
+      setIsPseudoFullscreen(true)
+    }
+  }, [autoFullscreen])
+
   // Handle fullscreen changes
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -108,8 +117,7 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
       return
     }
 
-    const isAndroid = /android/i.test(navigator.userAgent)
-    if (isAndroid && isPseudoFullscreen) {
+    if (isPseudoFullscreen) {
       document.body.style.overflow = 'hidden'
       return
     }
@@ -281,9 +289,9 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
     }
     if (!containerRef.current) return
 
-    const isAndroid = /android/i.test(navigator.userAgent)
-    if (isAndroid) {
-      // Always use pseudo-fullscreen on Android to avoid browser auto-rotation in native fullscreen
+    const isMobileViewport = window.matchMedia('(max-width: 767px)').matches
+    if (isMobileViewport) {
+      // Use pseudo-fullscreen on mobile to avoid browser UI/orientation issues
       setIsPseudoFullscreen((prev) => !prev)
       return
     }
