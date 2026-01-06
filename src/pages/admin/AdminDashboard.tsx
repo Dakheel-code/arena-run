@@ -223,7 +223,8 @@ export function AdminDashboard() {
       'United Arab Emirates': 'AE', 'Kuwait': 'KW', 'Qatar': 'QA', 'Bahrain': 'BH',
       'Oman': 'OM', 'Jordan': 'JO', 'Lebanon': 'LB', 'Iraq': 'IQ', 'Syria': 'SY',
       'Yemen': 'YE', 'Palestine': 'PS', 'Morocco': 'MA', 'Algeria': 'DZ', 'Tunisia': 'TN',
-      'Libya': 'LY', 'Sudan': 'SD', 'Somalia': 'SO'
+      'Libya': 'LY', 'Sudan': 'SD', 'Somalia': 'SO',
+      'Greece': 'GR', 'Hellenic Republic': 'GR'
     }
     const code = countryToCode[countryName] || ''
     if (!code) return '🌍'
