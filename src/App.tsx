@@ -16,6 +16,7 @@ import LoginLogsPage from './pages/admin/LoginLogsPage'
 import { NewRunPage } from './pages/NewRunPage'
 import { EditVideoPage } from './pages/EditVideoPage'
 import { UploadSuccessPage } from './pages/UploadSuccessPage'
+import { UploadProgressPage } from './pages/UploadProgressPage'
 
 function AppRoutes() {
   return (
@@ -24,6 +25,7 @@ function AppRoutes() {
       <Route path="/videos" element={<HomePage />} />
       <Route path="/watch/:id" element={<WatchPage />} />
       <Route path="/new-run" element={<NewRunPage />} />
+      <Route path="/uploading" element={<UploadProgressPage />} />
       <Route path="/upload-success" element={<UploadSuccessPage />} />
       <Route path="/edit-video/:id" element={<EditVideoPage />} />
       

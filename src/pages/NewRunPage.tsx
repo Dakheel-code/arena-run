@@ -5,8 +5,6 @@ import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { Upload, ArrowLeft, Play } from 'lucide-react'
-import { LoadingSpinner } from '../components/LoadingSpinner'
-import * as tus from 'tus-js-client'
 
 export function NewRunPage() {
   const navigate = useNavigate()
@@ -25,15 +23,8 @@ export function NewRunPage() {
     end_rank: '',
     has_commentary: false,
   })
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [uploadSpeed, setUploadSpeed] = useState(0)
-  const [timeRemaining, setTimeRemaining] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const uploadStartTime = useRef<number>(0)
-  const lastBytesUploaded = useRef<number>(0)
-  const lastUpdateTime = useRef<number>(0)
 
   // Fetch member data to get discord_global_name
   useEffect(() => {
@@ -72,112 +63,14 @@ export function NewRunPage() {
 
   const generatedTitle = generateTitle()
 
-  const handleUpload = async () => {
+  const handleUpload = () => {
     if (!selectedFile || !uploadData.season || !uploadData.day) return
-    const file = selectedFile
-
-    setIsUploading(true)
-    setUploadProgress(0)
-    setUploadSpeed(0)
-    setTimeRemaining('')
-    uploadStartTime.current = Date.now()
-    lastBytesUploaded.current = 0
-    lastUpdateTime.current = Date.now()
-
-    try {
-      const { uploadUrl, video } = await api.createVideo({
-        title: generatedTitle,
-        description: uploadData.description,
-        season: uploadData.season,
-        day: uploadData.day,
-        wins_attacks: uploadData.wins_attacks,
-        arena_time: uploadData.arena_time,
-        shield_hits: uploadData.shield_hits,
-        overtime_type: uploadData.overtime_type,
-        start_rank: uploadData.start_rank,
-        end_rank: uploadData.end_rank,
-        has_commentary: uploadData.has_commentary,
-        fileSize: file.size,
-      })
-
-      // Upload to Cloudflare Stream using TUS
-      const tusUpload = await uploadWithTus(file, uploadUrl, (progress) => {
-        setUploadProgress(progress)
-      })
-
-      if (tusUpload) {
-        // Update video duration after upload completes
-        // Wait a bit for Cloudflare to process the video
-        setTimeout(async () => {
-          try {
-            await api.updateSingleVideoDuration(video.id)
-            console.log('Video duration updated successfully')
-          } catch (error) {
-            console.error('Failed to update video duration:', error)
-          }
-        }, 5000) // Wait 5 seconds before trying to get duration
-
-        navigate('/upload-success')
-      }
-    } catch (error) {
-      console.error('Upload failed:', error)
-      alert('Failed to upload video')
-    } finally {
-      setIsUploading(false)
-    }
-  }
-
-  const uploadWithTus = (
-    file: File,
-    uploadUrl: string,
-    onProgress: (progress: number) => void
-  ): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-      const upload = new tus.Upload(file, {
-        uploadUrl: uploadUrl,
-        chunkSize: 25 * 1024 * 1024, // 25MB chunks for faster upload
-        retryDelays: [0, 1000, 3000, 5000, 10000],
-        metadata: {
-          filename: file.name,
-          filetype: file.type,
-        },
-        onError: (error) => {
-          console.error('Upload error:', error)
-          reject(error)
-        },
-        onProgress: (bytesUploaded, bytesTotal) => {
-          const percentage = Math.round((bytesUploaded / bytesTotal) * 100)
-          onProgress(percentage)
-          
-          // Calculate speed and time remaining
-          const now = Date.now()
-          const timeDiff = (now - lastUpdateTime.current) / 1000 // seconds
-          if (timeDiff >= 0.5) { // Update every 0.5 seconds
-            const bytesDiff = bytesUploaded - lastBytesUploaded.current
-            const speed = bytesDiff / timeDiff // bytes per second
-            setUploadSpeed(speed)
-            
-            const remainingBytes = bytesTotal - bytesUploaded
-            const remainingSeconds = speed > 0 ? remainingBytes / speed : 0
-            
-            if (remainingSeconds < 60) {
-              setTimeRemaining(`${Math.round(remainingSeconds)}s`)
-            } else if (remainingSeconds < 3600) {
-              setTimeRemaining(`${Math.round(remainingSeconds / 60)}m`)
-            } else {
-              setTimeRemaining(`${Math.round(remainingSeconds / 3600)}h`)
-            }
-            
-            lastBytesUploaded.current = bytesUploaded
-            lastUpdateTime.current = now
-          }
-        },
-        onSuccess: () => {
-          resolve(true)
-        },
-      })
-
-      upload.start()
+    navigate('/uploading', {
+      state: {
+        uploadData,
+        file: selectedFile,
+        displayName,
+      },
     })
   }
 
@@ -357,47 +250,15 @@ export function NewRunPage() {
               </div>
             </div>
 
-            {isUploading && (
-              <div className="bg-gray-800/50 rounded-lg p-4">
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-theme-light">Uploading...</span>
-                  <span className="font-mono">{uploadProgress}%</span>
-                </div>
-                <div className="h-3 bg-gray-700 rounded-full overflow-hidden mb-2">
-                  <div
-                    className="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-gray-400">
-                  <span>
-                    {uploadSpeed > 0 ? (
-                      uploadSpeed > 1024 * 1024 
-                        ? `${(uploadSpeed / (1024 * 1024)).toFixed(1)} MB/s`
-                        : `${(uploadSpeed / 1024).toFixed(0)} KB/s`
-                    ) : 'Calculating...'}
-                  </span>
-                  <span>{timeRemaining ? `~${timeRemaining} remaining` : ''}</span>
-                </div>
-              </div>
-            )}
-
             <button
               onClick={handleUpload}
-              disabled={isUploading || !uploadData.season || !uploadData.day || !selectedFile}
+              disabled={!uploadData.season || !uploadData.day || !selectedFile}
               className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-lg font-semibold flex items-center justify-center gap-2 transition-all"
             >
-              {isUploading ? (
-                <>
-                  <LoadingSpinner size={20} />
-                  {t('uploading')}
-                </>
-              ) : (
-                <>
-                  <Play size={20} />
-                  {t('upload')}
-                </>
-              )}
+              <>
+                <Play size={20} />
+                {t('upload')}
+              </>
             </button>
           </div>
         </div>
