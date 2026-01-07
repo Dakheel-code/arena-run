@@ -26,6 +26,33 @@ function verifyToken(token: string): { valid: boolean; payload?: any } {
   }
 }
 
+async function updateCloudflareVideoName(streamUid: string, name: string) {
+  try {
+    const response = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/stream/${streamUid}`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${CF_STREAM_API_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ meta: { name } }),
+      }
+    )
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '')
+      console.error(`Failed to update Cloudflare video name for ${streamUid}:`, response.status, errorText)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error(`Error updating Cloudflare video name for ${streamUid}:`, error)
+    return false
+  }
+}
+
 function getUser(event: any) {
   const authHeader = event.headers.authorization
   if (!authHeader?.startsWith('Bearer ')) return null
@@ -518,7 +545,7 @@ export const handler: Handler = async (event) => {
     // Check if video exists and get owner
     const { data: existingVideo } = await supabase
       .from('videos')
-      .select('uploaded_by')
+      .select('uploaded_by, stream_uid, title, uploader_name, season, day')
       .eq('id', id)
       .single()
 
@@ -577,6 +604,23 @@ export const handler: Handler = async (event) => {
     if (end_rank !== undefined) updateData.end_rank = end_rank
     if (has_commentary !== undefined) updateData.has_commentary = has_commentary
 
+    // Owners can edit season/day, but not arbitrary titles.
+    // If season/day are changed by a non-admin, regenerate title from existing uploader_name + new season/day.
+    if (!isAdmin && (season !== undefined || day !== undefined)) {
+      const playerName = existingVideo.uploader_name || user.username || 'Player'
+      const nextSeason = season !== undefined ? season : (existingVideo.season || '')
+      const nextDay = day !== undefined ? day : (existingVideo.day || '')
+
+      const normalizedSeason = nextSeason ? `S${String(nextSeason).replace(/[^0-9]/g, '')}` : ''
+      const normalizedDay = nextDay ? `DAY ${String(nextDay).replace(/[^0-9]/g, '')}` : ''
+
+      const parts = [playerName]
+      if (normalizedSeason) parts.push(normalizedSeason)
+      if (normalizedDay) parts.push(normalizedDay)
+
+      updateData.title = parts.join(' - ')
+    }
+
     const { data, error } = await supabase
       .from('videos')
       .update(updateData)
@@ -586,6 +630,11 @@ export const handler: Handler = async (event) => {
 
     if (error) {
       return { statusCode: 500, body: JSON.stringify({ message: error.message }) }
+    }
+
+    // Keep Cloudflare Stream dashboard name in sync with our title
+    if (updateData.title !== undefined && existingVideo.stream_uid) {
+      await updateCloudflareVideoName(existingVideo.stream_uid, updateData.title)
     }
 
     // Update duration if missing or invalid when publishing
