@@ -63,12 +63,27 @@ export function EditVideoPage() {
     fetchVideo()
   }, [id, user])
 
+  const generateTitle = () => {
+    if (!video) return ''
+    const playerName = video.uploader_name || user?.username || user?.game_id || 'Player'
+    const season = formData.season ? `S${formData.season.replace(/[^0-9]/g, '')}` : ''
+    const day = formData.day ? `DAY ${formData.day.replace(/[^0-9]/g, '')}` : ''
+
+    const parts = [playerName]
+    if (season) parts.push(season)
+    if (day) parts.push(day)
+
+    return parts.join(' - ')
+  }
+
+  const generatedTitle = generateTitle()
+
   const handleSave = async () => {
     if (!video) return
     setIsSaving(true)
     
     try {
-      await api.updateVideo(video.id, formData)
+      await api.updateVideo(video.id, { ...formData, title: generatedTitle })
       navigate(`/watch/${video.id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save changes')
@@ -122,7 +137,7 @@ export function EditVideoPage() {
               Title (Cannot be changed)
             </label>
             <div className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-gray-400">
-              {video.title}
+              {generatedTitle || video.title}
             </div>
           </div>
 
