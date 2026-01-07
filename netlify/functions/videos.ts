@@ -505,31 +505,6 @@ export const handler: Handler = async (event) => {
       return { statusCode: 500, body: JSON.stringify({ message: error.message }) }
     }
 
-    // Get user avatar from members table
-    const { data: memberData } = await supabase
-      .from('members')
-      .select('avatar')
-      .eq('discord_id', user.discord_id)
-      .single()
-    
-    // Send notification to admin about new upload pending review
-    const uploadFields = []
-    if (season) uploadFields.push({ name: 'Season', value: season, inline: true })
-    if (day) uploadFields.push({ name: 'Day', value: day, inline: true })
-    if (wins_attacks) uploadFields.push({ name: 'Wins/Attacks', value: wins_attacks, inline: true })
-    if (arena_time) uploadFields.push({ name: 'Arena Time', value: arena_time, inline: true })
-    
-    await sendDiscordNotification(
-      '📤 New Video Upload - Pending Review',
-      `**${title}**\n\nUploaded by <@${user.discord_id}>`,
-      uploadFields,
-      {
-        discordId: user.discord_id,
-        avatarUrl: memberData?.avatar || undefined,
-        authorName: user.username
-      }
-    )
-
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },

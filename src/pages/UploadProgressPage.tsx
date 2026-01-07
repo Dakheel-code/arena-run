@@ -164,6 +164,12 @@ export function UploadProgressPage() {
         })
 
         if (tusUpload) {
+          try {
+            await api.uploadComplete(video.id)
+          } catch {
+            // ignore
+          }
+
           setTimeout(async () => {
             try {
               await api.updateSingleVideoDuration(video.id)

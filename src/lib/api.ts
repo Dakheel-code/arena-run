@@ -84,6 +84,12 @@ export const api = {
       body: JSON.stringify({ videoId }),
     }),
 
+  uploadComplete: (videoId: string) =>
+    fetchAPI<{ success: boolean }>('/upload-complete', {
+      method: 'POST',
+      body: JSON.stringify({ videoId }),
+    }),
+
   // Playback
   getPlaybackToken: (videoId: string) =>
     fetchAPI<{ token: string }>(`/playback?videoId=${videoId}`),

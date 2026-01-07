@@ -110,6 +110,12 @@ export function VideosPage() {
       })
 
       if (tusUpload) {
+        try {
+          await api.uploadComplete(video.id)
+        } catch {
+          // ignore
+        }
+
         // Update video duration after upload completes
         setTimeout(async () => {
           try {
