@@ -67,8 +67,8 @@ export function VideosPage() {
   }
 
   // Generate title automatically like NewRunPage
-  const generateTitle = () => {
-    const uploaderName = user?.username || user?.game_id || 'Admin'
+  const generateTitle = (overrideUploaderName?: string) => {
+    const uploaderName = overrideUploaderName || user?.username || user?.game_id || 'Admin'
     const season = uploadData.season ? `S${uploadData.season.replace(/[^0-9]/g, '')}` : ''
     const day = uploadData.day ? `DAY ${uploadData.day.replace(/[^0-9]/g, '')}` : ''
     
@@ -207,8 +207,13 @@ export function VideosPage() {
     if (!editingVideo) return
     
     try {
+      const computedTitle = (uploadData.season || uploadData.day)
+        ? generateTitle(editingVideo.uploader_name)
+        : uploadData.title
+
       const updateData = {
         ...uploadData,
+        title: computedTitle,
         uploaded_by: editingVideo.uploaded_by,
         uploader_name: editingVideo.uploader_name,
       }
