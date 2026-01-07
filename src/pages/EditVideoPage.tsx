@@ -15,8 +15,10 @@ export function EditVideoPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isTitleManuallyEdited, setIsTitleManuallyEdited] = useState(false)
   
   const [formData, setFormData] = useState({
+    title: '',
     description: '',
     season: '',
     day: '',
@@ -43,6 +45,7 @@ export function EditVideoPage() {
         }
         
         setFormData({
+          title: video.title || '',
           description: video.description || '',
           season: video.season || '',
           day: video.day || '',
@@ -54,6 +57,7 @@ export function EditVideoPage() {
           end_rank: video.end_rank || '',
           has_commentary: video.has_commentary || false,
         })
+        setIsTitleManuallyEdited(false)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load video')
       } finally {
@@ -78,12 +82,21 @@ export function EditVideoPage() {
 
   const generatedTitle = generateTitle()
 
+  useEffect(() => {
+    if (!user?.is_admin) return
+    if (isTitleManuallyEdited) return
+    if (!video) return
+
+    setFormData((d) => ({ ...d, title: generatedTitle }))
+  }, [generatedTitle, isTitleManuallyEdited, user?.is_admin, video])
+
   const handleSave = async () => {
     if (!video) return
     setIsSaving(true)
     
     try {
-      await api.updateVideo(video.id, { ...formData, title: generatedTitle })
+      const titleToSave = user?.is_admin ? formData.title : generatedTitle
+      await api.updateVideo(video.id, { ...formData, title: titleToSave })
       navigate(`/watch/${video.id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save changes')
@@ -134,11 +147,24 @@ export function EditVideoPage() {
           {/* Title (Read-only) */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-400 mb-2">
-              Title (Cannot be changed)
+              Title
             </label>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-gray-400">
-              {generatedTitle || video.title}
-            </div>
+            {user?.is_admin ? (
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => {
+                  setIsTitleManuallyEdited(true)
+                  setFormData({ ...formData, title: e.target.value })
+                }}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:border-theme-light focus:outline-none"
+                placeholder="Enter title..."
+              />
+            ) : (
+              <div className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-gray-400">
+                {generatedTitle || video.title}
+              </div>
+            )}
           </div>
 
           {/* Description */}

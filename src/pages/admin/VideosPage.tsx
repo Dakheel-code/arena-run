@@ -23,6 +23,7 @@ export function VideosPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [editingVideo, setEditingVideo] = useState<Video | null>(null)
+  const [isTitleManuallyEdited, setIsTitleManuallyEdited] = useState(false)
   const [uploadData, setUploadData] = useState({
     title: '',
     description: '',
@@ -67,10 +68,12 @@ export function VideosPage() {
   }
 
   // Generate title automatically like NewRunPage
-  const generateTitle = (overrideUploaderName?: string) => {
+  const generateTitle = (overrideUploaderName?: string, overrideSeason?: string, overrideDay?: string) => {
     const uploaderName = overrideUploaderName || user?.username || user?.game_id || 'Admin'
-    const season = uploadData.season ? `S${uploadData.season.replace(/[^0-9]/g, '')}` : ''
-    const day = uploadData.day ? `DAY ${uploadData.day.replace(/[^0-9]/g, '')}` : ''
+    const seasonValue = overrideSeason !== undefined ? overrideSeason : uploadData.season
+    const dayValue = overrideDay !== undefined ? overrideDay : uploadData.day
+    const season = seasonValue ? `S${seasonValue.replace(/[^0-9]/g, '')}` : ''
+    const day = dayValue ? `DAY ${dayValue.replace(/[^0-9]/g, '')}` : ''
     
     const parts = [uploaderName]
     if (season) parts.push(season)
@@ -213,9 +216,11 @@ export function VideosPage() {
     if (!editingVideo) return
     
     try {
-      const computedTitle = (uploadData.season || uploadData.day)
-        ? generateTitle(editingVideo.uploader_name)
-        : uploadData.title
+      const computedTitle = isTitleManuallyEdited
+        ? uploadData.title
+        : ((uploadData.season || uploadData.day)
+            ? generateTitle(editingVideo.uploader_name)
+            : uploadData.title)
 
       const updateData = {
         ...uploadData,
@@ -350,6 +355,7 @@ export function VideosPage() {
                   <button
                     onClick={() => {
                       setEditingVideo(video)
+                      setIsTitleManuallyEdited(false)
                       setUploadData({
                         title: video.title || '',
                         description: video.description || '',
@@ -477,16 +483,32 @@ export function VideosPage() {
                     )
                     
                     if (selectedMember) {
+                      const nextName = selectedMember.discord_global_name || selectedMember.discord_username || selectedMember.game_id || ''
                       setEditingVideo(prev => prev ? {
                         ...prev,
                         uploaded_by: selectedMember.discord_id,
-                        uploader_name: selectedMember.discord_global_name || selectedMember.discord_username || selectedMember.game_id || ''
+                        uploader_name: nextName
                       } : null)
+
+                      if (!isTitleManuallyEdited) {
+                        setUploadData(d => ({
+                          ...d,
+                          title: generateTitle(nextName, d.season, d.day)
+                        }))
+                      }
                     } else {
+                      const nextName = e.target.value
                       setEditingVideo(prev => prev ? {
                         ...prev,
-                        uploader_name: e.target.value
+                        uploader_name: nextName
                       } : null)
+
+                      if (!isTitleManuallyEdited) {
+                        setUploadData(d => ({
+                          ...d,
+                          title: generateTitle(nextName, d.season, d.day)
+                        }))
+                      }
                     }
                   }}
                   className="input-field w-full"
@@ -501,13 +523,36 @@ export function VideosPage() {
                 </datalist>
               </div>
 
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Title</label>
+                <input
+                  type="text"
+                  value={uploadData.title}
+                  onChange={(e) => {
+                    setIsTitleManuallyEdited(true)
+                    setUploadData((d) => ({ ...d, title: e.target.value }))
+                  }}
+                  className="input-field w-full"
+                  placeholder="Enter custom title..."
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">{t('seasonLabel')}</label>
                   <input
                     type="text"
                     value={uploadData.season}
-                    onChange={(e) => setUploadData((d) => ({ ...d, season: e.target.value }))}
+                    onChange={(e) => {
+                      const nextSeason = e.target.value
+                      setUploadData((d) => {
+                        const next: typeof d = { ...d, season: nextSeason }
+                        if (!isTitleManuallyEdited) {
+                          next.title = generateTitle(editingVideo?.uploader_name, nextSeason, d.day)
+                        }
+                        return next
+                      })
+                    }}
                     className="input-field w-full"
                     placeholder="e.g. 5"
                   />
@@ -517,7 +562,16 @@ export function VideosPage() {
                   <input
                     type="text"
                     value={uploadData.day}
-                    onChange={(e) => setUploadData((d) => ({ ...d, day: e.target.value }))}
+                    onChange={(e) => {
+                      const nextDay = e.target.value
+                      setUploadData((d) => {
+                        const next: typeof d = { ...d, day: nextDay }
+                        if (!isTitleManuallyEdited) {
+                          next.title = generateTitle(editingVideo?.uploader_name, d.season, nextDay)
+                        }
+                        return next
+                      })
+                    }}
                     className="input-field w-full"
                     placeholder="e.g. 3"
                   />
