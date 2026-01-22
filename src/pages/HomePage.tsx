@@ -85,6 +85,24 @@ export function HomePage() {
     })
   }, [tabFilteredVideos, searchQuery, selectedSeason])
 
+  // Group videos by season
+  const videosBySeason = useMemo(() => {
+    const grouped = new Map<string, Video[]>()
+    filteredVideos.forEach(video => {
+      const season = video.season || 'Other'
+      if (!grouped.has(season)) {
+        grouped.set(season, [])
+      }
+      grouped.get(season)!.push(video)
+    })
+    // Sort seasons descending (newest first)
+    return Array.from(grouped.entries()).sort((a, b) => {
+      if (a[0] === 'Other') return 1
+      if (b[0] === 'Other') return -1
+      return Number(b[0]) - Number(a[0])
+    })
+  }, [filteredVideos])
+
   const hasActiveFilters = searchQuery || selectedSeason
 
   const clearFilters = () => {
@@ -139,16 +157,6 @@ export function HomePage() {
           }`}
         >
           {t('newSevenDays')}
-        </button>
-        <button
-          onClick={() => setActiveTab('popular')}
-          className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
-            activeTab === 'popular' 
-              ? 'bg-theme text-white' 
-              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-          }`}
-        >
-          {t('popular')}
         </button>
       </div>
 
@@ -249,7 +257,7 @@ export function HomePage() {
             </div>
           )}
 
-          {/* Videos Grid */}
+          {/* Videos by Season */}
           <div className="animate-fade-in">
           {filteredVideos.length === 0 ? (
             <div className="text-center py-20">
@@ -267,10 +275,24 @@ export function HomePage() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredVideos.map((video, index) => (
-                <div key={video.id} className="stagger-item" style={{ animationDelay: `${Math.min(index * 0.05, 0.4)}s` }}>
-                  <VideoCard video={video} />
+            <div className="space-y-8">
+              {videosBySeason.map(([season, seasonVideos]) => (
+                <div key={season} className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-xl font-bold text-theme">
+                      {season === 'Other' ? 'Other' : `${t('season')} ${season}`}
+                    </h2>
+                    <span className="text-sm text-gray-500 bg-gray-800 px-2 py-1 rounded">
+                      {seasonVideos.length} {seasonVideos.length === 1 ? t('video') : t('videos')}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {seasonVideos.map((video, index) => (
+                      <div key={video.id} className="stagger-item" style={{ animationDelay: `${Math.min(index * 0.05, 0.4)}s` }}>
+                        <VideoCard video={video} />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
