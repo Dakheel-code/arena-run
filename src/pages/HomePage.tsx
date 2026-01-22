@@ -229,28 +229,43 @@ export function HomePage() {
                 <Trophy className="text-yellow-400" size={20} />
                 {t('topUploaders')}
               </h2>
-              <div className="flex flex-wrap gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
                 {topUploaders.map((uploader, index) => (
                   <div
                     key={uploader.id}
-                    className="flex items-center gap-2 bg-gray-800/50 px-3 py-2 rounded-lg"
+                    className={`flex items-center gap-3 p-3 rounded-xl transition-all hover:scale-[1.02] ${
+                      index === 0 
+                        ? 'bg-gradient-to-r from-yellow-500/20 to-amber-500/10 border border-yellow-500/30' 
+                        : index === 1 
+                        ? 'bg-gradient-to-r from-gray-400/20 to-gray-500/10 border border-gray-400/30'
+                        : index === 2
+                        ? 'bg-gradient-to-r from-amber-600/20 to-orange-500/10 border border-amber-600/30'
+                        : 'bg-gray-800/50 border border-gray-700/50'
+                    }`}
                   >
-                    <span className={`text-sm font-bold ${index === 0 ? 'text-yellow-400' : index === 1 ? 'text-gray-300' : index === 2 ? 'text-amber-600' : 'text-gray-500'}`}>
-                      #{index + 1}
-                    </span>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                      index === 0 ? 'bg-yellow-500 text-black' : 
+                      index === 1 ? 'bg-gray-400 text-black' : 
+                      index === 2 ? 'bg-amber-600 text-black' : 
+                      'bg-gray-700 text-gray-300'
+                    }`}>
+                      {index + 1}
+                    </div>
                     {uploader.avatar ? (
                       <img 
                         src={uploader.avatar.startsWith('http') ? uploader.avatar : `https://cdn.discordapp.com/avatars/${uploader.id}/${uploader.avatar}.png`}
                         alt={uploader.name}
-                        className="w-6 h-6 rounded-full"
+                        className="w-10 h-10 rounded-full border-2 border-gray-700"
                       />
                     ) : (
-                      <div className="w-6 h-6 rounded-full bg-theme/20 flex items-center justify-center">
-                        <User size={12} className="text-theme-light" />
+                      <div className="w-10 h-10 rounded-full bg-theme/20 flex items-center justify-center border-2 border-gray-700">
+                        <User size={16} className="text-theme-light" />
                       </div>
                     )}
-                    <span className="text-sm">{uploader.name}</span>
-                    <span className="text-xs text-gray-500 bg-gray-700 px-1.5 py-0.5 rounded">{uploader.count}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{uploader.name}</p>
+                      <p className="text-xs text-gray-400">{uploader.count} {uploader.count === 1 ? t('video') : t('videos')}</p>
+                    </div>
                   </div>
                 ))}
               </div>
