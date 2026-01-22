@@ -278,14 +278,21 @@ export function HomePage() {
             <div className="space-y-8">
               {videosBySeason.map(([season, seasonVideos], idx) => (
                 <div key={season} className="space-y-4">
-                  {idx > 0 && <hr className="border-gray-700 mb-6" />}
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-xl font-bold text-theme">
-                      {season === 'Other' ? 'Other' : `${t('season')} ${season}`}
-                    </h2>
-                    <span className="text-sm text-gray-500 bg-gray-800 px-2 py-1 rounded">
-                      {seasonVideos.length} {seasonVideos.length === 1 ? t('video') : t('videos')}
-                    </span>
+                  {idx > 0 && <div className="border-t border-gray-700/50 my-4" />}
+                  <div className="card mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-theme/20 flex items-center justify-center">
+                        <span className="text-theme font-bold">{season === 'Other' ? '?' : season}</span>
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-bold text-white">
+                          {season === 'Other' ? 'Other' : `${t('season')} ${season}`}
+                        </h2>
+                        <span className="text-xs text-gray-400">
+                          {seasonVideos.length} {seasonVideos.length === 1 ? t('video') : t('videos')}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                     {seasonVideos.map((video, index) => (
