@@ -276,8 +276,9 @@ export function HomePage() {
             </div>
           ) : (
             <div className="space-y-8">
-              {videosBySeason.map(([season, seasonVideos]) => (
+              {videosBySeason.map(([season, seasonVideos], idx) => (
                 <div key={season} className="space-y-4">
+                  {idx > 0 && <hr className="border-gray-700 mb-6" />}
                   <div className="flex items-center gap-3">
                     <h2 className="text-xl font-bold text-theme">
                       {season === 'Other' ? 'Other' : `${t('season')} ${season}`}
