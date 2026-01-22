@@ -1,6 +1,19 @@
 import { Layout } from '../components/Layout'
+import { useEffect, useState } from 'react'
 
 export function LoginPage() {
+  const [sessionExpired, setSessionExpired] = useState(false)
+
+  useEffect(() => {
+    // Check if redirected due to session expiration
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('error') === 'session_expired') {
+      setSessionExpired(true)
+      // Clean up URL
+      window.history.replaceState({}, '', '/login')
+    }
+  }, [])
+
   const handleDiscordLogin = () => {
     window.location.href = '/.netlify/functions/auth'
   }
@@ -80,6 +93,15 @@ export function LoginPage() {
               
               {/* Card Content */}
               <div className="relative bg-gradient-to-br from-gray-900/95 to-black/95 backdrop-blur-xl rounded-2xl p-6 sm:p-8 md:p-10 border border-amber-500/20 shadow-2xl">
+                {/* Session Expired Alert */}
+                {sessionExpired && (
+                  <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-xl text-center">
+                    <p className="text-red-400 text-sm sm:text-base font-medium">
+                      Session expired. Please sign in again.
+                    </p>
+                  </div>
+                )}
+
                 <div className="text-center mb-6 sm:mb-8">
                   <h3 className="text-xl sm:text-2xl font-bold text-amber-400 mb-2">
                     Sign in with Discord

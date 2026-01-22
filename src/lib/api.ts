@@ -13,6 +13,12 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
   })
 
   if (!response.ok) {
+    // Auto-logout on 401 Unauthorized (expired or invalid token)
+    if (response.status === 401) {
+      localStorage.removeItem('auth_token')
+      window.location.href = '/login?error=session_expired'
+      throw new Error('Session expired')
+    }
     const error = await response.json().catch(() => ({ message: 'Request failed' }))
     throw new Error(error.message || 'Request failed')
   }

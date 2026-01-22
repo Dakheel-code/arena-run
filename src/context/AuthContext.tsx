@@ -25,11 +25,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    setToken(authToken)
-
     try {
       // Decode JWT token to get user data
       const payload = JSON.parse(atob(authToken.split('.')[1]))
+      
+      // Check if token is expired
+      if (payload.exp && payload.exp < Date.now()) {
+        console.log('Token expired, logging out...')
+        localStorage.removeItem('auth_token')
+        setToken(null)
+        setState({ user: null, isLoading: false, isAuthenticated: false })
+        return
+      }
+
+      setToken(authToken)
       
       setState({ 
         user: { 
@@ -44,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
     } catch (error) {
       console.error('Failed to decode token:', error)
+      localStorage.removeItem('auth_token')
       setState({ user: null, isLoading: false, isAuthenticated: false })
     }
   }
@@ -65,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ ...state, login, logout, refreshUser, token: localStorage.getItem('auth_token') }}>
+    <AuthContext.Provider value={{ ...state, login, logout, refreshUser, token }}>
       {children}
     </AuthContext.Provider>
   )
