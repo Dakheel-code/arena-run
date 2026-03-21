@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Video } from '../types'
 import { api } from '../lib/api'
@@ -6,8 +6,20 @@ import { VideoPlayer } from '../components/VideoPlayer'
 import { Layout } from '../components/Layout'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
-import { ArrowLeft, Trophy, Clock, Shield, TrendingUp, Calendar, Mic, User, Edit2 } from 'lucide-react'
+import { ArrowLeft, Trophy, Clock, Shield, TrendingUp, Calendar, Mic, User, Edit2, Play, Layers } from 'lucide-react'
 import { LoadingSpinner } from '../components/LoadingSpinner'
+
+function getThumbnailUrl(streamUid: string): string {
+  return `https://customer-f13bd0opbb08xh8b.cloudflarestream.com/${streamUid}/thumbnails/thumbnail.jpg?time=10s&width=320`
+}
+
+function formatDuration(seconds: number): string {
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  const s = Math.floor(seconds % 60)
+  if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+  return `${m}:${s.toString().padStart(2, '0')}`
+}
 
 export function WatchPage() {
   const { id } = useParams<{ id: string }>()
@@ -16,13 +28,18 @@ export function WatchPage() {
   const [video, setVideo] = useState<Video | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [allVideos, setAllVideos] = useState<Video[]>([])
 
   useEffect(() => {
     const fetchVideo = async () => {
       if (!id) return
       try {
-        const { video } = await api.getVideo(id)
+        const [{ video }, { videos }] = await Promise.all([
+          api.getVideo(id),
+          api.getVideos()
+        ])
         setVideo(video)
+        setAllVideos(videos.filter(v => v.is_published))
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load video')
       } finally {
@@ -31,6 +48,15 @@ export function WatchPage() {
     }
     fetchVideo()
   }, [id])
+
+  const suggestedVideos = useMemo(() => {
+    if (!video || allVideos.length === 0) return []
+    // Same season, exclude current video
+    const sameSeason = allVideos.filter(v => v.id !== video.id && v.season && v.season === video.season)
+    // If not enough, fill with other videos
+    const others = allVideos.filter(v => v.id !== video.id && (!v.season || v.season !== video.season))
+    return [...sameSeason, ...others].slice(0, 8)
+  }, [video, allVideos])
 
   if (isLoading) {
     return (
@@ -214,6 +240,97 @@ export function WatchPage() {
                   <span className="text-pink-400">Commentary</span>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Suggested Videos */}
+        {suggestedVideos.length > 0 && (
+          <div className="mt-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Layers size={20} className="text-theme" />
+              <h2 className="text-lg font-bold">
+                {video.season
+                  ? `${t('season')} ${video.season} — مقاطع مقترحة`
+                  : 'مقاطع مقترحة'}
+              </h2>
+              <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded ml-1">
+                {suggestedVideos.filter(v => v.season === video.season).length} من نفس الموسم
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {suggestedVideos.map((v) => {
+                const thumb = v.thumbnail_url || (v.stream_uid ? getThumbnailUrl(v.stream_uid) : null)
+                const isSameSeason = v.season && v.season === video.season
+                return (
+                  <Link
+                    key={v.id}
+                    to={`/watch/${v.id}`}
+                    className="group flex flex-col bg-gray-800/60 border border-gray-700/50 hover:border-theme/50 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg hover:shadow-theme/10 hover:-translate-y-0.5 active:scale-95"
+                  >
+                    {/* Thumbnail */}
+                    <div className="relative aspect-video bg-gray-900 overflow-hidden">
+                      {thumb ? (
+                        <img
+                          src={thumb}
+                          alt={v.title}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Play size={32} className="text-gray-600" />
+                        </div>
+                      )}
+                      {/* Play overlay */}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-theme/90 flex items-center justify-center">
+                          <Play size={18} className="text-white ml-0.5" fill="white" />
+                        </div>
+                      </div>
+                      {/* Duration */}
+                      {typeof v.duration === 'number' && v.duration > 0 && (
+                        <div className="absolute bottom-1.5 right-1.5 bg-black/80 px-1.5 py-0.5 rounded text-xs font-medium flex items-center gap-1">
+                          <Clock size={10} />
+                          {formatDuration(v.duration)}
+                        </div>
+                      )}
+                      {/* Season badge */}
+                      {(v.season || v.day) && (
+                        <div className={`absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-xs font-bold ${isSameSeason ? 'bg-theme/90' : 'bg-gray-700/90'}`}>
+                          {v.season && `S${v.season}`}{v.season && v.day && '•'}{v.day && `D${v.day}`}
+                        </div>
+                      )}
+                      {/* Same season indicator */}
+                      {isSameSeason && (
+                        <div className="absolute top-1.5 right-1.5 bg-theme/80 rounded-full w-2 h-2" title="نفس الموسم" />
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="p-2.5 flex flex-col gap-1">
+                      <h3 className="text-xs sm:text-sm font-semibold line-clamp-2 leading-snug group-hover:text-theme-light transition-colors">
+                        {v.title}
+                      </h3>
+                      <div className="flex items-center gap-1.5 mt-auto">
+                        {v.uploader_avatar ? (
+                          <img
+                            src={v.uploader_avatar.startsWith('http') ? v.uploader_avatar : `https://cdn.discordapp.com/avatars/${v.uploaded_by}/${v.uploader_avatar}.png`}
+                            alt={v.uploader_name || ''}
+                            className="w-4 h-4 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-4 h-4 rounded-full bg-theme/20 flex items-center justify-center">
+                            <User size={8} className="text-theme-light" />
+                          </div>
+                        )}
+                        <span className="text-[10px] text-gray-400 truncate">{v.uploader_name || 'Unknown'}</span>
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
             </div>
           </div>
         )}
