@@ -19,6 +19,8 @@ interface TopVideo {
   title: string
   views: number
   likes: number
+  stream_uid?: string
+  thumbnail_url?: string
 }
 
 interface RecentSession {
@@ -116,7 +118,7 @@ export function AdminDashboard() {
     try {
       const { videos } = await api.getVideos()
       const uploaderCounts = new Map<string, TopUploader>()
-      videos.forEach((v: VideoType) => {
+      videos.filter((v: VideoType) => v.is_published).forEach((v: VideoType) => {
         if (v.uploaded_by && v.uploader_name) {
           const existing = uploaderCounts.get(v.uploaded_by)
           if (existing) {
@@ -617,7 +619,7 @@ export function AdminDashboard() {
                 <>
                 <div className="space-y-3">
                   {stats.topVideos.slice(0, showAllVideos ? 10 : 5).map((video, index) => {
-                    const thumb = (video as any).thumbnail_url || ((video as any).stream_uid ? `https://customer-f13bd0opbb08xh8b.cloudflarestream.com/${(video as any).stream_uid}/thumbnails/thumbnail.jpg?time=10s&width=160` : null)
+                    const thumb = video.thumbnail_url || (video.stream_uid ? `https://customer-f13bd0opbb08xh8b.cloudflarestream.com/${video.stream_uid}/thumbnails/thumbnail.jpg?time=10s&width=160` : null)
                     return (
                     <div key={video.id} className="flex items-center gap-3 p-2 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition-colors">
                       {/* Rank */}

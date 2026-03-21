@@ -167,7 +167,7 @@ export const api = {
       todayViews: number
       weekViews: number
       totalWatchTime: number
-      topVideos: { id: string; title: string; views: number; likes: number }[]
+      topVideos: { id: string; title: string; views: number; likes: number; stream_uid?: string; thumbnail_url?: string }[]
       newMembersThisMonth: number
       recentSessions: import('../types').ViewSession[]
       periodViews: number
