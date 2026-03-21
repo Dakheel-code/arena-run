@@ -6,51 +6,44 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+const JWT_SECRET = process.env.JWT_SECRET!
+
 function verifyToken(token: string): any {
   try {
-    const [header, payload, signature] = token.split('.')
-    const decoded = JSON.parse(Buffer.from(payload, 'base64url').toString())
-    
-    if (decoded.exp < Date.now()) {
-      throw new Error('Token expired')
-    }
-    
+    const [header, body, signature] = token.split('.')
+    const crypto = require('crypto')
+    const expectedSig = crypto.createHmac('sha256', JWT_SECRET).update(`${header}.${body}`).digest('base64url')
+    if (signature !== expectedSig) return null
+    const decoded = JSON.parse(Buffer.from(body, 'base64url').toString())
+    if (decoded.exp < Date.now()) return null
     return decoded
-  } catch (error) {
+  } catch {
     return null
   }
 }
 
+const CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Content-Type': 'application/json',
+}
+
 export const handler: Handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Content-Type': 'application/json',
-      },
-      body: '',
-    }
+    return { statusCode: 200, headers: CORS_HEADERS, body: '' }
   }
 
   const authHeader = event.headers.authorization
   if (!authHeader?.startsWith('Bearer ')) {
-    return {
-      statusCode: 401,
-      body: JSON.stringify({ error: 'Unauthorized' }),
-    }
+    return { statusCode: 401, headers: CORS_HEADERS, body: JSON.stringify({ error: 'Unauthorized' }) }
   }
 
   const token = authHeader.substring(7)
   const user = verifyToken(token)
 
   if (!user?.is_admin) {
-    return {
-      statusCode: 403,
-      body: JSON.stringify({ error: 'Admin access required' }),
-    }
+    return { statusCode: 403, headers: CORS_HEADERS, body: JSON.stringify({ error: 'Admin access required' }) }
   }
 
   try {
@@ -106,10 +99,7 @@ export const handler: Handler = async (event) => {
 
       return {
         statusCode: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json',
-        },
+        headers: CORS_HEADERS,
         body: JSON.stringify({
           logs: logsWithMemberNames,
           total: count,
@@ -120,15 +110,9 @@ export const handler: Handler = async (event) => {
       }
     }
 
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method not allowed' }),
-    }
+    return { statusCode: 405, headers: CORS_HEADERS, body: JSON.stringify({ error: 'Method not allowed' }) }
   } catch (error) {
     console.error('Login logs error:', error)
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Internal server error' }),
-    }
+    return { statusCode: 500, headers: CORS_HEADERS, body: JSON.stringify({ error: 'Internal server error' }) }
   }
 }

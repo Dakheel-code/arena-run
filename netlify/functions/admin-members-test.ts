@@ -1,14 +1,39 @@
 import type { Handler } from '@netlify/functions'
 import { createClient } from '@supabase/supabase-js'
 
+const JWT_SECRET = process.env.JWT_SECRET!
+
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+function verifyToken(token: string): { valid: boolean; payload?: any } {
+  try {
+    const [header, body, signature] = token.split('.')
+    const crypto = require('crypto')
+    const expectedSig = crypto.createHmac('sha256', JWT_SECRET).update(`${header}.${body}`).digest('base64url')
+    if (signature !== expectedSig) return { valid: false }
+    const payload = JSON.parse(Buffer.from(body, 'base64url').toString())
+    if (payload.exp < Date.now()) return { valid: false }
+    return { valid: true, payload }
+  } catch {
+    return { valid: false }
+  }
+}
+
+function getUser(event: any) {
+  const authHeader = event.headers.authorization
+  if (!authHeader?.startsWith('Bearer ')) return null
+  const { valid, payload } = verifyToken(authHeader.slice(7))
+  return valid ? payload : null
+}
+
 export const handler: Handler = async (event) => {
-  // تعطيل المصادقة مؤقتًا للاختبار
-  console.log('Testing admin-members without authentication')
+  const user = getUser(event)
+  if (!user || !user.is_admin) {
+    return { statusCode: 403, body: JSON.stringify({ error: 'Forbidden' }) }
+  }
 
   const method = event.httpMethod
 
@@ -197,13 +222,29 @@ export const handler: Handler = async (event) => {
   if (method === 'PATCH') {
     try {
       const body = JSON.parse(event.body || '{}')
-      const { discord_id, ...updateData } = body
+      const { discord_id, is_active, role, game_id } = body
 
       if (!discord_id) {
         return {
           statusCode: 400,
           body: JSON.stringify({ error: 'discord_id is required' })
         }
+      }
+
+      // Only allow specific safe fields to be updated
+      const updateData: Record<string, any> = {}
+      if (is_active !== undefined) updateData.is_active = is_active
+      if (role !== undefined) {
+        // Only super_admin can assign super_admin role
+        if (role === 'super_admin' && !user.role?.includes('super_admin')) {
+          return { statusCode: 403, body: JSON.stringify({ error: 'Insufficient permissions to assign super_admin role' }) }
+        }
+        updateData.role = role
+      }
+      if (game_id !== undefined) updateData.game_id = game_id
+
+      if (Object.keys(updateData).length === 0) {
+        return { statusCode: 400, body: JSON.stringify({ error: 'No valid fields to update' }) }
       }
 
       const { data: member, error } = await supabase
