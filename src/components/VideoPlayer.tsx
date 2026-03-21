@@ -55,8 +55,11 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   const [seekFeedback, setSeekFeedback] = useState<{ visible: boolean; direction: 'forward' | 'backward' } | null>(null)
   const seekFeedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const previewCanvasRef = useRef<HTMLCanvasElement>(null)
+  const previewVideoRef = useRef<HTMLVideoElement>(null)
+  const previewHlsRef = useRef<Hls | null>(null)
   const [previewFrame, setPreviewFrame] = useState<string>('')
   const previewSeekTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const previewStreamUrlRef = useRef<string>('')
   
   const playbackSpeeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4]
 
@@ -187,9 +190,8 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
         const video = videoRef.current
         if (!video) return
 
-        // For unsigned playback, token is the stream UID itself
-        // Use hardcoded customer code since VITE_ env vars are build-time only
         const streamUrl = `https://customer-f13bd0opbb08xh8b.cloudflarestream.com/${token}/manifest/video.m3u8`
+        previewStreamUrlRef.current = streamUrl
 
         if (Hls.isSupported()) {
           const hls = new Hls()
@@ -204,9 +206,21 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
               setError('فشل تحميل الفيديو')
             }
           })
+
+          // Init preview HLS (muted, no autoplay)
+          const previewVid = previewVideoRef.current
+          if (previewVid) {
+            const previewHls = new Hls()
+            previewHlsRef.current = previewHls
+            previewHls.loadSource(streamUrl)
+            previewHls.attachMedia(previewVid)
+          }
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
           video.src = streamUrl
           video.addEventListener('loadedmetadata', () => setIsLoading(false))
+          if (previewVideoRef.current) {
+            previewVideoRef.current.src = streamUrl
+          }
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'حدث خطأ')
@@ -219,6 +233,7 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
 
     return () => {
       hlsRef.current?.destroy()
+      previewHlsRef.current?.destroy()
     }
   }, [videoId, streamUid, watermarkCode])
 
@@ -406,35 +421,37 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
     if (!progressBar || !video) return
     
     const rect = progressBar.getBoundingClientRect()
-    const pos = (e.clientX - rect.left) / rect.width
+    const pos = Math.max(0, Math.min((e.clientX - rect.left) / rect.width, 1))
+    const wasPlaying = !video.paused
     video.currentTime = pos * video.duration
+    // Resume playback after seek
+    if (wasPlaying) {
+      const onSeeked = () => {
+        video.play()
+        video.removeEventListener('seeked', onSeeked)
+      }
+      video.addEventListener('seeked', onSeeked)
+    }
   }
 
   const captureFrameAtTime = useCallback((seekTime: number) => {
-    const video = videoRef.current
+    const previewVid = previewVideoRef.current
     const canvas = previewCanvasRef.current
-    if (!video || !canvas) return
-
-    const savedTime = video.currentTime
-    const savedPaused = video.paused
+    if (!previewVid || !canvas) return
 
     const onSeeked = () => {
       const ctx = canvas.getContext('2d')
       if (ctx) {
         canvas.width = 160
         canvas.height = 90
-        ctx.drawImage(video, 0, 0, 160, 90)
+        ctx.drawImage(previewVid, 0, 0, 160, 90)
         setPreviewFrame(canvas.toDataURL('image/jpeg', 0.6))
       }
-      // Restore original position
-      video.currentTime = savedTime
-      if (!savedPaused) video.play()
-      video.removeEventListener('seeked', onSeeked)
+      previewVid.removeEventListener('seeked', onSeeked)
     }
 
-    video.addEventListener('seeked', onSeeked)
-    if (!savedPaused) video.pause()
-    video.currentTime = seekTime
+    previewVid.addEventListener('seeked', onSeeked)
+    previewVid.currentTime = seekTime
   }, [])
 
   const handleProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -654,8 +671,9 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
         <div className="absolute bottom-0 left-0 right-0">
           {/* Progress Bar with Thumbnail Preview */}
           <div className="px-3 sm:px-4 pb-1">
-            {/* Hidden canvas for frame capture */}
+            {/* Hidden elements for frame capture */}
             <canvas ref={previewCanvasRef} className="hidden" />
+            <video ref={previewVideoRef} className="hidden" muted preload="none" />
 
             {/* Thumbnail Preview Tooltip */}
             {seekPreview.visible && duration > 0 && (
