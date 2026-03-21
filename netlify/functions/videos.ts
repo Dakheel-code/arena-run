@@ -367,9 +367,9 @@ export const handler: Handler = async (event) => {
     }
 
     // List all videos (admin sees all, users see published only)
-    const query = supabase.from('videos').select('*').order('created_at', { ascending: false })
+    let query = supabase.from('videos').select('*').order('created_at', { ascending: false })
     if (!user.is_admin) {
-      query.eq('is_published', true)
+      query = query.eq('is_published', true)
     }
 
     const { data, error } = await query
