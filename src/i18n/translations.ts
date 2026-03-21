@@ -26,6 +26,7 @@ export const translations = {
     video: 'video',
     noVideos: 'No videos available',
     topUploaders: 'Top Uploaders',
+    latestVideos: 'Latest Published Videos',
     
     // Video Card
     likes: 'likes',
@@ -386,6 +387,7 @@ export const translations = {
     video: 'فيديو',
     noVideos: 'لا توجد فيديوهات',
     topUploaders: 'أكثر الرافعين',
+    latestVideos: 'آخر المقاطع المنشورة',
     
     // Video Card
     likes: 'إعجاب',
@@ -746,6 +748,7 @@ export const translations = {
     video: '動画',
     noVideos: '動画がありません',
     topUploaders: 'トップアップローダー',
+    latestVideos: '最新の公開動画',
     
     // Video Card
     likes: 'いいね',
@@ -1109,6 +1112,7 @@ export const translations = {
     video: '동영상',
     noVideos: '동영상이 없습니다',
     topUploaders: '상위 업로더',
+    latestVideos: '최근 게시된 동영상',
     
     // Video Card
     likes: '좋아요',
@@ -1472,6 +1476,7 @@ export const translations = {
     video: 'видео',
     noVideos: 'Нет видео',
     topUploaders: 'Топ загрузчиков',
+    latestVideos: 'Последние опубликованные видео',
     
     // Video Card
     likes: 'лайков',
@@ -1827,6 +1832,7 @@ export const translations = {
     video: 'vídeo',
     noVideos: 'Sem vídeos',
     topUploaders: 'Top Uploaders',
+    latestVideos: 'Últimos vídeos publicados',
     
     // Video Card
     likes: 'curtidas',
@@ -2182,6 +2188,7 @@ export const translations = {
     video: 'vidéo',
     noVideos: 'Aucune vidéo',
     topUploaders: 'Top Uploaders',
+    latestVideos: 'Dernières vidéos publiées',
     
     // Video Card
     likes: 'likes',
@@ -2537,6 +2544,7 @@ export const translations = {
     video: 'Video',
     noVideos: 'Keine Videos verfügbar',
     topUploaders: 'Top-Uploader',
+    latestVideos: 'Neueste veröffentlichte Videos',
     
     // Video Card
     likes: 'Likes',

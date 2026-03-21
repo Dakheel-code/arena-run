@@ -51,11 +51,11 @@ export function WatchPage() {
 
   const suggestedVideos = useMemo(() => {
     if (!video || allVideos.length === 0) return []
-    // Same season, exclude current video
-    const sameSeason = allVideos.filter(v => v.id !== video.id && v.season && v.season === video.season)
-    // If not enough, fill with other videos
-    const others = allVideos.filter(v => v.id !== video.id && (!v.season || v.season !== video.season))
-    return [...sameSeason, ...others].slice(0, 8)
+    // Sort by newest first, exclude current video
+    return [...allVideos]
+      .filter(v => v.id !== video.id)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 8)
   }, [video, allVideos])
 
   if (isLoading) {
@@ -244,18 +244,14 @@ export function WatchPage() {
           </div>
         )}
 
-        {/* Suggested Videos */}
+        {/* Latest Published Videos */}
         {suggestedVideos.length > 0 && (
           <div className="mt-8">
             <div className="flex items-center gap-2 mb-4">
               <Layers size={20} className="text-theme" />
-              <h2 className="text-lg font-bold">
-                {video.season
-                  ? `${t('season')} ${video.season} — مقاطع مقترحة`
-                  : 'مقاطع مقترحة'}
-              </h2>
+              <h2 className="text-lg font-bold">{t('latestVideos')}</h2>
               <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded ml-1">
-                {suggestedVideos.filter(v => v.season === video.season).length} من نفس الموسم
+                {suggestedVideos.length}
               </span>
             </div>
 
