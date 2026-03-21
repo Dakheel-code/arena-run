@@ -17,30 +17,29 @@ export function useWatchHistory(videoId: string) {
     // Log session when user leaves or after significant watch time
     const logSession = async () => {
       if (sessionLoggedRef.current) return
-      if (watchTimeRef.current < 5) return // Only log if watched at least 5 seconds
+      if (watchTimeRef.current < 5) return
       
       try {
-        const userStr = localStorage.getItem('user')
-        if (!userStr) return
-        
-        const user = JSON.parse(userStr)
-        if (!user?.discord_id) return
+        const authToken = localStorage.getItem('auth_token')
+        if (!authToken) return
+
+        const payload = JSON.parse(atob(authToken.split('.')[1]))
+        if (!payload?.discord_id) return
 
         sessionLoggedRef.current = true
 
         await fetch('/.netlify/functions/log-watch-session', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
           },
           body: JSON.stringify({
             video_id: videoId,
-            discord_id: user.discord_id,
+            discord_id: payload.discord_id,
             watch_seconds: Math.floor(watchTimeRef.current)
           })
         })
-
-        console.log('Watch session logged:', Math.floor(watchTimeRef.current), 'seconds')
       } catch (error) {
         console.error('Failed to log watch session:', error)
       }

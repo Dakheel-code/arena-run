@@ -1,39 +1,52 @@
-import type { Handler } from '@netlify/functions'
+import type { Handler, HandlerResponse } from '@netlify/functions'
 import { createClient } from '@supabase/supabase-js'
+
+const JWT_SECRET = process.env.JWT_SECRET!
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+function verifyToken(token: string): boolean {
+  try {
+    const [header, body, signature] = token.split('.')
+    const crypto = require('crypto')
+    const expectedSig = crypto.createHmac('sha256', JWT_SECRET).update(`${header}.${body}`).digest('base64url')
+    if (signature !== expectedSig) return false
+    const payload = JSON.parse(Buffer.from(body, 'base64url').toString())
+    if (payload.exp < Date.now()) return false
+    return true
+  } catch {
+    return false
+  }
+}
+
+const CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Content-Type': 'application/json',
+}
+
 export const handler: Handler = async (event) => {
-  // Allow all methods
   if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
-      },
-      body: ''
-    }
+    return { statusCode: 200, headers: CORS_HEADERS, body: '' }
   }
 
   if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: 'OK' })
-    }
+    return { statusCode: 405, headers: CORS_HEADERS, body: JSON.stringify({ message: 'Method not allowed' }) }
+  }
+
+  const authHeader = event.headers.authorization
+  if (!authHeader?.startsWith('Bearer ') || !verifyToken(authHeader.slice(7))) {
+    return { statusCode: 401, headers: CORS_HEADERS, body: JSON.stringify({ error: 'Unauthorized' }) }
   }
 
   try {
     const body = JSON.parse(event.body || '{}')
-    console.log('Received session log request:', body)
-
     const { video_id, discord_id, watch_seconds } = body
 
-    // Simple insert - no validation, just log it
     const { error } = await supabase
       .from('watch_sessions')
       .insert({
@@ -46,29 +59,11 @@ export const handler: Handler = async (event) => {
 
     if (error) {
       console.error('Insert error:', error)
-    } else {
-      console.log('Session logged successfully')
     }
 
-    // Always return success
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ success: true })
-    }
+    return { statusCode: 200, headers: CORS_HEADERS, body: JSON.stringify({ success: true }) }
   } catch (error: any) {
     console.error('Error:', error)
-    // Still return success to not break the frontend
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ success: true })
-    }
+    return { statusCode: 200, headers: CORS_HEADERS, body: JSON.stringify({ success: true }) }
   }
 }
