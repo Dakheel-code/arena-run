@@ -54,8 +54,9 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   const [seekPreview, setSeekPreview] = useState<{ visible: boolean; time: number; x: number }>({ visible: false, time: 0, x: 0 })
   const [seekFeedback, setSeekFeedback] = useState<{ visible: boolean; direction: 'forward' | 'backward' } | null>(null)
   const seekFeedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const previewVideoRef = useRef<HTMLVideoElement>(null)
-  const [previewSrc, setPreviewSrc] = useState<string>('')
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null)
+  const [previewFrame, setPreviewFrame] = useState<string>('')
+  const previewSeekTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   
   const playbackSpeeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4]
 
@@ -409,6 +410,33 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
     video.currentTime = pos * video.duration
   }
 
+  const captureFrameAtTime = useCallback((seekTime: number) => {
+    const video = videoRef.current
+    const canvas = previewCanvasRef.current
+    if (!video || !canvas) return
+
+    const savedTime = video.currentTime
+    const savedPaused = video.paused
+
+    const onSeeked = () => {
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        canvas.width = 160
+        canvas.height = 90
+        ctx.drawImage(video, 0, 0, 160, 90)
+        setPreviewFrame(canvas.toDataURL('image/jpeg', 0.6))
+      }
+      // Restore original position
+      video.currentTime = savedTime
+      if (!savedPaused) video.play()
+      video.removeEventListener('seeked', onSeeked)
+    }
+
+    video.addEventListener('seeked', onSeeked)
+    if (!savedPaused) video.pause()
+    video.currentTime = seekTime
+  }, [])
+
   const handleProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const progressBar = progressBarRef.current
     const video = videoRef.current
@@ -421,14 +449,16 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
 
     setSeekPreview({ visible: true, time: previewTime, x: xPos })
 
-    // Seek preview video
-    if (previewVideoRef.current && previewSrc) {
-      previewVideoRef.current.currentTime = previewTime
-    }
+    // Capture frame with debounce to avoid too many seeks
+    if (previewSeekTimeoutRef.current) clearTimeout(previewSeekTimeoutRef.current)
+    previewSeekTimeoutRef.current = setTimeout(() => {
+      captureFrameAtTime(previewTime)
+    }, 150)
   }
 
   const handleProgressMouseLeave = () => {
     setSeekPreview({ visible: false, time: 0, x: 0 })
+    if (previewSeekTimeoutRef.current) clearTimeout(previewSeekTimeoutRef.current)
   }
 
   const formatTime = (seconds: number): string => {
@@ -482,7 +512,13 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
     }
   }
 
-  const handleContainerClick = () => {
+  const handleContainerClick = (e: React.MouseEvent) => {
+    // On desktop, click on the video area (not controls) toggles play/pause
+    const target = e.target as HTMLElement
+    const isControlButton = target.closest('button') || target.closest('input') || target.closest('.progress-bar-area')
+    if (!isControlButton) {
+      togglePlayPause()
+    }
     resetControlsTimer()
   }
 
@@ -490,16 +526,8 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
     resetControlsTimer()
   }
 
-  // Set preview src once stream is ready
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-    const onLoaded = () => {
-      if (video.currentSrc) setPreviewSrc(video.currentSrc)
-    }
-    video.addEventListener('loadedmetadata', onLoaded)
-    return () => video.removeEventListener('loadedmetadata', onLoaded)
-  }, [])
+  // Hidden canvas for frame capture
+  // (no extra useEffect needed - canvas is in DOM)
 
   return (
     <div 
@@ -626,24 +654,31 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
         <div className="absolute bottom-0 left-0 right-0">
           {/* Progress Bar with Thumbnail Preview */}
           <div className="px-3 sm:px-4 pb-1">
+            {/* Hidden canvas for frame capture */}
+            <canvas ref={previewCanvasRef} className="hidden" />
+
             {/* Thumbnail Preview Tooltip */}
             {seekPreview.visible && duration > 0 && (
               <div
                 className="absolute bottom-16 pointer-events-none"
                 style={{
-                  left: Math.max(60, Math.min(seekPreview.x + 12, (progressBarRef.current?.offsetWidth ?? 300) - 60)),
+                  left: Math.max(80, Math.min(seekPreview.x + 12, (progressBarRef.current?.offsetWidth ?? 300) - 80)),
                   transform: 'translateX(-50%)'
                 }}
               >
                 <div className="bg-black rounded overflow-hidden shadow-xl border border-gray-700">
-                  <video
-                    ref={previewVideoRef}
-                    src={previewSrc}
-                    className="w-32 h-[72px] object-cover"
-                    muted
-                    preload="metadata"
-                  />
-                  <div className="text-center text-white text-xs py-1 bg-black/80">
+                  {previewFrame ? (
+                    <img
+                      src={previewFrame}
+                      className="w-40 h-[90px] object-cover block"
+                      alt="preview"
+                    />
+                  ) : (
+                    <div className="w-40 h-[90px] bg-gray-900 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+                    </div>
+                  )}
+                  <div className="text-center text-white text-xs py-1 bg-black/90 font-medium">
                     {formatTime(seekPreview.time)}
                   </div>
                 </div>
