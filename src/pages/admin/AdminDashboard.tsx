@@ -597,29 +597,54 @@ export function AdminDashboard() {
               {stats?.topVideos && stats.topVideos.length > 0 ? (
                 <>
                 <div className="space-y-3">
-                  {stats.topVideos.slice(0, showAllVideos ? 10 : 5).map((video, index) => (
-                    <div key={video.id} className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg">
-                      <div className="w-8 h-8 rounded-full bg-theme/20 flex items-center justify-center text-sm font-bold text-white">
+                  {stats.topVideos.slice(0, showAllVideos ? 10 : 5).map((video, index) => {
+                    const thumb = (video as any).thumbnail_url || ((video as any).stream_uid ? `https://customer-f13bd0opbb08xh8b.cloudflarestream.com/${(video as any).stream_uid}/thumbnails/thumbnail.jpg?time=10s&width=160` : null)
+                    return (
+                    <div key={video.id} className="flex items-center gap-3 p-2 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition-colors">
+                      {/* Rank */}
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                        index === 0 ? 'bg-yellow-500 text-black' :
+                        index === 1 ? 'bg-gray-400 text-black' :
+                        index === 2 ? 'bg-amber-600 text-black' :
+                        'bg-theme/20 text-white'
+                      }`}>
                         {index + 1}
                       </div>
+                      {/* Thumbnail */}
+                      <Link to={`/watch/${video.id}`} className="flex-shrink-0">
+                        {thumb ? (
+                          <img
+                            src={thumb}
+                            alt={video.title}
+                            className="w-20 h-[45px] object-cover rounded"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-20 h-[45px] bg-gray-700 rounded flex items-center justify-center">
+                            <Play size={16} className="text-gray-500" />
+                          </div>
+                        )}
+                      </Link>
+                      {/* Info */}
                       <div className="flex-1 min-w-0">
                         <Link 
                           to={`/watch/${video.id}`}
-                          className="font-medium truncate block hover:text-theme-light transition-colors"
+                          className="font-medium text-sm truncate block hover:text-theme-light transition-colors"
                         >
                           {video.title}
                         </Link>
-                        <div className="flex items-center gap-3 text-xs text-white">
+                        <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
                           <span className="flex items-center gap-1">
-                            <Eye size={12} /> {video.views}
+                            <Eye size={11} /> {video.views}
                           </span>
                           <span className="flex items-center gap-1">
-                            <ThumbsUp size={12} /> {video.likes}
+                            <ThumbsUp size={11} /> {video.likes}
                           </span>
                         </div>
                       </div>
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
                 {stats.topVideos.length > 5 && (
                   <button

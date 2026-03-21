@@ -122,7 +122,7 @@ export const handler: Handler = async (event) => {
   // Fetch video details for top videos
   const { data: topVideosData } = await supabase
     .from('videos')
-    .select('id, title, likes_count')
+    .select('id, title, likes_count, stream_uid, thumbnail_url')
     .in('id', topVideoIds.length > 0 ? topVideoIds : ['none'])
 
   // Build top videos array with actual view counts
@@ -132,7 +132,9 @@ export const handler: Handler = async (event) => {
       id: videoId,
       title: video?.title || 'Unknown',
       views: videoViewCounts.get(videoId) || 0,
-      likes: video?.likes_count || 0
+      likes: video?.likes_count || 0,
+      stream_uid: video?.stream_uid || null,
+      thumbnail_url: video?.thumbnail_url || null,
     }
   })
 
