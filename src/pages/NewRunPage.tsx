@@ -30,15 +30,10 @@ export function NewRunPage() {
   useEffect(() => {
     const fetchMemberData = async () => {
       try {
-        const response = await api.getMembers()
-        const currentMember = response.members.find((m: any) => m.discord_id === user?.discord_id)
-        if (currentMember) {
-          setDisplayName(currentMember.discord_global_name || currentMember.discord_username || user?.username || 'Player')
-        } else {
-          setDisplayName(user?.username || 'Player')
-        }
-      } catch (error) {
-        console.error('Failed to fetch member data:', error)
+        const response = await api.getMemberProfile(user!.discord_id)
+        const member = response.profile
+        setDisplayName(member?.discord_global_name || member?.discord_username || user?.username || 'Player')
+      } catch {
         setDisplayName(user?.username || 'Player')
       }
     }

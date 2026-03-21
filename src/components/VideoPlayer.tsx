@@ -49,7 +49,6 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   const lastTapRef = useRef(0)
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 })
   const creatingSessionRef = useRef(false)
-  const [_isHoveringPlayer, setIsHoveringPlayer] = useState(false)
   const [seekPreview, setSeekPreview] = useState<{ visible: boolean; time: number; x: number }>({ visible: false, time: 0, x: 0 })
   const [seekFeedback, setSeekFeedback] = useState<{ visible: boolean; direction: 'forward' | 'backward' } | null>(null)
   const seekFeedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -58,7 +57,6 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   const previewHlsRef = useRef<Hls | null>(null)
   const [previewFrame, setPreviewFrame] = useState<string>('')
   const previewSeekTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const previewStreamUrlRef = useRef<string>('')
   const [isDragging, setIsDragging] = useState(false)
   const wasPausedBeforeDragRef = useRef(false)
   
@@ -162,7 +160,6 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
         if (!video) return
 
         const streamUrl = `https://customer-f13bd0opbb08xh8b.cloudflarestream.com/${token}/manifest/video.m3u8`
-        previewStreamUrlRef.current = streamUrl
 
         if (Hls.isSupported()) {
           const hls = new Hls()
@@ -573,8 +570,8 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
       onTouchEnd={handleTouchEnd}
       onClick={handleContainerClick}
       onMouseMove={handleContainerMouseMove}
-      onMouseEnter={() => { setIsHoveringPlayer(true); resetControlsTimer() }}
-      onMouseLeave={() => { setIsHoveringPlayer(false); if (isPlaying) setShowControls(false) }}
+      onMouseEnter={() => { resetControlsTimer() }}
+      onMouseLeave={() => { if (isPlaying) setShowControls(false) }}
       style={{
         WebkitTouchCallout: 'none',
         WebkitUserSelect: 'none',

@@ -634,7 +634,7 @@ export const handler: Handler = async (event) => {
       // Get uploader info from members table
       const { data: uploaderData } = await supabase
         .from('members')
-        .select('avatar')
+        .select('discord_avatar')
         .eq('discord_id', data.uploaded_by)
         .single()
       
@@ -652,7 +652,7 @@ export const handler: Handler = async (event) => {
         fields,
         {
           discordId: data.uploaded_by,
-          avatarUrl: uploaderData?.avatar || undefined,
+          avatarUrl: uploaderData?.discord_avatar || undefined,
           videoUrl: videoUrl,
           authorName: data.uploader_name
         }

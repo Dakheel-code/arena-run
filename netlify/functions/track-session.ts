@@ -1,10 +1,26 @@
 import type { Handler } from '@netlify/functions'
 import { createClient } from '@supabase/supabase-js'
 
+const JWT_SECRET = process.env.JWT_SECRET!
+
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
+
+function verifyToken(token: string): { valid: boolean; payload?: any } {
+  try {
+    const [header, body, signature] = token.split('.')
+    const crypto = require('crypto')
+    const expectedSig = crypto.createHmac('sha256', JWT_SECRET).update(`${header}.${body}`).digest('base64url')
+    if (signature !== expectedSig) return { valid: false }
+    const payload = JSON.parse(Buffer.from(body, 'base64url').toString())
+    if (payload.exp < Date.now()) return { valid: false }
+    return { valid: true, payload }
+  } catch {
+    return { valid: false }
+  }
+}
 
 function generateWatermarkCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -17,10 +33,16 @@ function generateWatermarkCode(): string {
 
 export const handler: Handler = async (event) => {
   if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method not allowed' })
-    }
+    return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) }
+  }
+
+  const authHeader = event.headers.authorization
+  if (!authHeader?.startsWith('Bearer ')) {
+    return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) }
+  }
+  const { valid } = verifyToken(authHeader.slice(7))
+  if (!valid) {
+    return { statusCode: 401, body: JSON.stringify({ error: 'Invalid token' }) }
   }
 
   try {

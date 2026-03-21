@@ -168,6 +168,7 @@ export const handler: Handler = async (event) => {
   const { count: newMembersThisMonth } = await supabase
     .from('members')
     .select('*', { count: 'exact', head: true })
+    .eq('is_active', true)
     .gte('created_at', monthAgo.toISOString())
 
   // Get top viewers (most sessions) and top watch time - all sessions
