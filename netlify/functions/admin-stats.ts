@@ -53,13 +53,14 @@ export const handler: Handler = async (event) => {
   const totalLikes = videos?.reduce((sum, v) => sum + (v.likes_count || 0), 0) || 0
   const publishedVideos = videos?.filter(v => v.is_published).length || 0
 
-  // Get active members (logged in within last 6 months)
+  // Get active members (enabled + logged in within last 6 months)
   const sixMonthsAgo = new Date()
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
   
   const { count: activeMembers } = await supabase
     .from('members')
     .select('*', { count: 'exact', head: true })
+    .eq('is_active', true)
     .gte('last_login', sixMonthsAgo.toISOString())
 
   // Get total members
@@ -90,21 +91,18 @@ export const handler: Handler = async (event) => {
     .gte('watch_seconds', 3)
     .gte('started_at', weekAgo.toISOString())
 
-  // Get total watch time - limit to recent sessions for performance
+  // Get total watch time - sum all sessions without limit
   const { data: watchTimeData } = await supabase
     .from('view_sessions')
     .select('watch_seconds')
     .gte('watch_seconds', 3)
-    .order('started_at', { ascending: false })
-    .limit(50000)
   const totalWatchTime = watchTimeData?.reduce((sum, s) => sum + (s.watch_seconds || 0), 0) || 0
 
-  // Get top videos (most viewed) - use PostgreSQL group by for better performance
+  // Get top videos (most viewed)
   const { data: topVideosCount } = await supabase
     .from('view_sessions')
     .select('video_id')
     .gte('watch_seconds', 3)
-    .limit(50000)
 
   // Count views per video
   const videoViewCounts = new Map<string, number>()
@@ -172,13 +170,11 @@ export const handler: Handler = async (event) => {
     .select('*', { count: 'exact', head: true })
     .gte('created_at', monthAgo.toISOString())
 
-  // Get top viewers (most sessions) and top watch time - limit to recent sessions
+  // Get top viewers (most sessions) and top watch time - all sessions
   const { data: allSessions } = await supabase
     .from('view_sessions')
     .select('discord_id, watch_seconds')
     .gte('watch_seconds', 3)
-    .order('started_at', { ascending: false })
-    .limit(50000)
 
   // Aggregate stats by discord_id
   const viewerStats = new Map<string, { sessions: number, watchTime: number }>()
@@ -324,18 +320,25 @@ export const handler: Handler = async (event) => {
   let periodSessions = 0
 
   if (startDate) {
-    let query = supabase
+    // Count sessions in period
+    const { count: pCount } = await supabase
+      .from('view_sessions')
+      .select('*', { count: 'exact', head: true })
+      .gte('watch_seconds', 3)
+      .gte('started_at', startDate)
+      .lte('started_at', endDate)
+
+    // Sum watch time in period
+    const { data: periodData } = await supabase
       .from('view_sessions')
       .select('watch_seconds')
       .gte('watch_seconds', 3)
       .gte('started_at', startDate)
       .lte('started_at', endDate)
 
-    const { data: periodData, count } = await query
-
-    periodSessions = count || periodData?.length || 0
-    periodWatchTime = periodData?.reduce((sum, s) => sum + (s.watch_seconds || 0), 0) || 0
+    periodSessions = pCount || 0
     periodViews = periodSessions
+    periodWatchTime = periodData?.reduce((sum, s) => sum + (s.watch_seconds || 0), 0) || 0
   }
 
   return {
