@@ -243,35 +243,43 @@ export const handler: Handler = async (event) => {
     return parts[0].trim()
   }
 
-  // Optimized approach: Get distinct discord_id + country from recent logins/sessions
-  // This is much faster than paginating through all data
+  // Get all active member discord_ids for filtering
+  const { data: activeMembers_list } = await supabase
+    .from('members')
+    .select('discord_id')
+    .eq('is_active', true)
+  const activeMemberIds = new Set(activeMembers_list?.map(m => m.discord_id) || [])
+
+  // Get distinct discord_id + country from login logs (all records)
   const { data: recentLogins } = await supabase
     .from('login_logs')
     .select('discord_id, country')
     .eq('status', 'success')
     .not('country', 'is', null)
     .order('logged_at', { ascending: false })
-    .limit(10000)
 
   const memberLastCountry = new Map<string, string>()
   recentLogins?.forEach((login: any) => {
-    if (!login?.discord_id || memberLastCountry.has(login.discord_id)) return
-    if (!login.country || login.country === 'Unknown') return
+    if (!login?.discord_id) return
+    if (!activeMemberIds.has(login.discord_id)) return
+    if (memberLastCountry.has(login.discord_id)) return
+    if (!login.country || login.country === 'Unknown' || login.country === 'Local') return
     const countryName = extractCountryName(login.country)
     if (countryName) memberLastCountry.set(login.discord_id, countryName)
   })
 
-  // Fallback: Get from recent view_sessions for members not in login_logs
+  // Fallback: Get from view_sessions for active members not found in login_logs
   const { data: recentViewSessions } = await supabase
     .from('view_sessions')
     .select('discord_id, country')
     .not('country', 'is', null)
     .order('started_at', { ascending: false })
-    .limit(10000)
 
   recentViewSessions?.forEach((session: any) => {
-    if (!session?.discord_id || memberLastCountry.has(session.discord_id)) return
-    if (!session.country || session.country === 'Unknown') return
+    if (!session?.discord_id) return
+    if (!activeMemberIds.has(session.discord_id)) return
+    if (memberLastCountry.has(session.discord_id)) return
+    if (!session.country || session.country === 'Unknown' || session.country === 'Local') return
     const countryName = extractCountryName(session.country)
     if (countryName) memberLastCountry.set(session.discord_id, countryName)
   })
