@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Hls from 'hls.js'
 import { api } from '../lib/api'
-import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, PictureInPicture } from 'lucide-react'
+import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, PictureInPicture, RotateCcw, RotateCw } from 'lucide-react'
 import { useWatchHistory } from '../hooks/useWatchHistory'
 
 interface VideoPlayerProps {
@@ -50,6 +50,12 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 })
   const sessionLoggedRef = useRef(false)
   const creatingSessionRef = useRef(false)
+  const [_isHoveringPlayer, setIsHoveringPlayer] = useState(false)
+  const [seekPreview, setSeekPreview] = useState<{ visible: boolean; time: number; x: number }>({ visible: false, time: 0, x: 0 })
+  const [seekFeedback, setSeekFeedback] = useState<{ visible: boolean; direction: 'forward' | 'backward' } | null>(null)
+  const seekFeedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const previewVideoRef = useRef<HTMLVideoElement>(null)
+  const [previewSrc, setPreviewSrc] = useState<string>('')
   
   const playbackSpeeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4]
 
@@ -124,22 +130,26 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
     }
   }, [isPlaying])
 
-  // Auto-hide controls
-  useEffect(() => {
-    if (showControls && isPlaying) {
-      if (controlsTimeoutRef.current) {
-        clearTimeout(controlsTimeoutRef.current)
-      }
+  // Auto-hide controls (desktop: hide after 3s of no mouse movement when playing)
+  const resetControlsTimer = useCallback(() => {
+    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current)
+    setShowControls(true)
+    if (isPlaying) {
       controlsTimeoutRef.current = setTimeout(() => {
-        setShowControls(false)
+        if (!seekPreview.visible) setShowControls(false)
       }, 3000)
     }
-    return () => {
-      if (controlsTimeoutRef.current) {
-        clearTimeout(controlsTimeoutRef.current)
-      }
+  }, [isPlaying, seekPreview.visible])
+
+  useEffect(() => {
+    if (!isPlaying) {
+      setShowControls(true)
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current)
     }
-  }, [showControls, isPlaying])
+    return () => {
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current)
+    }
+  }, [isPlaying])
 
   // Generate watermark code
   useEffect(() => {
@@ -382,6 +392,11 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
     if (!video) return
     
     video.currentTime = Math.max(0, Math.min(video.currentTime + seconds, video.duration))
+
+    // Show seek feedback animation
+    if (seekFeedbackTimeoutRef.current) clearTimeout(seekFeedbackTimeoutRef.current)
+    setSeekFeedback({ visible: true, direction: seconds > 0 ? 'forward' : 'backward' })
+    seekFeedbackTimeoutRef.current = setTimeout(() => setSeekFeedback(null), 600)
   }
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -392,6 +407,28 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
     const rect = progressBar.getBoundingClientRect()
     const pos = (e.clientX - rect.left) / rect.width
     video.currentTime = pos * video.duration
+  }
+
+  const handleProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const progressBar = progressBarRef.current
+    const video = videoRef.current
+    if (!progressBar || !video || !duration) return
+
+    const rect = progressBar.getBoundingClientRect()
+    const pos = Math.max(0, Math.min((e.clientX - rect.left) / rect.width, 1))
+    const previewTime = pos * duration
+    const xPos = e.clientX - rect.left
+
+    setSeekPreview({ visible: true, time: previewTime, x: xPos })
+
+    // Seek preview video
+    if (previewVideoRef.current && previewSrc) {
+      previewVideoRef.current.currentTime = previewTime
+    }
+  }
+
+  const handleProgressMouseLeave = () => {
+    setSeekPreview({ visible: false, time: 0, x: 0 })
   }
 
   const formatTime = (seconds: number): string => {
@@ -446,16 +483,34 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   }
 
   const handleContainerClick = () => {
-    setShowControls(true)
+    resetControlsTimer()
   }
+
+  const handleContainerMouseMove = () => {
+    resetControlsTimer()
+  }
+
+  // Set preview src once stream is ready
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    const onLoaded = () => {
+      if (video.currentSrc) setPreviewSrc(video.currentSrc)
+    }
+    video.addEventListener('loadedmetadata', onLoaded)
+    return () => video.removeEventListener('loadedmetadata', onLoaded)
+  }, [])
 
   return (
     <div 
       ref={containerRef} 
-      className={`relative bg-black overflow-hidden ${isFullscreen ? 'w-screen h-screen' : 'aspect-video rounded-lg'}`}
+      className={`relative bg-black overflow-hidden group/player ${isFullscreen ? 'w-screen h-screen' : 'aspect-video rounded-lg'}`}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onClick={handleContainerClick}
+      onMouseMove={handleContainerMouseMove}
+      onMouseEnter={() => { setIsHoveringPlayer(true); resetControlsTimer() }}
+      onMouseLeave={() => { setIsHoveringPlayer(false); if (isPlaying) setShowControls(false) }}
       style={{
         WebkitTouchCallout: 'none',
         WebkitUserSelect: 'none',
@@ -503,65 +558,160 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
         preload="metadata"
       />
 
-      {/* Custom Controls */}
-      {showControls && (
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 transition-opacity duration-300" style={{ zIndex: 20 }}>
-          {/* Center Play/Pause */}
+      {/* Seek Feedback Animation */}
+      {seekFeedback?.visible && (
+        <div className={`absolute top-1/2 -translate-y-1/2 pointer-events-none flex flex-col items-center gap-1 ${
+          seekFeedback.direction === 'forward' ? 'right-1/4' : 'left-1/4'
+        }`} style={{ zIndex: 30 }}>
+          <div className="bg-black/60 rounded-full p-3 animate-ping-once">
+            {seekFeedback.direction === 'forward' ? (
+              <RotateCw size={32} className="text-white" />
+            ) : (
+              <RotateCcw size={32} className="text-white" />
+            )}
+          </div>
+          <span className="text-white text-sm font-bold drop-shadow-lg">
+            {seekFeedback.direction === 'forward' ? '+10s' : '-10s'}
+          </span>
+        </div>
+      )}
+
+      {/* Custom Controls - visible on hover (desktop) or touch */}
+      <div
+        className="absolute inset-0 transition-opacity duration-300"
+        style={{ 
+          zIndex: 20,
+          opacity: showControls || !isPlaying ? 1 : 0,
+          pointerEvents: showControls || !isPlaying ? 'auto' : 'none'
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+
+        {/* Center Controls Row: rewind, play/pause, forward */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-6">
+          {/* Rewind 10s */}
           <button
-            onClick={(e) => {
-              e.stopPropagation()
-              togglePlayPause()
-            }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 sm:w-20 sm:h-20 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center transition-all active:scale-95"
+            onClick={(e) => { e.stopPropagation(); seekVideo(-10) }}
+            className="hidden sm:flex flex-col items-center gap-1 p-2 hover:bg-white/20 rounded-full transition-all active:scale-95 group"
+            title="Rewind 10 seconds"
+          >
+            <RotateCcw size={28} className="text-white" />
+            <span className="text-white text-xs font-bold">10</span>
+          </button>
+
+          {/* Play/Pause center */}
+          <button
+            onClick={(e) => { e.stopPropagation(); togglePlayPause() }}
+            className="w-14 h-14 sm:w-16 sm:h-16 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center transition-all active:scale-95"
           >
             {isPlaying ? (
-              <Pause size={32} className="text-white" fill="white" />
+              <Pause size={28} className="text-white" fill="white" />
             ) : (
-              <Play size={32} className="text-white ml-1" fill="white" />
+              <Play size={28} className="text-white ml-1" fill="white" />
             )}
           </button>
 
-          {/* Bottom Controls */}
-          <div className="absolute bottom-0 left-0 right-0">
-            {/* Progress Bar */}
-            <div className="px-3 sm:px-4 pb-2">
-              <div 
-                ref={progressBarRef}
-                onClick={handleProgressClick}
-                className="relative h-1 bg-gray-600 rounded-full cursor-pointer hover:h-1.5 transition-all group"
-              >
-                <div 
-                  className="absolute h-full bg-theme rounded-full"
-                  style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
-                />
-                <div 
-                  className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ left: `${duration ? (currentTime / duration) * 100 : 0}%`, transform: 'translate(-50%, -50%)' }}
-                />
-              </div>
-              <div className="flex justify-between text-xs text-white mt-1">
-                <span>{formatTime(currentTime)}</span>
-                <span>{formatTime(duration)}</span>
-              </div>
-            </div>
+          {/* Forward 10s */}
+          <button
+            onClick={(e) => { e.stopPropagation(); seekVideo(10) }}
+            className="hidden sm:flex flex-col items-center gap-1 p-2 hover:bg-white/20 rounded-full transition-all active:scale-95"
+            title="Forward 10 seconds"
+          >
+            <RotateCw size={28} className="text-white" />
+            <span className="text-white text-xs font-bold">10</span>
+          </button>
+        </div>
 
-            <div className="px-3 sm:px-4 pb-3 flex items-center gap-2 sm:gap-3">
+        {/* Bottom Controls */}
+        <div className="absolute bottom-0 left-0 right-0">
+          {/* Progress Bar with Thumbnail Preview */}
+          <div className="px-3 sm:px-4 pb-1">
+            {/* Thumbnail Preview Tooltip */}
+            {seekPreview.visible && duration > 0 && (
+              <div
+                className="absolute bottom-16 pointer-events-none"
+                style={{
+                  left: Math.max(60, Math.min(seekPreview.x + 12, (progressBarRef.current?.offsetWidth ?? 300) - 60)),
+                  transform: 'translateX(-50%)'
+                }}
+              >
+                <div className="bg-black rounded overflow-hidden shadow-xl border border-gray-700">
+                  <video
+                    ref={previewVideoRef}
+                    src={previewSrc}
+                    className="w-32 h-[72px] object-cover"
+                    muted
+                    preload="metadata"
+                  />
+                  <div className="text-center text-white text-xs py-1 bg-black/80">
+                    {formatTime(seekPreview.time)}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div 
+              ref={progressBarRef}
+              onClick={handleProgressClick}
+              onMouseMove={handleProgressMouseMove}
+              onMouseLeave={handleProgressMouseLeave}
+              className="relative h-1 bg-gray-600/80 rounded-full cursor-pointer hover:h-[5px] transition-all group/progress"
+            >
+              {/* Buffered */}
+              <div className="absolute h-full bg-gray-400/40 rounded-full" style={{ width: '100%' }} />
+              {/* Played */}
+              <div 
+                className="absolute h-full bg-red-500 rounded-full"
+                style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+              />
+              {/* Thumb */}
+              <div 
+                className="absolute top-1/2 w-3 h-3 bg-red-500 rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity shadow"
+                style={{ left: `${duration ? (currentTime / duration) * 100 : 0}%`, transform: 'translate(-50%, -50%)' }}
+              />
+              {/* Seek preview line */}
+              {seekPreview.visible && (
+                <div
+                  className="absolute top-0 bottom-0 w-px bg-white/50"
+                  style={{ left: seekPreview.x }}
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="px-3 sm:px-4 pb-3 pt-1 flex items-center gap-1 sm:gap-2">
             {/* Play/Pause */}
             <button
-              onClick={togglePlayPause}
-              className="p-2 hover:bg-white/20 rounded transition-colors active:scale-95"
+              onClick={(e) => { e.stopPropagation(); togglePlayPause() }}
+              className="p-1.5 hover:bg-white/20 rounded transition-colors active:scale-95"
             >
               {isPlaying ? (
-                <Pause size={20} className="text-white" />
+                <Pause size={20} className="text-white" fill="white" />
               ) : (
-                <Play size={20} className="text-white" />
+                <Play size={20} className="text-white" fill="white" />
               )}
+            </button>
+
+            {/* Rewind 10s - bottom bar (mobile) */}
+            <button
+              onClick={(e) => { e.stopPropagation(); seekVideo(-10) }}
+              className="sm:hidden p-1.5 hover:bg-white/20 rounded transition-colors active:scale-95"
+            >
+              <RotateCcw size={18} className="text-white" />
+            </button>
+
+            {/* Forward 10s - bottom bar (mobile) */}
+            <button
+              onClick={(e) => { e.stopPropagation(); seekVideo(10) }}
+              className="sm:hidden p-1.5 hover:bg-white/20 rounded transition-colors active:scale-95"
+            >
+              <RotateCw size={18} className="text-white" />
             </button>
 
             {/* Volume */}
             <button
-              onClick={toggleMute}
-              className="p-2 hover:bg-white/20 rounded transition-colors active:scale-95"
+              onClick={(e) => { e.stopPropagation(); toggleMute() }}
+              className="p-1.5 hover:bg-white/20 rounded transition-colors active:scale-95"
             >
               {isMuted || volume === 0 ? (
                 <VolumeX size={20} className="text-white" />
@@ -570,13 +720,30 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
               )}
             </button>
 
+            {/* Volume Slider - desktop only */}
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={isMuted ? 0 : volume}
+              onChange={(e) => { e.stopPropagation(); handleVolumeChange(Number(e.target.value)) }}
+              className="hidden sm:block w-20 accent-white cursor-pointer"
+              title="Volume"
+            />
+
+            {/* Time */}
+            <span className="text-white text-xs sm:text-sm ml-1 tabular-nums">
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </span>
+
             <div className="flex-1" />
 
             {/* Playback Speed */}
             <div className="relative">
               <button
-                onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-                className="p-2 hover:bg-white/20 rounded transition-colors active:scale-95 flex items-center gap-1"
+                onClick={(e) => { e.stopPropagation(); setShowSpeedMenu(!showSpeedMenu) }}
+                className="p-1.5 hover:bg-white/20 rounded transition-colors active:scale-95"
                 title="Playback Speed"
               >
                 <span className="text-xs font-bold text-white">{playbackRate}x</span>
@@ -587,9 +754,9 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
                   {playbackSpeeds.map((speed) => (
                     <button
                       key={speed}
-                      onClick={() => handleSpeedChange(speed)}
+                      onClick={(e) => { e.stopPropagation(); handleSpeedChange(speed) }}
                       className={`w-full px-4 py-2 text-sm text-left hover:bg-gray-800 transition-colors ${
-                        playbackRate === speed ? 'text-theme-light font-bold' : 'text-white'
+                        playbackRate === speed ? 'text-red-400 font-bold' : 'text-white'
                       }`}
                     >
                       {speed}x
@@ -602,21 +769,18 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
             {/* PiP */}
             {isPiPSupported && (
               <button
-                onClick={togglePiP}
-                className="p-2 hover:bg-white/20 rounded transition-colors active:scale-95"
+                onClick={(e) => { e.stopPropagation(); togglePiP() }}
+                className="p-1.5 hover:bg-white/20 rounded transition-colors active:scale-95"
                 title="Picture in Picture"
               >
-                <PictureInPicture size={20} className="text-white" />
+                <PictureInPicture size={18} className="text-white" />
               </button>
             )}
 
             {/* Fullscreen */}
             <button
-              onClick={(e) => {
-                e.stopPropagation()
-                toggleFullscreen(e)
-              }}
-              className="p-2 hover:bg-white/20 rounded transition-colors active:scale-95"
+              onClick={(e) => { e.stopPropagation(); toggleFullscreen(e) }}
+              className="p-1.5 hover:bg-white/20 rounded transition-colors active:scale-95"
               title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
             >
               {isFullscreen ? (
@@ -625,10 +789,9 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
                 <Maximize size={20} className="text-white" />
               )}
             </button>
-            </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Enhanced Dynamic Watermark - Always visible and secure - MUST be after controls */}
       <div
