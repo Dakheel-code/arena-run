@@ -10,6 +10,25 @@ import Papa from 'papaparse'
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
 
+function formatTimeAgo(dateStr: string): string {
+  const now = Date.now()
+  const diff = now - new Date(dateStr).getTime()
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+  const weeks = Math.floor(days / 7)
+  const months = Math.floor(days / 30)
+  const years = Math.floor(days / 365)
+
+  if (minutes < 1) return 'Just now'
+  if (minutes < 60) return `${minutes}m ago`
+  if (hours < 24) return `${hours}h ago`
+  if (days < 7) return `${days}d ago`
+  if (weeks < 5) return `${weeks}w ago`
+  if (months < 12) return `${months}mo ago`
+  return `${years}y ago`
+}
+
 export function MembersPage() {
   const { t } = useLanguage()
   const navigate = useNavigate()
@@ -305,8 +324,8 @@ export function MembersPage() {
                   </td>
                   {/* Last Login */}
                   <td className="py-3 px-4 text-sm text-gray-400">
-                    {member.last_login 
-                      ? new Date(member.last_login).toLocaleDateString('en-US') 
+                    {member.last_login
+                      ? <span title={new Date(member.last_login).toLocaleString()}>{formatTimeAgo(member.last_login)}</span>
                       : t('never')}
                   </td>
                   {/* Actions */}
