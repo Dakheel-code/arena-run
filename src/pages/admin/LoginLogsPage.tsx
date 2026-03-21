@@ -131,6 +131,22 @@ export default function LoginLogsPage() {
     }).format(date)
   }
 
+  const formatTimeAgo = (dateString: string) => {
+    const diff = Date.now() - new Date(dateString).getTime()
+    const minutes = Math.floor(diff / 60000)
+    const hours = Math.floor(diff / 3600000)
+    const days = Math.floor(diff / 86400000)
+    const weeks = Math.floor(days / 7)
+    const months = Math.floor(days / 30)
+    if (minutes < 1) return 'Just now'
+    if (minutes < 60) return `${minutes}m ago`
+    if (hours < 24) return `${hours}h ago`
+    if (days < 7) return `${days}d ago`
+    if (weeks < 5) return `${weeks}w ago`
+    if (months < 12) return `${months}mo ago`
+    return `${Math.floor(days / 365)}y ago`
+  }
+
   const getUserAgent = (ua?: string) => {
     if (!ua) return 'Unknown'
     if (ua.includes('Mobile')) return 'Mobile'
@@ -338,7 +354,7 @@ export default function LoginLogsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2 text-sm text-gray-300">
                           <Clock className="w-4 h-4 text-gray-400" />
-                          <span>{formatDate(log.logged_at)}</span>
+                          <span title={formatDate(log.logged_at)} className="cursor-default">{formatTimeAgo(log.logged_at)}</span>
                         </div>
                       </td>
                       {/* Actions */}
@@ -391,7 +407,7 @@ export default function LoginLogsPage() {
                     {/* Time */}
                     <div className="flex items-center gap-2 text-gray-300">
                       <Clock className="w-4 h-4 text-gray-400" />
-                      <span className="text-xs">{formatDate(log.logged_at)}</span>
+                      <span className="text-xs" title={formatDate(log.logged_at)}>{formatTimeAgo(log.logged_at)}</span>
                     </div>
 
                     {/* Location */}
