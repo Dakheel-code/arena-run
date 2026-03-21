@@ -224,7 +224,26 @@ export function AdminDashboard() {
       'Oman': 'OM', 'Jordan': 'JO', 'Lebanon': 'LB', 'Iraq': 'IQ', 'Syria': 'SY',
       'Yemen': 'YE', 'Palestine': 'PS', 'Morocco': 'MA', 'Algeria': 'DZ', 'Tunisia': 'TN',
       'Libya': 'LY', 'Sudan': 'SD', 'Somalia': 'SO',
-      'Greece': 'GR', 'Hellenic Republic': 'GR'
+      'Greece': 'GR', 'Hellenic Republic': 'GR',
+      'Hong Kong': 'HK', 'Belgium': 'BE', 'New Zealand': 'NZ',
+      'Portugal': 'PT', 'Switzerland': 'CH', 'Austria': 'AT', 'Norway': 'NO',
+      'Denmark': 'DK', 'Finland': 'FI', 'Czech Republic': 'CZ', 'Czechia': 'CZ',
+      'Hungary': 'HU', 'Ukraine': 'UA', 'Israel': 'IL', 'Iran': 'IR',
+      'Afghanistan': 'AF', 'Sri Lanka': 'LK', 'Nepal': 'NP', 'Myanmar': 'MM',
+      'Cambodia': 'KH', 'Taiwan': 'TW', 'China': 'CN', 'Mongolia': 'MN',
+      'Kazakhstan': 'KZ', 'Uzbekistan': 'UZ', 'Azerbaijan': 'AZ', 'Georgia': 'GE',
+      'Armenia': 'AM', 'Belarus': 'BY', 'Serbia': 'RS', 'Croatia': 'HR',
+      'Slovakia': 'SK', 'Slovenia': 'SI', 'Bulgaria': 'BG', 'North Macedonia': 'MK',
+      'Albania': 'AL', 'Bosnia and Herzegovina': 'BA', 'Montenegro': 'ME',
+      'South Africa': 'ZA', 'Nigeria': 'NG', 'Kenya': 'KE', 'Ghana': 'GH',
+      'Ethiopia': 'ET', 'Tanzania': 'TZ', 'Uganda': 'UG', 'Cameroon': 'CM',
+      'Ivory Coast': 'CI', "Côte d'Ivoire": 'CI', 'Senegal': 'SN',
+      'Venezuela': 'VE', 'Ecuador': 'EC', 'Bolivia': 'BO', 'Paraguay': 'PY',
+      'Uruguay': 'UY', 'Guatemala': 'GT', 'Honduras': 'HN', 'El Salvador': 'SV',
+      'Costa Rica': 'CR', 'Panama': 'PA', 'Cuba': 'CU', 'Jamaica': 'JM',
+      'Ireland': 'IE', 'Iceland': 'IS', 'Luxembourg': 'LU', 'Malta': 'MT',
+      'Cyprus': 'CY', 'Estonia': 'EE', 'Latvia': 'LV', 'Lithuania': 'LT',
+      'Moldova': 'MD', 'Kosovo': 'XK',
     }
     const code = countryToCode[countryName] || ''
     if (!code) return '🌍'
