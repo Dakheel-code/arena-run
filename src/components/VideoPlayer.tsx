@@ -60,6 +60,8 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
   const [previewFrame, setPreviewFrame] = useState<string>('')
   const previewSeekTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const previewStreamUrlRef = useRef<string>('')
+  const [isDragging, setIsDragging] = useState(false)
+  const wasPausedBeforeDragRef = useRef(false)
   
   const playbackSpeeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4]
 
@@ -415,23 +417,71 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
     seekFeedbackTimeoutRef.current = setTimeout(() => setSeekFeedback(null), 600)
   }
 
-  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const seekToPosition = useCallback((clientX: number, resume: boolean) => {
     const progressBar = progressBarRef.current
     const video = videoRef.current
     if (!progressBar || !video) return
-    
     const rect = progressBar.getBoundingClientRect()
-    const pos = Math.max(0, Math.min((e.clientX - rect.left) / rect.width, 1))
-    const wasPlaying = !video.paused
+    const pos = Math.max(0, Math.min((clientX - rect.left) / rect.width, 1))
     video.currentTime = pos * video.duration
-    // Resume playback after seek
-    if (wasPlaying) {
+    if (resume) {
       const onSeeked = () => {
         video.play()
         video.removeEventListener('seeked', onSeeked)
       }
       video.addEventListener('seeked', onSeeked)
     }
+  }, [])
+
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isDragging) return
+    const video = videoRef.current
+    if (!video) return
+    const wasPlaying = !video.paused
+    seekToPosition(e.clientX, wasPlaying)
+  }
+
+  const handleThumbMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const video = videoRef.current
+    if (!video) return
+    wasPausedBeforeDragRef.current = video.paused
+    if (!video.paused) video.pause()
+    setIsDragging(true)
+    resetControlsTimer()
+
+    const onMouseMove = (ev: MouseEvent) => {
+      seekToPosition(ev.clientX, false)
+      // Update preview
+      const progressBar = progressBarRef.current
+      if (progressBar && duration) {
+        const rect = progressBar.getBoundingClientRect()
+        const pos = Math.max(0, Math.min((ev.clientX - rect.left) / rect.width, 1))
+        const previewTime = pos * duration
+        const xPos = ev.clientX - rect.left
+        setSeekPreview({ visible: true, time: previewTime, x: xPos })
+        if (previewSeekTimeoutRef.current) clearTimeout(previewSeekTimeoutRef.current)
+        previewSeekTimeoutRef.current = setTimeout(() => captureFrameAtTime(previewTime), 100)
+      }
+    }
+
+    const onMouseUp = () => {
+      setIsDragging(false)
+      setSeekPreview({ visible: false, time: 0, x: 0 })
+      if (!wasPausedBeforeDragRef.current) {
+        const vid = videoRef.current
+        if (vid) {
+          const onSeeked = () => { vid.play(); vid.removeEventListener('seeked', onSeeked) }
+          vid.addEventListener('seeked', onSeeked)
+        }
+      }
+      document.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseup', onMouseUp)
+    }
+
+    document.addEventListener('mousemove', onMouseMove)
+    document.addEventListener('mouseup', onMouseUp)
   }
 
   const captureFrameAtTime = useCallback((seekTime: number) => {
@@ -717,9 +767,14 @@ export function VideoPlayer({ videoId, streamUid }: VideoPlayerProps) {
                 className="absolute h-full bg-red-500 rounded-full"
                 style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
               />
-              {/* Thumb */}
+              {/* Thumb - draggable */}
               <div 
-                className="absolute top-1/2 w-3 h-3 bg-red-500 rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity shadow"
+                onMouseDown={handleThumbMouseDown}
+                className={`absolute top-1/2 bg-red-500 rounded-full shadow-lg cursor-grab active:cursor-grabbing transition-all ${
+                  isDragging 
+                    ? 'w-4 h-4 opacity-100 scale-125' 
+                    : 'w-3 h-3 opacity-0 group-hover/progress:opacity-100'
+                }`}
                 style={{ left: `${duration ? (currentTime / duration) * 100 : 0}%`, transform: 'translate(-50%, -50%)' }}
               />
               {/* Seek preview line */}
