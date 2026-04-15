@@ -60,6 +60,7 @@ async function getGuildIds() {
 
 async function checkGuildMembership(userId: string, guildIds: string[]) {
   try {
+    console.log(`[guild-check] userId=${userId} guildIds=${JSON.stringify(guildIds)} botToken=${DISCORD_BOT_TOKEN ? DISCORD_BOT_TOKEN.slice(0,10) + '...' : 'MISSING'}`)
     // Check if user is a member of any of the allowed guilds
     for (const guildId of guildIds) {
       const response = await fetch(
@@ -68,10 +69,13 @@ async function checkGuildMembership(userId: string, guildIds: string[]) {
           headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` },
         }
       )
-      
+      console.log(`[guild-check] guildId=${guildId} status=${response.status}`)
       if (response.ok) {
         return { member: await response.json(), guildId }
       }
+      // Log error body for debugging
+      const errText = await response.text()
+      console.log(`[guild-check] error body: ${errText}`)
     }
     
     return null
