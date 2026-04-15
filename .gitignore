@@ -7,6 +7,8 @@ node_modules/
 # Environment
 .env
 .env.local
+.env.production
+.env.new
 
 # Build
 dist/
