@@ -50,11 +50,14 @@ async function getGuildIds() {
     // ignore
   }
 
-  // Fallback to environment variables
-  const envIds = [
-    process.env.DISCORD_GUILD_ID,
-    process.env.DISCORD_GUILD_ID_2,
-  ].filter(Boolean) as string[]
+  // Fallback to environment variables (supports comma-separated values in DISCORD_GUILD_ID)
+  const envIds: string[] = []
+  if (process.env.DISCORD_GUILD_ID) {
+    process.env.DISCORD_GUILD_ID.split(',').map(id => id.trim()).filter(Boolean).forEach(id => envIds.push(id))
+  }
+  if (process.env.DISCORD_GUILD_ID_2) {
+    envIds.push(process.env.DISCORD_GUILD_ID_2.trim())
+  }
   return envIds
 }
 
