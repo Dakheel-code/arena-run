@@ -248,165 +248,22 @@ export const handler: Handler = async (event) => {
       ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`
       : null
 
-    // Get guild IDs from settings
-    const guildIds = await getGuildIds()
-    console.log('Allowed guild IDs:', guildIds)
-
-    // Check guild membership
-    console.log('Checking guild membership...')
-    const memberResult = await checkGuildMembership(discordUser.id, guildIds)
-    
-    if (!memberResult) {
-      console.log('User is not a member of the required guild')
-      const ip_address = event.headers['x-nf-client-connection-ip'] || 
-                         event.headers['x-forwarded-for']?.split(',')[0].trim() || 
-                         'Unknown'
-      const user_agent = event.headers['user-agent']
-      const location = await getLocationFromIP(ip_address)
-
-      await logLoginAttempt({
-        discord_id: discordUser.id,
-        discord_username: discordUser.username,
-        discord_global_name: discordUser.global_name,
-        discord_avatar: avatarUrl || undefined,
-        email: discordUser.email,
-        status: 'failed',
-        failure_reason: 'Not a member of the required Discord server',
-        ip_address,
-        country: location.country || undefined,
-        city: location.city || undefined,
-        user_agent,
-        is_admin: false,
-        is_member: false
-      })
-
-      // Send notification for unauthorized login attempt
-      const { data: settings } = await supabase
-        .from('settings')
-        .select('notify_unauthorized_login')
-        .single()
-      
-      if (settings?.notify_unauthorized_login) {
-        const locationStr = location.city && location.country 
-          ? `${location.city}, ${location.country}` 
-          : 'Unknown'
-        
-        await sendDiscordNotification(
-          `⚠️ **Unauthorized Login Attempt**\n\n` +
-          `**User:** <@${discordUser.id}>\n` +
-          `**Reason:** Missing required role (Deputy)\n` +
-          `**Location:** ${locationStr}\n` +
-          `**IP Address:** ${ip_address}`,
-          15158332, // Red color
-          {
-            userId: discordUser.id,
-            username: discordUser.username,
-            avatarUrl: avatarUrl || `https://cdn.discordapp.com/embed/avatars/${parseInt(discordUser.id) % 5}.png`
-          }
-        )
-      }
-
-      return {
-        statusCode: 302,
-        headers: { Location: `${APP_URL}/?error=not_in_guild` },
-      }
-    }
-
-    const member = memberResult.member
-    const userGuildId = memberResult.guildId
-    const serverNickname = member.nick || discordUser.global_name || discordUser.username
-    console.log('Server nickname:', serverNickname)
-    
-    // Use guild avatar if available, otherwise use default avatar
-    if (member.avatar) {
-      avatarUrl = `https://cdn.discordapp.com/guilds/${userGuildId}/users/${discordUser.id}/avatars/${member.avatar}.png`
-      console.log('Using guild avatar:', avatarUrl)
-    } else {
-      console.log('Using default Discord avatar:', avatarUrl)
-    }
-
-    // Check for required role
-    console.log('Checking required role...')
-    const allowedRoles = await getAllowedRoles()
-    console.log('Allowed roles:', allowedRoles)
-    console.log('User roles:', member.roles)
-
-    let hasRequiredRole = false
-    if (allowedRoles.length > 0) {
-      // Get guild roles to map IDs to names
-      const guildRolesResponse = await fetch(
-        `https://discord.com/api/guilds/${userGuildId}/roles`,
-        {
-          headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` },
+    // Try guild membership for avatar only (non-blocking)
+    const serverNickname = discordUser.global_name || discordUser.username
+    try {
+      const guildIds = await getGuildIds()
+      if (guildIds.length > 0) {
+        const memberResult = await checkGuildMembership(discordUser.id, guildIds)
+        if (memberResult?.member?.avatar) {
+          avatarUrl = `https://cdn.discordapp.com/guilds/${memberResult.guildId}/users/${discordUser.id}/avatars/${memberResult.member.avatar}.png`
         }
-      )
-      const guildRoles = await guildRolesResponse.json()
-      
-      // Check if user has any of the allowed roles
-      for (const roleId of member.roles || []) {
-        const role = guildRoles.find((r: any) => r.id === roleId)
-        if (role && allowedRoles.includes(role.name)) {
-          console.log('User has allowed role:', role.name)
-          hasRequiredRole = true
-          break
+        if (memberResult?.member?.nick) {
+          // serverNickname already set above, update if guild nick exists
         }
       }
-
-      if (!hasRequiredRole) {
-        console.log('User does not have required role')
-        const ip_address = event.headers['x-nf-client-connection-ip'] || 
-                           event.headers['x-forwarded-for']?.split(',')[0].trim() || 
-                           'Unknown'
-        const user_agent = event.headers['user-agent']
-        const location = await getLocationFromIP(ip_address)
-
-        await logLoginAttempt({
-          discord_id: discordUser.id,
-          discord_username: discordUser.username,
-          discord_global_name: serverNickname,
-          discord_avatar: avatarUrl || undefined,
-          email: discordUser.email,
-          status: 'failed',
-          failure_reason: 'Missing required role',
-          ip_address,
-          country: location.country || undefined,
-          city: location.city || undefined,
-          user_agent,
-          is_admin: false,
-          is_member: true
-        })
-
-        // Send notification for missing role
-        const { data: roleSettings } = await supabase
-          .from('settings')
-          .select('notify_unauthorized_login')
-          .single()
-        
-        if (roleSettings?.notify_unauthorized_login) {
-          const locationStr = location.city && location.country 
-            ? `${location.city}, ${location.country}` 
-            : 'Unknown'
-          
-          await sendDiscordNotification(
-            `⚠️ **Unauthorized Login Attempt**\n\n` +
-            `**User:** <@${discordUser.id}>\n` +
-            `**Reason:** Missing required role (${allowedRoles.join(', ')})\n` +
-            `**Location:** ${locationStr}\n` +
-            `**IP Address:** ${ip_address}`,
-            15105570, // Orange color
-            {
-              userId: discordUser.id,
-              username: serverNickname,
-              avatarUrl: avatarUrl || `https://cdn.discordapp.com/embed/avatars/${parseInt(discordUser.id) % 5}.png`
-            }
-          )
-        }
-
-        return {
-          statusCode: 302,
-          headers: { Location: `${APP_URL}/?error=missing_role` },
-        }
-      }
+    } catch {
+      // Guild check failed - continue anyway
+      console.log('Guild check failed, continuing with members table check')
     }
 
     // Check if member exists in database
@@ -416,7 +273,25 @@ export const handler: Handler = async (event) => {
       .eq('discord_id', discordUser.id)
       .single()
 
-    console.log('Member exists in database:', !!memberData)
+    console.log('Member exists in database:', !!memberData, 'is_active:', memberData?.is_active)
+
+    // If member exists but is disabled - reject
+    if (memberData && !memberData.is_active) {
+      const ip_address = event.headers['x-nf-client-connection-ip'] ||
+                         event.headers['x-forwarded-for']?.split(',')[0].trim() || 'Unknown'
+      await logLoginAttempt({
+        discord_id: discordUser.id,
+        discord_username: discordUser.username,
+        discord_global_name: serverNickname,
+        discord_avatar: avatarUrl || undefined,
+        status: 'failed',
+        failure_reason: 'Account disabled',
+        ip_address,
+        is_admin: false,
+        is_member: false
+      })
+      return { statusCode: 302, headers: { Location: `${APP_URL}/?error=not_member` } }
+    }
 
     if (!memberData) {
       // Create new member
