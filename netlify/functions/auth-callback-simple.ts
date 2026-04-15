@@ -43,12 +43,19 @@ async function getGuildIds() {
       .single()
     
     if (data?.discord_guild_ids) {
-      return data.discord_guild_ids.split(',').map((id: string) => id.trim()).filter(Boolean)
+      const ids = data.discord_guild_ids.split(',').map((id: string) => id.trim()).filter(Boolean)
+      if (ids.length > 0) return ids
     }
-    return []
   } catch (error) {
-    return []
+    // ignore
   }
+
+  // Fallback to environment variables
+  const envIds = [
+    process.env.DISCORD_GUILD_ID,
+    process.env.DISCORD_GUILD_ID_2,
+  ].filter(Boolean) as string[]
+  return envIds
 }
 
 async function checkGuildMembership(userId: string, guildIds: string[]) {
