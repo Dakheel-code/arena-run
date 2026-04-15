@@ -248,22 +248,67 @@ export const handler: Handler = async (event) => {
       ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`
       : null
 
-    // Try guild membership for avatar only (non-blocking)
-    const serverNickname = discordUser.global_name || discordUser.username
-    try {
-      const guildIds = await getGuildIds()
-      if (guildIds.length > 0) {
-        const memberResult = await checkGuildMembership(discordUser.id, guildIds)
-        if (memberResult?.member?.avatar) {
+    let serverNickname = discordUser.global_name || discordUser.username
+    const ip_address = event.headers['x-nf-client-connection-ip'] ||
+                       event.headers['x-forwarded-for']?.split(',')[0].trim() || 'Unknown'
+    const user_agent = event.headers['user-agent']
+
+    // --- Guild membership check (primary security gate) ---
+    const guildIds = await getGuildIds()
+    console.log('Allowed guild IDs:', guildIds)
+    let guildCheckPassed = false
+    let botAvailable = true
+
+    if (guildIds.length > 0) {
+      const memberResult = await checkGuildMembership(discordUser.id, guildIds)
+
+      if (memberResult === null) {
+        // checkGuildMembership returns null either because user not in guild OR bot error
+        // Distinguish: try fetching bot's own info to see if bot token works
+        try {
+          const botSelfRes = await fetch('https://discord.com/api/users/@me', {
+            headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` }
+          })
+          botAvailable = botSelfRes.ok
+        } catch {
+          botAvailable = false
+        }
+
+        if (botAvailable) {
+          // Bot works fine → user genuinely not in guild → reject
+          console.log('User not in guild - rejecting')
+          const location = await getLocationFromIP(ip_address)
+          await logLoginAttempt({
+            discord_id: discordUser.id,
+            discord_username: discordUser.username,
+            discord_global_name: serverNickname,
+            discord_avatar: avatarUrl || undefined,
+            status: 'failed',
+            failure_reason: 'Not a member of the required Discord server',
+            ip_address,
+            country: location.country || undefined,
+            city: location.city || undefined,
+            user_agent,
+            is_admin: false,
+            is_member: false
+          })
+          return { statusCode: 302, headers: { Location: `${APP_URL}/?error=not_in_guild` } }
+        } else {
+          // Bot is down → fallback to members table check
+          console.log('Bot unavailable - falling back to members table')
+          guildCheckPassed = false // will be resolved by members table check below
+        }
+      } else {
+        // User is in guild ✅
+        guildCheckPassed = true
+        if (memberResult.member?.nick) serverNickname = memberResult.member.nick
+        if (memberResult.member?.avatar) {
           avatarUrl = `https://cdn.discordapp.com/guilds/${memberResult.guildId}/users/${discordUser.id}/avatars/${memberResult.member.avatar}.png`
         }
-        if (memberResult?.member?.nick) {
-          // serverNickname already set above, update if guild nick exists
-        }
       }
-    } catch {
-      // Guild check failed - continue anyway
-      console.log('Guild check failed, continuing with members table check')
+    } else {
+      // No guild IDs configured → fallback to members table
+      console.log('No guild IDs configured - falling back to members table')
     }
 
     // Check if member exists in database
@@ -275,10 +320,28 @@ export const handler: Handler = async (event) => {
 
     console.log('Member exists in database:', !!memberData, 'is_active:', memberData?.is_active)
 
+    // If bot was unavailable, enforce members table as security gate
+    if (!botAvailable && !memberData?.is_active) {
+      const location = await getLocationFromIP(ip_address)
+      await logLoginAttempt({
+        discord_id: discordUser.id,
+        discord_username: discordUser.username,
+        discord_global_name: serverNickname,
+        discord_avatar: avatarUrl || undefined,
+        status: 'failed',
+        failure_reason: 'Not authorized (bot unavailable, not in members list)',
+        ip_address,
+        country: location.country || undefined,
+        city: location.city || undefined,
+        user_agent,
+        is_admin: false,
+        is_member: false
+      })
+      return { statusCode: 302, headers: { Location: `${APP_URL}/?error=not_member` } }
+    }
+
     // If member exists but is disabled - reject
     if (memberData && !memberData.is_active) {
-      const ip_address = event.headers['x-nf-client-connection-ip'] ||
-                         event.headers['x-forwarded-for']?.split(',')[0].trim() || 'Unknown'
       await logLoginAttempt({
         discord_id: discordUser.id,
         discord_username: discordUser.username,
@@ -294,6 +357,10 @@ export const handler: Handler = async (event) => {
     }
 
     if (!memberData) {
+      // Only auto-create if guild check passed (user is in the server)
+      if (!guildCheckPassed) {
+        return { statusCode: 302, headers: { Location: `${APP_URL}/?error=not_member` } }
+      }
       // Create new member
       console.log('Creating new member...')
       const { data: newMember, error: insertError } = await supabase
@@ -339,10 +406,6 @@ export const handler: Handler = async (event) => {
     }
 
     // Log successful login
-    const ip_address = event.headers['x-nf-client-connection-ip'] || 
-                       event.headers['x-forwarded-for']?.split(',')[0].trim() || 
-                       'Unknown'
-    const user_agent = event.headers['user-agent']
     const location = await getLocationFromIP(ip_address)
 
     await logLoginAttempt({
